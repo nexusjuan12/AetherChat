@@ -24,9 +24,9 @@ document.getElementById("character-description").textContent = character.descrip
 
 // Add character avatar
 const avatarContainer = document.createElement("div");
-avatarContainer.className = "character-avatar header-avatar";
+avatarContainer.className = "chat-header-avatar"; // Changed class name
 const avatarImg = document.createElement("img");
-avatarImg.src = character.avatar;
+avatarImg.src = "../" + character.avatar;
 avatarImg.alt = character.name;
 avatarContainer.appendChild(avatarImg);
 document.querySelector("header").appendChild(avatarContainer);
@@ -59,7 +59,8 @@ function addMessage(sender, text) {
     const avatarDiv = document.createElement("div");
     avatarDiv.classList.add("message-avatar");
     const avatarImg = document.createElement("img");
-    avatarImg.src = sender === "user" ? "./avatars/default-user.png" : character.avatar;
+    // Update the avatar path in the addMessage function
+    avatarImg.src = sender === "user" ? "../avatars/default-user.png" : "../" + character.avatar;
     avatarImg.alt = sender === "user" ? "You" : character.name;
     avatarDiv.appendChild(avatarImg);
 

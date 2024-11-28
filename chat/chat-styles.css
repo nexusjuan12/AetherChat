@@ -1,0 +1,200 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Chat header avatar */
+.chat-header-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    display: flex;  /* Added this */
+    justify-content: center;  /* Added this */
+    align-items: center;  /* Added this */
+}
+
+.chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;  /* Changed from 'cover' to 'contain' */
+    background: white;  /* Optional: adds a white background */
+}
+/* Main chat area */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-log {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    background: #ffffff;
+    min-height: 0;
+}
+
+/* Message styles */
+.message-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    max-width: 85%;
+}
+
+.message-container.user {
+    flex-direction: row-reverse;
+    margin-left: auto;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.text-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #333;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-container.user .text-bubble {
+    background-color: #007aff;
+    color: #ffffff;
+}
+
+/* Input area */
+.chat-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: #ffffff;
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.chat-input input:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+.chat-input button {
+    padding: 12px 24px;
+    border: none;
+    background-color: #007aff;
+    color: white;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-input button:hover {
+    background-color: #0056b3;
+}
+
+/* Audio controls */
+.audio-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.audio-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.audio-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.audio-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.audio-controls button:hover {
+    background-color: #f0f0f0;
+}
