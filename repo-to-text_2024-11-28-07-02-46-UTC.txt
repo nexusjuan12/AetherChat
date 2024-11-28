@@ -1,0 +1,959 @@
+Directory: main
+
+Directory Structure:
+```
+.
+.
+├── ./.git
+│   ├── ./.git/COMMIT_EDITMSG
+│   ├── ./.git/HEAD
+│   ├── ./.git/config
+│   ├── ./.git/description
+│   ├── ./.git/hooks
+│   │   ├── ./.git/hooks/applypatch-msg.sample
+│   │   ├── ./.git/hooks/commit-msg.sample
+│   │   ├── ./.git/hooks/fsmonitor-watchman.sample
+│   │   ├── ./.git/hooks/post-update.sample
+│   │   ├── ./.git/hooks/pre-applypatch.sample
+│   │   ├── ./.git/hooks/pre-commit.sample
+│   │   ├── ./.git/hooks/pre-merge-commit.sample
+│   │   ├── ./.git/hooks/pre-push.sample
+│   │   ├── ./.git/hooks/pre-rebase.sample
+│   │   ├── ./.git/hooks/pre-receive.sample
+│   │   ├── ./.git/hooks/prepare-commit-msg.sample
+│   │   ├── ./.git/hooks/push-to-checkout.sample
+│   │   └── ./.git/hooks/update.sample
+│   ├── ./.git/index
+│   ├── ./.git/info
+│   │   └── ./.git/info/exclude
+│   ├── ./.git/logs
+│   │   ├── ./.git/logs/HEAD
+│   │       ├── ./.git/logs/refs/heads
+│   │       │   └── ./.git/logs/refs/heads/main
+│   │           └── ./.git/logs/refs/remotes/origin
+│   │               └── ./.git/logs/refs/remotes/origin/main
+│   │   ├── ./.git/objects/0c
+│   │   │   └── ./.git/objects/0c/8d0fdd9f9ef2af8cdd4d67f1f88185a59ab50c
+│   │   ├── ./.git/objects/17
+│   │   │   └── ./.git/objects/17/e972cee13bb778feae076aa8a242a8ce08fcdd
+│   │   ├── ./.git/objects/32
+│   │   │   └── ./.git/objects/32/743131467b1c772e2082f1e9d62a71df74ca22
+│   │   ├── ./.git/objects/39
+│   │   │   └── ./.git/objects/39/137cbcfbae058586e776a1299d40af595f9ae1
+│   │   ├── ./.git/objects/62
+│   │   │   └── ./.git/objects/62/392b2e6bea5138e70aabc9916951e6cae9f451
+│   │   ├── ./.git/objects/71
+│   │   │   └── ./.git/objects/71/09e693cf3c54d4679b34d08c8c16db42c581db
+│   │   ├── ./.git/objects/92
+│   │   │   └── ./.git/objects/92/da63125886661671eb7e2fa1a74ad46e8ecd53
+│   │   ├── ./.git/objects/9b
+│   │   │   └── ./.git/objects/9b/7fc7ecba2a541a72f0123f0b41f72dbd52dd0e
+│   │   ├── ./.git/objects/b2
+│   │   │   └── ./.git/objects/b2/c040a3226140c08d38936214dc1a59758b7fdf
+│   │   ├── ./.git/objects/c1
+│   │   │   └── ./.git/objects/c1/37ba74b0fbe0cfec9fa7a28a20853130e4ce97
+│   │   ├── ./.git/objects/cf
+│   │   │   └── ./.git/objects/cf/761a66dce493f8152e1c77c4f6c8c2dfa23f52
+│   │   ├── ./.git/objects/d3
+│   │   │   └── ./.git/objects/d3/2f3ee328ee12e08b550ddd983650ff3d07be1a
+│   │   ├── ./.git/objects/fc
+│   │   │   └── ./.git/objects/fc/2d7b0716e977786a3c7a17c7ffd0631a5351b1
+│       ├── ./.git/refs/heads
+│       │   └── ./.git/refs/heads/main
+│       │   └── ./.git/refs/remotes/origin
+│       │       └── ./.git/refs/remotes/origin/main
+├── ./.ipynb_checkpoints
+│   ├── ./.ipynb_checkpoints/characters-checkpoint.js
+│   ├── ./.ipynb_checkpoints/chat-checkpoint.html
+│   ├── ./.ipynb_checkpoints/chat-checkpoint.js
+│   ├── ./.ipynb_checkpoints/index-checkpoint.html
+│   ├── ./.ipynb_checkpoints/repo-to-text_2024-11-27-11-29-49-UTC-checkpoint.txt
+│   ├── ./.ipynb_checkpoints/script-checkpoint.js
+│   └── ./.ipynb_checkpoints/styles-checkpoint.css
+├── ./avatars
+│   ├── ./avatars/aria-avatar.png
+│   ├── ./avatars/luna-avatar.png
+│   └── ./avatars/zeke-avatar.png
+├── ./characters.js
+├── ./chat.html
+├── ./chat.js
+├── ./index.html
+├── ./repo-to-text_2024-11-27-11-29-10-UTC.txt
+├── ./repo-to-text_2024-11-27-11-29-49-UTC.txt
+├── ./repo-to-text_2024-11-28-05-56-38-UTC.txt
+├── ./script.js
+└── ./styles.css
+```
+
+Contents of index.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Character Selection</title>
+</head>
+<body>
+    <header>
+        <h1>Select Your Character</h1>
+    </header>
+    <main>
+        <div id="character-grid" class="character-grid"></div>
+    </main>
+    <script src="./script.js" type="module"></script>
+</body>
+</html>
+
+```
+
+Contents of styles.css:
+```
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.character-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+}
+
+.character-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.audio-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.audio-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.chat-log {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: calc(70vh - 120px); /* Adjusted for avatar */
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+.message-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.message-container.user {
+    justify-content: flex-end;
+}
+
+.text-bubble {
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 12px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #333;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-container.user .text-bubble {
+    background-color: #daf1da;
+    color: #2a7d2a;
+}
+
+.chat-input {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    background: #ffffff;
+    position: sticky;
+    bottom: 0;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.chat-input button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.chat-input button:hover {
+    background-color: #555;
+}
+
+/* Scrollbar styling */
+.chat-log::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-log::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.chat-log::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.chat-log::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Audio player styling when visible */
+audio {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: #333;
+    border-radius: 20px;
+    padding: 5px;
+}
+
+audio::-webkit-media-controls-panel {
+    background-color: #333;
+}
+
+/* Character name and description styling */
+#character-name {
+    margin: 0;
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+#character-description {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+    max-width: 600px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .chat-log {
+        max-height: calc(70vh - 100px);
+    }
+
+    .text-bubble {
+        max-width: 85%;
+    }
+
+    .character-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .audio-toggle {
+        padding: 6px 10px;
+        font-size: 16px;
+    }
+}
+```
+
+Contents of script.js:
+```
+import { characters } from "./characters.js";
+
+function loadCharacters() {
+    const grid = document.getElementById("character-grid");
+    
+    characters.forEach(character => {
+        // Create character card
+        const card = document.createElement("div");
+        card.classList.add("character-card");
+
+        card.innerHTML = `
+            <img src="${character.avatar}" alt="${character.name}">
+            <div class="info">
+                <h2>${character.name}</h2>
+                <p>${character.description}</p>
+            </div>
+        `;
+
+        // On click, save character data and redirect to chat
+        card.addEventListener("click", () => {
+            sessionStorage.setItem("selectedCharacter", JSON.stringify(character));
+            window.location.href = "./chat.html";
+        });
+
+        // Append card to the grid
+        grid.appendChild(card);
+    });
+}
+
+// Load characters on page load
+window.onload = loadCharacters;
+
+```
+
+Contents of chat.js:
+```
+const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
+
+// Chat history for context
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;  // Maximum number of exchanges to keep
+
+// Initialize UI
+document.getElementById("character-name").textContent = character.name;
+document.getElementById("character-description").textContent = character.description;
+
+// Add character avatar
+const avatarContainer = document.createElement("div");
+avatarContainer.className = "character-avatar";
+const avatarImg = document.createElement("img");
+avatarImg.src = character.avatar;
+avatarImg.alt = character.name;
+avatarContainer.appendChild(avatarImg);
+document.querySelector("header").appendChild(avatarContainer);
+
+// Add audio controls
+let audioEnabled = true;
+const audioToggle = document.createElement("button");
+audioToggle.className = "audio-toggle";
+audioToggle.innerHTML = "🔊"; // Speaker emoji
+audioToggle.onclick = () => {
+    audioEnabled = !audioEnabled;
+    audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+};
+document.querySelector("header").appendChild(audioToggle);
+
+const KOBOLD_API_URL = "http://136.38.129.228:51080/api/kobold/generate";
+const TTS_API_URL = "http://136.38.129.228:51080/api/tts";
+
+function addMessage(sender, text) {
+    console.log("Adding message:", sender, text);
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container", sender);
+
+    const textBubble = document.createElement("div");
+    textBubble.classList.add("text-bubble");
+    textBubble.innerHTML = `<strong>${sender === "user" ? "You" : character.name}:</strong> ${text}`;
+
+    messageContainer.appendChild(textBubble);
+    chatLog.appendChild(messageContainer);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    // Update chat history
+    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
+    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) { // *2 because each exchange has 2 messages
+        chatHistory.splice(0, 2); // Remove oldest exchange
+    }
+}
+
+async function generatePrompt(userMessage) {
+    // Create a context from chat history
+    const historyText = chatHistory
+        .map(msg => `${msg.role === "user" ? "User" : character.name}: ${msg.content}`)
+        .join("\n");
+
+    return `${character.description}\n\n${historyText}\nUser: ${userMessage}\n${character.name}:`;
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    const audioPlayer = document.createElement("audio");
+    audioPlayer.src = audioUrl;
+    audioPlayer.controls = true;
+    audioPlayer.style.display = "none";
+    document.body.appendChild(audioPlayer);
+    
+    try {
+        await audioPlayer.play();
+        audioPlayer.onended = () => audioPlayer.remove();
+    } catch (error) {
+        console.error("Audio playback error:", error);
+        audioPlayer.remove();
+    }
+}
+
+async function sendMessage() {
+    try {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        console.log("Sending message:", userMessage);
+        addMessage("user", userMessage);
+        userInput.value = "";
+
+        const prompt = await generatePrompt(userMessage);
+        const requestBody = {
+            max_context_length: 2048,
+            max_length: 150,
+            prompt: prompt,
+            temperature: 0.7,
+            top_p: 0.9,
+            rep_pen: 1.1,
+            rep_pen_range: 256
+        };
+
+        console.log("Sending to Kobold:", requestBody);
+
+        const koboldResponse = await fetch(KOBOLD_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!koboldResponse.ok) {
+            throw new Error(`Kobold API error: ${koboldResponse.status}`);
+        }
+
+        const responseData = await koboldResponse.json();
+        console.log("Kobold response:", responseData);
+
+        if (!responseData.results || !responseData.results[0] || !responseData.results[0].text) {
+            throw new Error("Invalid response format from Kobold API");
+        }
+
+        const botMessage = responseData.results[0].text.trim();
+        console.log("Bot message:", botMessage);
+        
+        addMessage("bot", botMessage);
+
+        // Now handle TTS
+        try {
+            const ttsResponse = await fetch(TTS_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    text: botMessage,
+                    edge_voice: character.ttsVoice,
+                    rvc_model: character.id
+                })
+            });
+
+            if (!ttsResponse.ok) {
+                throw new Error(`TTS API error: ${ttsResponse.status}`);
+            }
+
+            const ttsData = await ttsResponse.json();
+            console.log("TTS response:", ttsData);
+            
+            const audioUrl = `http://136.38.129.228:51080${ttsData.audio_url}`;
+            await playAudio(audioUrl);
+
+        } catch (error) {
+            console.error("TTS error:", error);
+            // Continue without audio - no error message needed
+        }
+
+    } catch (error) {
+        console.error("Error details:", error.message);
+        console.error("Full error:", error);
+        addMessage("bot", "I apologize, there was an error processing your message.");
+    }
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Chat interface initializing...");
+    console.log("Character loaded:", character);
+
+    sendButton.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    console.log("Chat interface initialized");
+});
+```
+
+Contents of characters.js:
+```
+export const characters = [
+    {
+        id: "aria",
+        name: "Aria",
+        avatar: "./avatars/aria-avatar.png",
+        description: "Aria is a cheerful and optimistic AI assistant. She is always eager to help with any question.",
+        ttsVoice: "en-US-JennyNeural",
+        rvcModel: "aria"  // Add this for RVC model name
+    },
+    {
+        id: "luna",
+        name: "Luna",
+        avatar: "./avatars/luna-avatar.png",
+        description: "Luna is a calm and enigmatic sorceress who always offers wise and mysterious insights.",
+        ttsVoice: "en-GB-SoniaNeural",
+        rvcModel: "luna"  // Add this for RVC model name
+    },
+    {
+        id: "zeke",
+        name: "Zeke",
+        avatar: "./avatars/zeke-avatar.png",
+        description: "Zeke is a witty and sarcastic rogue hacker with a passion for technology.",
+        ttsVoice: "en-US-GuyNeural",
+        rvcModel: "zeke"  // Add this for RVC model name
+    }
+];
+```
+
+Contents of chat.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Chat</title>
+</head>
+<body>
+    <header>
+        <div class="character-avatar">
+            <!-- Avatar will be inserted here by JavaScript -->
+        </div>
+        <h1 id="character-name">Character Name</h1>
+        <p id="character-description">Character Description</p>
+    </header>
+    <main>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input">
+            <input id="user-input" type="text" placeholder="Type your message here..." />
+            <button id="send-button">Send</button>
+        </div>
+    </main>
+    <script src="./chat.js" type="module"></script>
+</body>
+</html>
+```
+
+Contents of .ipynb_checkpoints/styles-checkpoint.css:
+```
+/* Add these styles to your existing styles.css */
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.character-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.character-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.character-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    border: 3px solid #f4f4f9;
+}
+
+.character-card .info {
+    text-align: center;
+}
+
+.character-card h2 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.character-card p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+```
+
+Contents of .ipynb_checkpoints/index-checkpoint.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Character Selection</title>
+</head>
+<body>
+    <header>
+        <h1>Select Your Character</h1>
+    </header>
+    <main>
+        <div id="character-grid" class="character-grid"></div>
+    </main>
+    <script src="./script.js" type="module"></script>
+</body>
+</html>
+
+```
+
+Contents of .ipynb_checkpoints/script-checkpoint.js:
+```
+import { characters } from "./characters.js";
+
+function loadCharacters() {
+    const grid = document.getElementById("character-grid");
+    
+    characters.forEach(character => {
+        // Create character card
+        const card = document.createElement("div");
+        card.classList.add("character-card");
+
+        card.innerHTML = `
+            <img src="${character.avatar}" alt="${character.name}">
+            <div class="info">
+                <h2>${character.name}</h2>
+                <p>${character.description}</p>
+            </div>
+        `;
+
+        // On click, save character data and redirect to chat
+        card.addEventListener("click", () => {
+            sessionStorage.setItem("selectedCharacter", JSON.stringify(character));
+            window.location.href = "./chat.html";
+        });
+
+        // Append card to the grid
+        grid.appendChild(card);
+    });
+}
+
+// Load characters on page load
+window.onload = loadCharacters;
+
+```
+
+Contents of .ipynb_checkpoints/characters-checkpoint.js:
+```
+export const characters = [
+    {
+        id: "aria",
+        name: "Aria",
+        avatar: "./avatars/aria-avatar.png",
+        description: "Aria is a cheerful and optimistic AI assistant. She is always eager to help with any question.",
+        ttsVoice: "en-US-JennyNeural",
+        rvcModel: "aria"  // Add this for RVC model name
+    },
+    {
+        id: "luna",
+        name: "Luna",
+        avatar: "./avatars/luna-avatar.png",
+        description: "Luna is a calm and enigmatic sorceress who always offers wise and mysterious insights.",
+        ttsVoice: "en-GB-SoniaNeural",
+        rvcModel: "luna"  // Add this for RVC model name
+    },
+    {
+        id: "zeke",
+        name: "Zeke",
+        avatar: "./avatars/zeke-avatar.png",
+        description: "Zeke is a witty and sarcastic rogue hacker with a passion for technology.",
+        ttsVoice: "en-US-GuyNeural",
+        rvcModel: "zeke"  // Add this for RVC model name
+    }
+];
+```
+
+Contents of .ipynb_checkpoints/chat-checkpoint.js:
+```
+const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
+
+// Chat history for context
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;  // Maximum number of exchanges to keep
+
+// Initialize UI
+document.getElementById("character-name").textContent = character.name;
+document.getElementById("character-description").textContent = character.description;
+
+// Add character avatar
+const avatarContainer = document.createElement("div");
+avatarContainer.className = "character-avatar";
+const avatarImg = document.createElement("img");
+avatarImg.src = character.avatar;
+avatarImg.alt = character.name;
+avatarContainer.appendChild(avatarImg);
+document.querySelector("header").appendChild(avatarContainer);
+
+// Add audio controls
+let audioEnabled = true;
+const audioToggle = document.createElement("button");
+audioToggle.className = "audio-toggle";
+audioToggle.innerHTML = "🔊"; // Speaker emoji
+audioToggle.onclick = () => {
+    audioEnabled = !audioEnabled;
+    audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+};
+document.querySelector("header").appendChild(audioToggle);
+
+const KOBOLD_API_URL = "http://136.38.129.228:51080/api/kobold/generate";
+const TTS_API_URL = "http://136.38.129.228:51080/api/tts";
+
+function addMessage(sender, text) {
+    console.log("Adding message:", sender, text);
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container", sender);
+
+    const textBubble = document.createElement("div");
+    textBubble.classList.add("text-bubble");
+    textBubble.innerHTML = `<strong>${sender === "user" ? "You" : character.name}:</strong> ${text}`;
+
+    messageContainer.appendChild(textBubble);
+    chatLog.appendChild(messageContainer);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    // Update chat history
+    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
+    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) { // *2 because each exchange has 2 messages
+        chatHistory.splice(0, 2); // Remove oldest exchange
+    }
+}
+
+async function generatePrompt(userMessage) {
+    // Create a context from chat history
+    const historyText = chatHistory
+        .map(msg => `${msg.role === "user" ? "User" : character.name}: ${msg.content}`)
+        .join("\n");
+
+    return `${character.description}\n\n${historyText}\nUser: ${userMessage}\n${character.name}:`;
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    const audioPlayer = document.createElement("audio");
+    audioPlayer.src = audioUrl;
+    audioPlayer.controls = true;
+    audioPlayer.style.display = "none";
+    document.body.appendChild(audioPlayer);
+    
+    try {
+        await audioPlayer.play();
+        audioPlayer.onended = () => audioPlayer.remove();
+    } catch (error) {
+        console.error("Audio playback error:", error);
+        audioPlayer.remove();
+    }
+}
+
+async function sendMessage() {
+    try {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        console.log("Sending message:", userMessage);
+        addMessage("user", userMessage);
+        userInput.value = "";
+
+        const prompt = await generatePrompt(userMessage);
+        const requestBody = {
+            max_context_length: 2048,
+            max_length: 150,
+            prompt: prompt,
+            temperature: 0.7,
+            top_p: 0.9,
+            rep_pen: 1.1,
+            rep_pen_range: 256
+        };
+
+        console.log("Sending to Kobold:", requestBody);
+
+        const koboldResponse = await fetch(KOBOLD_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!koboldResponse.ok) {
+            throw new Error(`Kobold API error: ${koboldResponse.status}`);
+        }
+
+        const responseData = await koboldResponse.json();
+        console.log("Kobold response:", responseData);
+
+        if (!responseData.results || !responseData.results[0] || !responseData.results[0].text) {
+            throw new Error("Invalid response format from Kobold API");
+        }
+
+        const botMessage = responseData.results[0].text.trim();
+        console.log("Bot message:", botMessage);
+        
+        addMessage("bot", botMessage);
+
+        // Now handle TTS
+        try {
+            const ttsResponse = await fetch(TTS_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    text: botMessage,
+                    edge_voice: character.ttsVoice,
+                    rvc_model: character.id
+                })
+            });
+
+            if (!ttsResponse.ok) {
+                throw new Error(`TTS API error: ${ttsResponse.status}`);
+            }
+
+            const ttsData = await ttsResponse.json();
+            console.log("TTS response:", ttsData);
+            
+            const audioUrl = `http://136.38.129.228:51080${ttsData.audio_url}`;
+            await playAudio(audioUrl);
+
+        } catch (error) {
+            console.error("TTS error:", error);
+            // Continue without audio - no error message needed
+        }
+
+    } catch (error) {
+        console.error("Error details:", error.message);
+        console.error("Full error:", error);
+        addMessage("bot", "I apologize, there was an error processing your message.");
+    }
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Chat interface initializing...");
+    console.log("Character loaded:", character);
+
+    sendButton.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    console.log("Chat interface initialized");
+});
+```
+
+Contents of .ipynb_checkpoints/chat-checkpoint.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>Chat</title>
+</head>
+<body>
+    <header>
+        <div class="character-avatar">
+            <!-- Avatar will be inserted here by JavaScript -->
+        </div>
+        <h1 id="character-name">Character Name</h1>
+        <p id="character-description">Character Description</p>
+    </header>
+    <main>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input">
+            <input id="user-input" type="text" placeholder="Type your message here..." />
+            <button id="send-button">Send</button>
+        </div>
+    </main>
+    <script src="./chat.js" type="module"></script>
+</body>
+</html>
+```
+
+Contents of avatars/aria-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/luna-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/zeke-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
