@@ -47,7 +47,7 @@ audioToggle.onclick = () => {
 };
 document.querySelector("header").appendChild(audioToggle);
 
-const CHAT_API_URL = "http://136.38.129.228:51080/api/chat/completions";
+const CHAT_API_URL = "http://136.38.129.228:51080/v1/chat/completions";
 const TTS_API_URL = "http://136.38.129.228:51080/api/tts";
 
 function addMessage(sender, text) {

@@ -133,43 +133,24 @@ main {
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
+    min-height: 0;  /* Allows container to scroll */
+    overflow: auto;  /* Enables scrolling if content overflows */
 }
 
-/* Collections section */
-.collections-section {
-    margin-bottom: 40px;
-}
-
-.collections-section h2 {
-    margin-bottom: 20px;
-    color: #1a1a1a;
-}
-
-#collections-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.collection-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.collection-card:hover {
-    transform: translateY(-2px);
-}
 
 /* Character grid */
+#character-section {
+    max-height: calc(100vh - 300px);  /* Adjust based on your header/footer size */
+    overflow-y: auto;
+    padding-right: 5px;  /* Space for scrollbar */
+}
+
 #character-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .character-card {
@@ -178,6 +159,7 @@ main {
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: transform 0.2s;
+    min-width: 0;  /* Prevents cards from overflowing grid */
 }
 
 .character-card:hover {
@@ -236,12 +218,14 @@ main {
 
 .list-view .character-card {
     display: flex;
-    height: 150px;
+    height: auto;
+    min-height: 150px;
 }
 
 .list-view .character-image {
     width: 150px;
     height: 150px;
+    flex-shrink: 0;
 }
 
 .list-view .character-info {
@@ -365,4 +349,98 @@ dialog::backdrop {
 
 .create-character-button .icon {
     font-size: 1.2rem;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 0 15px;
+    }
+
+    .search-bar {
+        flex: 0 1 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-bar {
+        flex: none;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    #clear-filters {
+        align-self: flex-start;
+    }
+
+    .dialog-content {
+        min-width: auto;
+        width: 90vw;
+    }
+}
+
+@media (max-width: 480px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+
+    .list-view .character-card {
+        flex-direction: column;
+    }
+
+    .list-view .character-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .create-character-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+    }
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: "Loading characters...";
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Error state */
+.error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+/* No results state */
+.no-results {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 1.1rem;
 }

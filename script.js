@@ -1,6 +1,5 @@
 // State management
 let characters = [];
-let collections = [];
 let activeFilters = {
     categories: new Set(),
     tags: new Set(),
@@ -22,29 +21,6 @@ const createCharacterBtn = document.getElementById('create-character');
 const characterFormDialog = document.getElementById('character-form-dialog');
 const characterForm = document.getElementById('character-form');
 const closeDialogBtn = document.getElementById('close-dialog');
-const collectionsGrid = document.getElementById('collections-grid');
-
-// Initialize collections
-const defaultCollections = [
-    {
-        id: 'ai-assistants',
-        name: 'AI Assistants',
-        description: 'Helpful digital companions',
-        category: 'AI Assistant'
-    },
-    {
-        id: 'mystics',
-        name: 'Mystics & Sorcerers',
-        description: 'Masters of magic and mystery',
-        category: 'Mystics'
-    },
-    {
-        id: 'tech-experts',
-        name: 'Tech Experts',
-        description: 'Digital pioneers and hackers',
-        category: 'Tech Expert'
-    }
-];
 
 // Utility functions
 function debounce(func, wait) {
@@ -70,20 +46,24 @@ function shuffleArray(array) {
 // Character loading and filtering
 async function loadCharacters() {
     try {
+        console.log("Starting to load characters...");
         const response = await fetch('./characters/index.json');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const indexData = await response.json();
+        console.log("Loaded index data:", indexData);
         
         characters = await Promise.all(
             indexData.characters.map(async file => {
+                console.log("Loading character file:", file);
                 const response = await fetch(`./characters/${file}`);
                 if (!response.ok) {
                     console.error(`Failed to load character file: ${file}`);
                     return null;
                 }
                 const data = await response.json();
+                console.log("Loaded character:", data);
                 return data;
             })
         );
@@ -91,10 +71,9 @@ async function loadCharacters() {
         // Filter out any failed loads
         characters = characters.filter(char => char !== null);
         
-        console.log('Loaded characters:', characters);
+        console.log('Final loaded characters:', characters);
         
         initializeFilters();
-        initializeCollections();
         updateCharacterDisplay();
     } catch (error) {
         console.error('Error loading characters:', error);
@@ -148,41 +127,6 @@ function toggleFilter(value, type) {
     }
     
     updateCharacterDisplay();
-}
-
-function initializeCollections() {
-    collections = defaultCollections;
-    renderCollections();
-}
-
-function renderCollections() {
-    collectionsGrid.innerHTML = '';
-    collections.forEach(collection => {
-        const collectionCharacters = characters.filter(char => 
-            char.category === collection.category);
-        
-        const collectionCard = document.createElement('div');
-        collectionCard.classList.add('collection-card');
-        collectionCard.innerHTML = `
-            <h3>${collection.name}</h3>
-            <p>${collection.description}</p>
-            <span class="character-count">${collectionCharacters.length} characters</span>
-        `;
-        
-        collectionCard.addEventListener('click', () => {
-            clearFilters();
-            activeFilters.categories.add(collection.category);
-            updateCharacterDisplay();
-            // Update filter UI
-            const categoryBtn = [...document.querySelectorAll('.filter-option')]
-                .find(btn => btn.textContent === collection.category);
-            if (categoryBtn) {
-                categoryBtn.classList.add('active');
-            }
-        });
-        
-        collectionsGrid.appendChild(collectionCard);
-    });
 }
 
 function filterCharacters() {
@@ -296,7 +240,6 @@ sortSelect?.addEventListener('change', e => {
 clearFiltersBtn?.addEventListener('click', clearFilters);
 
 createCharacterBtn?.addEventListener('click', () => {
-    initializeCharacterForm();
     characterFormDialog.showModal();
 });
 
