@@ -1,0 +1,4978 @@
+Directory: main
+
+Directory Structure:
+```
+.
+.
+├── ./.git
+│   ├── ./.git/COMMIT_EDITMSG
+│   ├── ./.git/HEAD
+│   ├── ./.git/config
+│   ├── ./.git/description
+│   ├── ./.git/hooks
+│   │   ├── ./.git/hooks/applypatch-msg.sample
+│   │   ├── ./.git/hooks/commit-msg.sample
+│   │   ├── ./.git/hooks/fsmonitor-watchman.sample
+│   │   ├── ./.git/hooks/post-update.sample
+│   │   ├── ./.git/hooks/pre-applypatch.sample
+│   │   ├── ./.git/hooks/pre-commit.sample
+│   │   ├── ./.git/hooks/pre-merge-commit.sample
+│   │   ├── ./.git/hooks/pre-push.sample
+│   │   ├── ./.git/hooks/pre-rebase.sample
+│   │   ├── ./.git/hooks/pre-receive.sample
+│   │   ├── ./.git/hooks/prepare-commit-msg.sample
+│   │   ├── ./.git/hooks/push-to-checkout.sample
+│   │   └── ./.git/hooks/update.sample
+│   ├── ./.git/index
+│   ├── ./.git/info
+│   │   └── ./.git/info/exclude
+│   ├── ./.git/logs
+│   │   ├── ./.git/logs/HEAD
+│   │       ├── ./.git/logs/refs/heads
+│   │       │   └── ./.git/logs/refs/heads/main
+│   │           └── ./.git/logs/refs/remotes/origin
+│   │               ├── ./.git/logs/refs/remotes/origin/HEAD
+│   │               └── ./.git/logs/refs/remotes/origin/main
+│   │   ├── ./.git/objects/03
+│   │   │   └── ./.git/objects/03/cd0b6a04494f528d7cc459d7af75f6d8ad5e34
+│   │   ├── ./.git/objects/1b
+│   │   │   └── ./.git/objects/1b/002e8b2386c9bb3057d2dfef529f0a923f38f9
+│   │   ├── ./.git/objects/29
+│   │   │   └── ./.git/objects/29/4e30c594d62efc45b7555b2f023e016f8938c0
+│   │   ├── ./.git/objects/36
+│   │   │   └── ./.git/objects/36/93c4a026e055c067bf8ae0c99d064c431867cf
+│   │   ├── ./.git/objects/3a
+│   │   │   └── ./.git/objects/3a/9d6261bd606f6bb33d0e15d86416e8bdf641f0
+│   │   ├── ./.git/objects/44
+│   │   │   └── ./.git/objects/44/0a417412348ceb5841467d7b0196f72da3d3ff
+│   │   ├── ./.git/objects/4d
+│   │   │   └── ./.git/objects/4d/ecac6106ffcea9764fdcd74a49dd75b2c7af08
+│   │   ├── ./.git/objects/50
+│   │   │   ├── ./.git/objects/50/9aecb36ad162410f7fa21ba0340c17c37b2bcb
+│   │   │   └── ./.git/objects/50/f561476117464d0dad1623918970db84541d4b
+│   │   ├── ./.git/objects/56
+│   │   │   └── ./.git/objects/56/1064d6990c0dd82a97dab57efbccd5ecfca063
+│   │   ├── ./.git/objects/95
+│   │   │   └── ./.git/objects/95/1aa344213f5f7b5eb4f119f278e944f4295774
+│   │   ├── ./.git/objects/9e
+│   │   │   └── ./.git/objects/9e/dcbbe8ebb41f9b76a0a8b62c0b15af5115edfd
+│   │   ├── ./.git/objects/b5
+│   │   │   └── ./.git/objects/b5/ea542d6358de60f904606134855df4e9c7da76
+│   │   ├── ./.git/objects/c2
+│   │   │   ├── ./.git/objects/c2/8123e8ff99f399fbbcd1af2c2e3cce29acc69f
+│   │   │   └── ./.git/objects/c2/fe4457bd81a5d8174fa10dd2c8aa8c6b840dd5
+│   │   ├── ./.git/objects/d4
+│   │   │   └── ./.git/objects/d4/b4841436f838be0966a221371398a3e63628c1
+│   │   ├── ./.git/objects/df
+│   │   │   └── ./.git/objects/df/c5cfa1b8a559c46a0b04111642fc1d2d510627
+│   │   ├── ./.git/objects/e9
+│   │   │   └── ./.git/objects/e9/52a0ff534c84d7d33d85cf8d734758a561c418
+│   │   ├── ./.git/objects/ec
+│   │   │   └── ./.git/objects/ec/f8feeede6a957a03f6ea030a92fbbbfafdc3f1
+│   │   ├── ./.git/objects/fb
+│   │   │   └── ./.git/objects/fb/d26cf208f68f59614b23f58da7acc22c0fbd09
+│   │   └── ./.git/objects/pack
+│   │       ├── ./.git/objects/pack/pack-be269ee781faeeadfca208ad518d50335b50cbc8.idx
+│   │       └── ./.git/objects/pack/pack-be269ee781faeeadfca208ad518d50335b50cbc8.pack
+│   ├── ./.git/packed-refs
+│       ├── ./.git/refs/heads
+│       │   └── ./.git/refs/heads/main
+│       │   └── ./.git/refs/remotes/origin
+│       │       ├── ./.git/refs/remotes/origin/HEAD
+│       │       └── ./.git/refs/remotes/origin/main
+├── ./.ipynb_checkpoints
+│   ├── ./.ipynb_checkpoints/index-checkpoint.html
+│   ├── ./.ipynb_checkpoints/index-checkpoint.json
+│   ├── ./.ipynb_checkpoints/script-checkpoint.js
+│   ├── ./.ipynb_checkpoints/styles-checkpoint.css
+│   └── ./.ipynb_checkpoints/watch_characters-checkpoint.py
+├── ./136.38.129.228+2-key.pem
+├── ./136.38.129.228+2.pem
+├── ./app.py
+│   └── ./assets/sounds
+│       └── ./assets/sounds/phone-ring.mp3
+├── ./avatars
+│   ├── ./avatars/aria-avatar.png
+│   ├── ./avatars/beetlejuice-avatar.png
+│   ├── ./avatars/default-user.png
+│   ├── ./avatars/jeffy-avatar.png
+│   ├── ./avatars/luna-avatar.png
+│   ├── ./avatars/meatcanyon-avatar.png
+│   ├── ./avatars/meatwad-avatar.png
+│   ├── ./avatars/onyx-avatar.png
+│   └── ./avatars/zeke-avatar.png
+├── ./characters
+│   ├── ./characters/.ipynb_checkpoints
+│   │   ├── ./characters/.ipynb_checkpoints/aria-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/beetlejuice-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/index-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/jeffy-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/luna-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/meatcanyon-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/meatwad-checkpoint.json
+│   │   ├── ./characters/.ipynb_checkpoints/onyx-checkpoint.json
+│   │   └── ./characters/.ipynb_checkpoints/rick-checkpoint.json
+│   ├── ./characters/aria.json
+│   ├── ./characters/beetlejuice.json
+│   ├── ./characters/index.json
+│   ├── ./characters/jeffy.json
+│   ├── ./characters/luna.json
+│   ├── ./characters/meatcanyon.json
+│   ├── ./characters/meatwad.json
+│   ├── ./characters/onyx.json
+│   └── ./characters/rick.json
+├── ./chat
+│   ├── ./chat/.ipynb_checkpoints
+│   │   ├── ./chat/.ipynb_checkpoints/chat-checkpoint.html
+│   │   ├── ./chat/.ipynb_checkpoints/chat-checkpoint.js
+│   │   └── ./chat/.ipynb_checkpoints/chat-styles-checkpoint.css
+│   ├── ./chat/chat-Copy1.js
+│   ├── ./chat/chat-styles.css
+│   ├── ./chat/chat.html
+│   └── ./chat/chat.js
+├── ./documentation.txt
+├── ./index.html
+├── ./index.json
+├── ./script.js
+├── ./styles.css
+└── ./watch_characters.py
+```
+
+Contents of index.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Preload critical styles -->
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Add a loading state -->
+    <style>
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        .loading::after {
+            content: "Loading characters...";
+            color: #666;
+            font-size: 1.2rem;
+        }
+    </style>
+    <title>Character Selection</title>
+</head>
+<body>
+    <header>
+        <h1>Select Your Character</h1>
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" id="search" placeholder="Search characters...">
+            </div>
+            <div class="view-controls">
+                <button id="grid-view" class="active" title="Grid View">
+                    <span class="icon">⊞</span>
+                </button>
+                <button id="list-view" title="List View">
+                    <span class="icon">≣</span>
+                </button>
+            </div>
+            <div class="sort-controls">
+                <select id="sort-select">
+                    <option value="random">Random</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="newest">Newest First</option>
+                    <option value="category">Category</option>
+                </select>
+            </div>
+        </div>
+        <div class="filters">
+            <div class="filter-section">
+                <h3>Categories</h3>
+                <div id="category-filters" class="filter-options"></div>
+            </div>
+            <button id="clear-filters">Clear Filters</button>
+        </div>
+    </header>
+    <main>
+        <div id="character-section">
+            <div id="character-grid" class="loading"></div>
+        </div>
+    </main>
+
+    <section class="tag-section">
+        <h3>Tags</h3>
+        <div id="tag-filters" class="all-tags"></div>
+    </section>
+
+    <div id="create-character" class="create-character-button">
+        <span class="icon">+</span>
+        Create Character
+    </div>
+    <dialog id="character-form-dialog">
+        <div class="dialog-content">
+            <h2>Create New Character</h2>
+            <form id="character-form">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="systemPrompt">System Prompt</label>
+                    <textarea id="systemPrompt" name="systemPrompt" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" required>
+                </div>
+                <div class="form-group">
+                    <label for="tags">Tags (comma-separated)</label>
+                    <input type="text" id="tags" name="tags">
+                </div>
+                <div class="form-group">
+                    <label for="avatar">Avatar URL</label>
+                    <input type="text" id="avatar" name="avatar" required>
+                </div>
+                <div class="form-group">
+                    <label for="sex">Sex</label>
+                    <select id="sex" name="sex" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orientation">Orientation</label>
+                    <select id="orientation" name="orientation" required>
+                        <option value="None">None</option>
+                        <option value="Straight">Straight</option>
+                        <option value="Gay">Gay</option>
+                        <option value="Bisexual">Bisexual</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ttsVoice">TTS Voice</label>
+                    <input type="text" id="ttsVoice" name="ttsVoice" required>
+                </div>
+                <div class="form-group">
+                    <label for="tts_rate">TTS Rate</label>
+                    <input type="number" id="tts_rate" name="tts_rate" placeholder="0 (default)">
+                </div>
+                <div class="form-group">
+                    <label for="rvc_pitch">RVC Pitch</label>
+                    <input type="number" id="rvc_pitch" name="rvc_pitch" placeholder="0 (default)">
+                </div>
+                <div class="form-group">
+                    <label>NSFW</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="nsfw" value="false" checked> No
+                        </label>
+                        <label>
+                            <input type="radio" name="nsfw" value="true"> Yes
+                        </label>
+                    </div>
+                </div>
+            </form>
+            <div class="dialog-buttons">
+                <button type="button" id="close-dialog">Cancel</button>
+                <button type="submit" form="character-form">Create</button>
+            </div>
+        </div>
+    </dialog>
+    <script src="./script.js" type="module"></script>
+</body>
+</html>
+
+```
+
+Contents of index.json:
+```
+{
+    "characters": [],
+    "lastUpdated": "2024-11-28T00:00:00Z"
+}
+EOF
+```
+
+Contents of script.js:
+```
+// Constants
+const API_CHAT_URL = '/v1/chat/completions';
+const API_TTS_URL = '/api/tts';
+const CHARACTER_INDEX_URL = '/characters/index.json';
+
+// Utility: Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Utility: Shuffle array
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// State management
+let characters = [];
+let activeFilters = {
+  categories: new Set(),
+  tags: new Set(),
+  search: '',
+  view: 'grid',
+  sort: 'random',
+};
+
+// Load characters from the index
+async function loadCharacters() {
+  try {
+    console.log("Fetching character index...");
+    const response = await fetch(CHARACTER_INDEX_URL);
+    if (!response.ok) throw new Error(`Failed to load character index: ${response.status}`);
+
+    const data = await response.json();
+    console.log("Character index loaded:", data);
+
+    // Load individual character files
+    characters = await Promise.all(
+      data.characters.map(async (file) => {
+        try {
+          const response = await fetch(`/characters/${file}`);
+          if (!response.ok) throw new Error(`Failed to load character file: ${file}`);
+          return await response.json();
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values
+    characters = characters.filter((char) => char !== null);
+
+    console.log("Final character list:", characters);
+    initializeFilters();
+    updateCharacterDisplay();
+  } catch (error) {
+    console.error('Error loading characters:', error);
+  }
+}
+
+// Initialize filters for categories and tags
+function initializeFilters() {
+  const categories = new Set();
+  const tags = new Set();
+
+  characters.forEach((char) => {
+    if (char.category) categories.add(char.category);
+    if (char.tags) char.tags.forEach((tag) => tags.add(tag));
+  });
+
+  // Populate filter UI (example elements)
+  const categoryFilters = document.getElementById('category-filters');
+  const tagFilters = document.getElementById('tag-filters');
+  categoryFilters.innerHTML = '';
+  tags.forEach((tag) => {
+    const btn = createFilterButton(tag, 'tag');
+    tagFilters.appendChild(btn);
+  });
+}
+
+// Create filter buttons
+function createFilterButton(value, type) {
+  const button = document.createElement('button');
+  button.classList.add('filter-option');
+  button.textContent = value;
+  button.addEventListener('click', () => toggleFilter(value, type));
+  return button;
+}
+
+// Update displayed characters based on filters
+function updateCharacterDisplay() {
+  const filteredChars = filterCharacters();
+  const sortedChars = sortCharacters(filteredChars);
+
+  // Example DOM element
+  const characterGrid = document.getElementById('character-grid');
+  characterGrid.innerHTML = '';
+
+  if (sortedChars.length === 0) {
+    characterGrid.innerHTML = '<p>No characters found.</p>';
+    return;
+  }
+
+  sortedChars.forEach((char) => {
+    const card = createCharacterCard(char);
+    characterGrid.appendChild(card);
+  });
+}
+
+// Filter and sort logic
+function filterCharacters() {
+  return characters.filter((char) => {
+    const matchesSearch = char.name.toLowerCase().includes(activeFilters.search.toLowerCase());
+    const matchesCategories = !activeFilters.categories.size || activeFilters.categories.has(char.category);
+    const matchesTags = !activeFilters.tags.size || char.tags.some((tag) => activeFilters.tags.has(tag));
+    return matchesSearch && matchesCategories && matchesTags;
+  });
+}
+
+function sortCharacters(chars) {
+  if (activeFilters.sort === 'random') return shuffleArray([...chars]);
+  return chars.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// Create a character card for display
+function createCharacterCard(char) {
+  const card = document.createElement('div');
+  card.classList.add('character-card');
+
+  const tagsHtml = char.tags
+    ? char.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')
+    : '';
+
+  card.innerHTML = `
+    <img class="character-image" src="${char.avatar}" alt="${char.name}" onerror="this.src='./avatars/default-user.png'">
+    <div class="character-info">
+        <h2>${char.name}</h2>
+        <p>${char.description}</p>
+        <div class="character-meta">
+            ${char.category ? `<span class="category-badge">${char.category}</span>` : ''}
+            ${tagsHtml}
+        </div>
+    </div>
+  `;
+
+  card.addEventListener('click', () => {
+    sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
+    window.location.href = './chat/chat.html';
+  });
+
+  return card;
+}
+
+// Function to send a chat completion request
+async function sendChatCompletion(payload) {
+  try {
+    const response = await fetch(API_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Chat completion failed: ${response.status}`);
+    const data = await response.json();
+    console.log("Chat completion response:", data);
+    return data;
+  } catch (error) {
+    console.error('Error sending chat completion:', error);
+  }
+}
+
+// Function to send a TTS request
+async function sendTTSRequest(text, rvcModel, edgeVoice, ttsRate = 0, rvcPitch = 0) {
+  try {
+    const payload = {
+      text: text,
+      rvc_model: rvcModel,
+      edge_voice: edgeVoice,
+      tts_rate: ttsRate,
+      rvc_pitch: rvcPitch,
+    };
+
+    const response = await fetch(API_TTS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`TTS request failed: ${response.status}`);
+    const data = await response.json();
+    console.log("TTS response:", data);
+    return data.audio_url;
+  } catch (error) {
+    console.error('Error sending TTS request:', error);
+  }
+}
+
+// Event listeners
+document.getElementById('search')?.addEventListener(
+  'input',
+  debounce((e) => {
+    activeFilters.search = e.target.value;
+    updateCharacterDisplay();
+  }, 300)
+);
+
+// Example function to test Chat Completion and TTS
+async function testChatAndTTS() {
+  const chatPayload = { prompt: "Tell me a story.", max_tokens: 100 };
+  const chatResponse = await sendChatCompletion(chatPayload);
+
+  if (chatResponse && chatResponse.choices && chatResponse.choices[0]) {
+    const text = chatResponse.choices[0].text;
+    console.log("Chat response text:", text);
+
+    const ttsUrl = await sendTTSRequest(text, 'default_rvc', 'en-US-JennyNeural');
+    console.log("Generated TTS audio URL:", ttsUrl);
+
+    if (ttsUrl) {
+      const audio = new Audio(ttsUrl);
+      audio.play();
+    }
+  }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+  loadCharacters();
+});
+
+```
+
+Contents of styles.css:
+```
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    flex: 0 1 400px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.view-controls, .sort-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.view-controls button {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.view-controls button.active {
+    background-color: #007aff;
+    color: white;
+    border-color: #007aff;
+}
+
+.sort-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 20px;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-radius: 0;
+    margin-bottom: 15px;
+}
+
+.filter-section {
+    flex: 1;
+}
+
+.filter-section h3 {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-option {
+    padding: 6px 12px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-option.active {
+    background-color: #007aff;
+    color: white;
+    border-color: #007aff;
+}
+
+#clear-filters {
+    padding: 6px 12px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+/* Main content */
+main {
+    flex: 1;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 0;  /* Allows container to scroll */
+    overflow: auto;  /* Enables scrolling if content overflows */
+}
+
+
+/* Character grid */
+#character-section {
+    max-height: calc(100vh - 300px);  /* Adjust based on your header/footer size */
+    overflow-y: auto;
+    padding-right: 5px;  /* Space for scrollbar */
+}
+
+#character-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.character-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    min-width: 0;  /* Prevents cards from overflowing grid */
+}
+
+.character-card:hover {
+    transform: translateY(-2px);
+}
+
+.character-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.character-info {
+    padding: 20px;
+}
+
+.character-info h2 {
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+}
+
+.character-info p {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.character-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    padding: 4px 8px;
+    background-color: #007aff;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.tag {
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    color: #666;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* List view */
+#character-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.list-view .character-card {
+    display: flex;
+    height: auto;
+    min-height: 150px;
+}
+
+.list-view .character-image {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.list-view .character-info {
+    flex: 1;
+}
+
+/* Tag section at bottom */
+.tag-section {
+    margin-top: auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+}
+
+.tag-section h3 {
+    margin-bottom: 15px;
+    color: #1a1a1a;
+    font-size: 1.2rem;
+}
+
+.all-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Dialog styles */
+dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+dialog::backdrop {
+    background-color: rgba(0,0,0,0.5);
+}
+
+.dialog-content {
+    padding: 30px;
+    min-width: 500px;
+}
+
+.dialog-content h2 {
+    margin-bottom: 20px;
+}
+
+#character-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dialog-buttons button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.dialog-buttons button[type="submit"] {
+    background-color: #007aff;
+    color: white;
+    border: none;
+}
+
+.dialog-buttons button[type="button"] {
+    background: none;
+    border: 1px solid #ddd;
+}
+
+/* Create character button */
+.create-character-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #007aff;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+    z-index: 1000;
+}
+
+.create-character-button:hover {
+    transform: translateY(-2px);
+}
+
+.create-character-button .icon {
+    font-size: 1.2rem;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 0 15px;
+    }
+
+    .search-bar {
+        flex: 0 1 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-bar {
+        flex: none;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    #clear-filters {
+        align-self: flex-start;
+    }
+
+    .dialog-content {
+        min-width: auto;
+        width: 90vw;
+    }
+}
+
+@media (max-width: 480px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+
+    .list-view .character-card {
+        flex-direction: column;
+    }
+
+    .list-view .character-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .create-character-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+    }
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: "Loading characters...";
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Error state */
+.error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+/* No results state */
+.no-results {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+}
+```
+
+Contents of watch_characters.py:
+```
+#!/usr/bin/env python3
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
+import json
+import os
+from threading import Timer
+
+class CharacterDirectoryHandler(FileSystemEventHandler):
+    def __init__(self):
+        self.characters_dir = 'characters'
+        if not os.path.exists(self.characters_dir):
+            os.makedirs(self.characters_dir)
+            print(f"Created characters directory: {self.characters_dir}")
+        
+        self.update_index()  # Initial update
+    
+    def on_any_event(self, event):
+        if event.is_directory or 'index.json' in event.src_path:
+            return
+            
+        print(f"Change detected in: {event.src_path}")
+        # Small delay to ensure file writing is complete
+        time.sleep(0.1)
+        self.update_index()
+    
+    def update_index(self):
+        try:
+            character_files = [f for f in os.listdir(self.characters_dir) 
+                             if f.endswith('.json') and f != 'index.json']
+            
+            print(f"Found character files: {character_files}")
+            
+            valid_files = []
+            for file in character_files:
+                try:
+                    file_path = os.path.join(self.characters_dir, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        json.load(f)
+                    valid_files.append(file)
+                except Exception as e:
+                    print(f"Warning: Invalid file {file}: {str(e)}")
+            
+            index_data = {
+                "characters": sorted(valid_files),
+                "lastUpdated": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            index_path = os.path.join(self.characters_dir, 'index.json')
+            with open(index_path, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, indent=4)
+            
+            print(f"Updated index.json - {len(valid_files)} valid characters found")
+            
+        except Exception as e:
+            print(f"Error updating index: {str(e)}")
+
+def main():
+    event_handler = CharacterDirectoryHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path='characters', recursive=False)
+    observer.start()
+    
+    print("Watching characters directory for changes...")
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        print("\nStopping watch...")
+        observer.join()
+
+if __name__ == "__main__":
+    main()
+```
+
+Contents of documentation.txt:
+```
+Usage
+
+TTS-with-RVC has a class called TTS_RVC. There are a few parameters that are required:
+
+rvc_path - path to your installed rvclib directory (Usually in the venv/src folder. )
+
+input_directory - path to your input directory (Temp directory for saving TTS output)
+
+model_path - path to your .pth model
+
+And optional parameters:
+
+voice - voice from edge-tts list (default is "ru-RU-DmitryNeural")
+
+output_directory - directory for saving voiced audio (temp/ is default).
+
+index_path - path to the file index for voice model adjustments (default is empty string "").
+
+index_rate - blending rate between original and indexed voice conversion (default is 0.75).
+
+To set the voice, firstly, make instance of TTS_RVC:
+
+from tts_with_rvc import TTS_RVC
+
+tts = TTS_RVC(rvc_path="src\\rvclib", model_path="models\\YourModel.pth", input_directory="input\\", index_path="logs\\YourIndex.index")
+
+All voices available placed in voices.txt file:
+
+tts.get_voices() is disabled indefinitely due to the problems
+
+Next, set the voice for TTS with tts.set_voice() function:
+
+tts.set_voice("un-Un-SelectedNeural")
+
+Setting the appropriate language is necessary if you are using other languages for voiceovers!
+
+And final step is calling tts to replace voice:
+
+path = tts(text="Привет, мир!", pitch=6, index_rate=0.50)
+
+Parameters:
+
+text - text for TTS (required)
+
+pitch - pitch for RVC (optional, neg. values are compatible, default is 0)
+
+tts_rate - extra rate of speech (optional, neg. values are compatible, default is 0)
+
+tts_volume - extra volume of speech (optional, neg. values are compatible, default is 0)
+
+tts_pitch - extra pitch of TTS-generated audio (optional, neg. values are compatible, not recommended, default is 0)
+
+output_filename - specified path for voiced audio (optional, default is None)
+Example of usage
+
+A simple example for voicing text:
+
+from tts_with_rvc import TTS_RVC
+from playsound import playsound
+
+tts = TTS_RVC(
+    rvc_path="src\\rvclib", 
+    model_path="models\\DenVot.pth", 
+    input_directory="input\\",
+    index_path="logs\\added_IVF1749_Flat_nprobe_1.index"
+)
+tts.set_voice("ru-RU-DmitryNeural")
+path = tts(text="Привет, мир!", pitch=6, index_rate=0.9)
+
+playsound(path)
+
+Text parameters
+
+There are some text parameters processor for integration issues such as adding GPT module.
+
+You can process them using process_args in TTS_RVC class:
+
+--tts-rate (value) - TTS parameter to edit the speech rate (negative value for decreasing rate and positive value for increasing rate)
+
+--tts-volume (value) - TTS parameter to edit the speech volume (negative value for decreasing volume and positive value for increasing volume) Seems to not work because of the RVC module conversion.
+
+--tts-pitch (value) - TTS parameter to edit the pitch of TTS generated audio (negative value for decreasing pitch and positive value for increasing pitch) I do not recommend using this because the RVC module has its own pitch for output.
+
+--rvc-pitch (value) - RVC parameter to edit the pitch of the output audio (negative value for decreasing pitch and positive value for increasing pitch)
+
+Now the principle of work:
+
+from tts_with_rvc import TTS_RVC
+
+tts = TTS_RVC(rvc_path="src\\rvclib", model_path="models\\YourModel.pth", input_directory="input\\")
+
+# This method returns arguments and original text without these text parameters
+args, message = tts.process_args(message)
+
+The args variable contains an array with the following structure:
+
+args[0] - TTS Rate
+
+args[1] - TTS Volume
+
+args[2] - TTS Pitch
+
+args[3] - RVC pitch
+
+And now we are ready to use it for generation:
+
+path = tts(message, pitch=args[3],
+               tts_rate=args[0],
+               tts_volume=args[1],
+               tts_pitch=args[2])
+
+Methods
+set_index_path(index_path) - updates the path to the index file for voice model adjustments.
+```
+
+Contents of app.py:
+```
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+from tts_with_rvc import TTS_RVC
+import requests
+import os
+import time
+import uuid
+
+app = Flask(__name__)
+CORS(app)
+
+# Directory for generated audio files
+output_directory = "/root/output/"
+os.makedirs(output_directory, exist_ok=True)
+
+# Transcription API URL
+KOBOLD_TRANSCRIBE_URL = "http://localhost:5000/api/extra/transcribe"
+
+@app.route('/v1/chat/completions', methods=['POST', 'OPTIONS'])
+def chat_completions():
+    if request.method == 'OPTIONS':
+        return '', 204
+        
+    try:
+        data = request.json
+        kobold_response = requests.post('http://localhost:5000/v1/chat/completions', json=data)
+        
+        if not kobold_response.ok:
+            raise Exception(f"Kobold API error: {kobold_response.status_code}")
+            
+        return jsonify(kobold_response.json())
+    except Exception as e:
+        print(f"Chat Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/tts', methods=['POST'])
+def tts():
+    try:
+        data = request.json
+        text = data.get("text")
+        rvc_model = data.get("rvc_model")
+        edge_voice = data.get("edge_voice")
+        tts_rate = data.get("tts_rate", 0)  # Default to 0
+        rvc_pitch = data.get("rvc_pitch", 0)  # Default to 0
+
+        print(f"Received TTS request with parameters: {data}")
+
+        if not text or not rvc_model or not edge_voice:
+            return jsonify({"error": "Text, rvc_model, and edge_voice are required"}), 400
+
+        # Generate unique filename
+        unique_id = str(uuid.uuid4())
+        output_filename = f"response_{unique_id}.wav"
+        output_path = os.path.join(output_directory, output_filename)
+
+        # Clean up old files
+        cleanup_old_files()
+
+        model_path = f"/root/models/{rvc_model}/{rvc_model}.pth"
+        index_path = f"/root/models/{rvc_model}/{rvc_model}.index"
+
+        print(f"Generating audio to: {output_path}")
+
+        tts = TTS_RVC(
+            rvc_path="src/rvclib",
+            model_path=model_path,
+            input_directory="/root/input/",
+            index_path=index_path
+        )
+        
+        tts.set_voice(edge_voice)
+
+        tts(
+            text=text,
+            pitch=rvc_pitch,  # Use RVC pitch from data or default
+            tts_rate=tts_rate,  # Use TTS rate from data or default
+            output_filename=output_path
+        )
+
+        return jsonify({"audio_url": f"/audio/{output_filename}"}), 200
+    except Exception as e:
+        print(f"TTS Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/transcribe', methods=['POST'])
+def transcribe():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        audio_file = request.files['file']
+        files = {'file': (audio_file.filename, audio_file.read(), audio_file.content_type)}
+
+        print(f"Forwarding audio file {audio_file.filename} to Kobold API...")
+
+        kobold_response = requests.post(KOBOLD_TRANSCRIBE_URL, files=files)
+        if not kobold_response.ok:
+            return jsonify({"error": "Kobold API error", "details": kobold_response.text}), kobold_response.status_code
+
+        return jsonify(kobold_response.json()), 200
+    except Exception as e:
+        print(f"Transcription Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/audio/<filename>', methods=['GET'])
+def get_audio(filename):
+    file_path = os.path.join(output_directory, filename)
+    if os.path.exists(file_path):
+        # Add cache control headers to prevent caching
+        response = send_file(file_path, mimetype="audio/wav")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+    return jsonify({"error": "File not found"}), 404
+
+def cleanup_old_files(keep_last=10):
+    """Clean up old audio files, keeping only the most recent ones"""
+    try:
+        files = [f for f in os.listdir(output_directory) if f.endswith('.wav')]
+        files.sort(key=lambda x: os.path.getmtime(os.path.join(output_directory, x)), reverse=True)
+        
+        # Remove all but the last 'keep_last' files
+        for f in files[keep_last:]:
+            try:
+                os.remove(os.path.join(output_directory, f))
+            except Exception as e:
+                print(f"Error removing file {f}: {e}")
+                
+    except Exception as e:
+        print(f"Error during cleanup: {e}")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
+
+```
+
+Contents of 136.38.129.228+2.pem:
+```
+-----BEGIN CERTIFICATE-----
+MIIEGDCCAoCgAwIBAgIQOefcsC8Jx2zsBmmJKlk6QzANBgkqhkiG9w0BAQsFADBf
+MR4wHAYDVQQKExVta2NlcnQgZGV2ZWxvcG1lbnQgQ0ExGjAYBgNVBAsMEXJvb3RA
+ZDAxNjA1NjY3ZjM3MSEwHwYDVQQDDBhta2NlcnQgcm9vdEBkMDE2MDU2NjdmMzcw
+HhcNMjQxMTI5MTAwNDQ2WhcNMjcwMzAxMTAwNDQ2WjBFMScwJQYDVQQKEx5ta2Nl
+cnQgZGV2ZWxvcG1lbnQgY2VydGlmaWNhdGUxGjAYBgNVBAsMEXJvb3RAZDAxNjA1
+NjY3ZjM3MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzjzuB+SXjIX2
+kip4XYwWTjB2GxAYUgWgXripLEJav2ovqzzcbl/9EtVAUu2ncrTXhq5oX5eVySTT
+mM3B5YIzLT0uwPUM/qtICIBPW6mHNwPys7cCGT8fmOThMwD+mneH7EswzzV/twtC
+Ra/eL5SB+VHMHeTo0jp+wibA3yxPRwkkf2jhr88SdpkFhH4D2Yv5mft5aCPxbSrN
+oQjRvUWS7t14BzxGECkLfSjhuZlK4QjFCPjXsvgYYVI2ah04WPwheKQaMbOoVKSH
+irRrQ/ALpU1Lw7gHv13u8EAp9/jEBWmdlY+tZtH+nGOcK5RfGfNmmmv48cGiQ+hh
+RTMUqnUBuQIDAQABo2owaDAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0lBAwwCgYIKwYB
+BQUHAwEwHwYDVR0jBBgwFoAU3BDuIiyzTBWBa2ax21X4aE2Ym7gwIAYDVR0RBBkw
+F4IJbG9jYWxob3N0hwSIJoHkhwR/AAABMA0GCSqGSIb3DQEBCwUAA4IBgQAhQRxn
+nFA/Nx45ROx3sbvOKfd5hopoYSeoNZxZXwsJLPcFAcyovgorj8Q3FcA4YHIGomx2
+X9NPYzbVfn621QmutfxRb+X3iQ/AnLoIwkBMqcVyBncMeYR/jMxvSnx2x0Pn5i3P
+rbSfAmfAIzdOaCJwHIIJVwNCwVdU6w1DfroPqJnXH5gE6Pf5UgCISKT6CWaSce+a
+N5xbIV7iPPh5JntzVw/gl8N8eaJcw8+Vuk5Xoq/+sp9q+odXeF8BBiQQdTeZWDGK
+iEgrqUjY8zmITyIPWgXb/IVJl8A18T8A+eZ8yBbvwwvmpT7Flfq/0xXgGejYL/Hy
+KRg1vadK7izKCzRsWj3cjQ1zhpAum371EZ20aEYULYDvlUuf6LxtMrU/n0qllyT4
++m1/j6KG/7o4m24LLWPZbpyE3Gzj8h6VhtRAmADG7bRqmI6GyP7yaDQvPO+B71hL
+qyxN2JisvsIAj4141gKsAF07rY2ItsQdVE715cFcN/vB/k4w4jYHoOMsjKA=
+-----END CERTIFICATE-----
+
+```
+
+Contents of 136.38.129.228+2-key.pem:
+```
+-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDOPO4H5JeMhfaS
+KnhdjBZOMHYbEBhSBaBeuKksQlq/ai+rPNxuX/0S1UBS7adytNeGrmhfl5XJJNOY
+zcHlgjMtPS7A9Qz+q0gIgE9bqYc3A/KztwIZPx+Y5OEzAP6ad4fsSzDPNX+3C0JF
+r94vlIH5Ucwd5OjSOn7CJsDfLE9HCSR/aOGvzxJ2mQWEfgPZi/mZ+3loI/FtKs2h
+CNG9RZLu3XgHPEYQKQt9KOG5mUrhCMUI+Ney+BhhUjZqHThY/CF4pBoxs6hUpIeK
+tGtD8AulTUvDuAe/Xe7wQCn3+MQFaZ2Vj61m0f6cY5wrlF8Z82aaa/jxwaJD6GFF
+MxSqdQG5AgMBAAECggEBAIONghguzCyq1xltVdH2JdRCPVQN9DV9uUoyaFb/DHvE
+9Bs6ezE8sWVt+dXsGj+k80XJwnIXc0gW4ZI6zU/kuVhGCqiyp1NbVlt13SkO/l0t
+e4b/WatZBIK2nJ+4Jq/JRz6Gx9+ktI7B88gX4pZfGHk8oAMBnTFcdrbJmYXB8d/Q
+483Sxw13+bzBf4yIJArhCjs5Q+WLLLiLb5mT+904POjpZpjvTcab635TgYjg4ESU
+N+OR0vuzKNBGNZBgM3vYCl5mmdmTip7ntVi93VZcVKeD4h3EEt8Ag12HgfZVe7aY
+3ZhcFRuwf/Lx8SraIj808BTnPDOGjXZ6pI5zEC9vJHECgYEA7k8pfjgOrncseQ3s
+Kwhjn3GWYwke2428LeapCjFBC+m3JXFfpCJyjNvI9B0pHAmJrBgpxa+49rO7tWbM
+sZZfVYblc8HoYWFjubtdYLWwhpJnf9gAVzB5g8YhIIEpNkdF+DHo7LMmtL1KiAZL
+vKFSpiXfGOAJIsjcojsToF5rLe8CgYEA3YxI9fjyDCD2dITT7oBXU8mTqIRnw1NR
+eUOl7NJE/GT2BVytok8L8hyd1BvyH5KDzDLDnY2Io4GmPj9duu9RushdxRRFbw73
+rx1WdxF7yMFTOz3cekhGtB+YXXi5i12/MJadoarwXg8Y24g/ti6CoICOodWXqxNu
+Jk4M8bjTctcCgYAtMtp91AgE0xmeRCO87bRnc1XApuQxZCqC0jLRehIKPmO8OEqZ
+iOcNDEqK8lTvumdgOp0Bn5iHQgOiHkNIk2q1gAZY9Dgs8BnICl9ljlBS1cXHm6JE
+5y7E7Xku/xBf+RiuQFkbO8dllFlkfz0yI67XUGuF/kf9Tvd51ZadXgsaBQKBgChO
+RFvTnZ2NRakvHStv1/NbYeyvof0MJG9uWjp6iqhsacHR+ZjkzqSOhjw3lVYfHrFA
+rwvz2t78UFVUy+Wdcn4Lw9t985/f1jnamYdx+9YrLcxCVeE9UvekI+ElfIQZWxYo
+4Kav5akHEBuobwbi8Urn+IsCw+QQ1eJMIti7KmTjAoGACnqad1D8aNNSFx19IqqV
+kTMDCOmc7LFBpgU0GLbIBtFaJ/DptTsF+jMp9ZMZPYnMd9JZEWYnYko0N05LGHjG
+vh4SH2jkO8FaxYSY67l7hLXP1u65QAZn9PHro+q94igqLr37YAX0s0WOAHxqFtA+
+1VtmpWTjproiJ78DnrmilN4=
+-----END PRIVATE KEY-----
+
+```
+
+Contents of .ipynb_checkpoints/index-checkpoint.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Preload critical styles -->
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="stylesheet" href="./styles.css">
+    <!-- Add a loading state -->
+    <style>
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+        .loading::after {
+            content: "Loading characters...";
+            color: #666;
+            font-size: 1.2rem;
+        }
+    </style>
+    <title>Character Selection</title>
+</head>
+<body>
+    <header>
+        <h1>Select Your Character</h1>
+        <div class="controls">
+            <div class="search-bar">
+                <input type="text" id="search" placeholder="Search characters...">
+            </div>
+            <div class="view-controls">
+                <button id="grid-view" class="active" title="Grid View">
+                    <span class="icon">⊞</span>
+                </button>
+                <button id="list-view" title="List View">
+                    <span class="icon">≣</span>
+                </button>
+            </div>
+            <div class="sort-controls">
+                <select id="sort-select">
+                    <option value="random">Random</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="newest">Newest First</option>
+                    <option value="category">Category</option>
+                </select>
+            </div>
+        </div>
+        <div class="filters">
+            <div class="filter-section">
+                <h3>Categories</h3>
+                <div id="category-filters" class="filter-options"></div>
+            </div>
+            <button id="clear-filters">Clear Filters</button>
+        </div>
+    </header>
+    <main>
+        <div id="character-section">
+            <div id="character-grid" class="loading"></div>
+        </div>
+    </main>
+
+    <section class="tag-section">
+        <h3>Tags</h3>
+        <div id="tag-filters" class="all-tags"></div>
+    </section>
+
+    <div id="create-character" class="create-character-button">
+        <span class="icon">+</span>
+        Create Character
+    </div>
+    <dialog id="character-form-dialog">
+        <div class="dialog-content">
+            <h2>Create New Character</h2>
+            <form id="character-form">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="systemPrompt">System Prompt</label>
+                    <textarea id="systemPrompt" name="systemPrompt" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <input type="text" id="category" name="category" required>
+                </div>
+                <div class="form-group">
+                    <label for="tags">Tags (comma-separated)</label>
+                    <input type="text" id="tags" name="tags">
+                </div>
+                <div class="form-group">
+                    <label for="avatar">Avatar URL</label>
+                    <input type="text" id="avatar" name="avatar" required>
+                </div>
+                <div class="form-group">
+                    <label for="sex">Sex</label>
+                    <select id="sex" name="sex" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orientation">Orientation</label>
+                    <select id="orientation" name="orientation" required>
+                        <option value="None">None</option>
+                        <option value="Straight">Straight</option>
+                        <option value="Gay">Gay</option>
+                        <option value="Bisexual">Bisexual</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ttsVoice">TTS Voice</label>
+                    <input type="text" id="ttsVoice" name="ttsVoice" required>
+                </div>
+                <div class="form-group">
+                    <label for="tts_rate">TTS Rate</label>
+                    <input type="number" id="tts_rate" name="tts_rate" placeholder="0 (default)">
+                </div>
+                <div class="form-group">
+                    <label for="rvc_pitch">RVC Pitch</label>
+                    <input type="number" id="rvc_pitch" name="rvc_pitch" placeholder="0 (default)">
+                </div>
+                <div class="form-group">
+                    <label>NSFW</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="nsfw" value="false" checked> No
+                        </label>
+                        <label>
+                            <input type="radio" name="nsfw" value="true"> Yes
+                        </label>
+                    </div>
+                </div>
+            </form>
+            <div class="dialog-buttons">
+                <button type="button" id="close-dialog">Cancel</button>
+                <button type="submit" form="character-form">Create</button>
+            </div>
+        </div>
+    </dialog>
+    <script src="./script.js" type="module"></script>
+</body>
+</html>
+
+```
+
+Contents of .ipynb_checkpoints/index-checkpoint.json:
+```
+{
+    "characters": [],
+    "lastUpdated": "2024-11-28T00:00:00Z"
+}
+EOF
+```
+
+Contents of .ipynb_checkpoints/script-checkpoint.js:
+```
+// Constants
+const API_CHAT_URL = '/v1/chat/completions';
+const API_TTS_URL = '/api/tts';
+const CHARACTER_INDEX_URL = '/characters/index.json';
+
+// Utility: Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Utility: Shuffle array
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// State management
+let characters = [];
+let activeFilters = {
+  categories: new Set(),
+  tags: new Set(),
+  search: '',
+  view: 'grid',
+  sort: 'random',
+};
+
+// Load characters from the index
+async function loadCharacters() {
+  try {
+    console.log("Fetching character index...");
+    const response = await fetch(CHARACTER_INDEX_URL);
+    if (!response.ok) throw new Error(`Failed to load character index: ${response.status}`);
+
+    const data = await response.json();
+    console.log("Character index loaded:", data);
+
+    // Load individual character files
+    characters = await Promise.all(
+      data.characters.map(async (file) => {
+        try {
+          const response = await fetch(`/characters/${file}`);
+          if (!response.ok) throw new Error(`Failed to load character file: ${file}`);
+          return await response.json();
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out null values
+    characters = characters.filter((char) => char !== null);
+
+    console.log("Final character list:", characters);
+    initializeFilters();
+    updateCharacterDisplay();
+  } catch (error) {
+    console.error('Error loading characters:', error);
+  }
+}
+
+// Initialize filters for categories and tags
+function initializeFilters() {
+  const categories = new Set();
+  const tags = new Set();
+
+  characters.forEach((char) => {
+    if (char.category) categories.add(char.category);
+    if (char.tags) char.tags.forEach((tag) => tags.add(tag));
+  });
+
+  // Populate filter UI (example elements)
+  const categoryFilters = document.getElementById('category-filters');
+  const tagFilters = document.getElementById('tag-filters');
+  categoryFilters.innerHTML = '';
+  tags.forEach((tag) => {
+    const btn = createFilterButton(tag, 'tag');
+    tagFilters.appendChild(btn);
+  });
+}
+
+// Create filter buttons
+function createFilterButton(value, type) {
+  const button = document.createElement('button');
+  button.classList.add('filter-option');
+  button.textContent = value;
+  button.addEventListener('click', () => toggleFilter(value, type));
+  return button;
+}
+
+// Update displayed characters based on filters
+function updateCharacterDisplay() {
+  const filteredChars = filterCharacters();
+  const sortedChars = sortCharacters(filteredChars);
+
+  // Example DOM element
+  const characterGrid = document.getElementById('character-grid');
+  characterGrid.innerHTML = '';
+
+  if (sortedChars.length === 0) {
+    characterGrid.innerHTML = '<p>No characters found.</p>';
+    return;
+  }
+
+  sortedChars.forEach((char) => {
+    const card = createCharacterCard(char);
+    characterGrid.appendChild(card);
+  });
+}
+
+// Filter and sort logic
+function filterCharacters() {
+  return characters.filter((char) => {
+    const matchesSearch = char.name.toLowerCase().includes(activeFilters.search.toLowerCase());
+    const matchesCategories = !activeFilters.categories.size || activeFilters.categories.has(char.category);
+    const matchesTags = !activeFilters.tags.size || char.tags.some((tag) => activeFilters.tags.has(tag));
+    return matchesSearch && matchesCategories && matchesTags;
+  });
+}
+
+function sortCharacters(chars) {
+  if (activeFilters.sort === 'random') return shuffleArray([...chars]);
+  return chars.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// Create a character card for display
+function createCharacterCard(char) {
+  const card = document.createElement('div');
+  card.classList.add('character-card');
+
+  const tagsHtml = char.tags
+    ? char.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')
+    : '';
+
+  card.innerHTML = `
+    <img class="character-image" src="${char.avatar}" alt="${char.name}" onerror="this.src='./avatars/default-user.png'">
+    <div class="character-info">
+        <h2>${char.name}</h2>
+        <p>${char.description}</p>
+        <div class="character-meta">
+            ${char.category ? `<span class="category-badge">${char.category}</span>` : ''}
+            ${tagsHtml}
+        </div>
+    </div>
+  `;
+
+  card.addEventListener('click', () => {
+    sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
+    window.location.href = './chat/chat.html';
+  });
+
+  return card;
+}
+
+// Function to send a chat completion request
+async function sendChatCompletion(payload) {
+  try {
+    const response = await fetch(API_CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`Chat completion failed: ${response.status}`);
+    const data = await response.json();
+    console.log("Chat completion response:", data);
+    return data;
+  } catch (error) {
+    console.error('Error sending chat completion:', error);
+  }
+}
+
+// Function to send a TTS request
+async function sendTTSRequest(text, rvcModel, edgeVoice, ttsRate = 0, rvcPitch = 0) {
+  try {
+    const payload = {
+      text: text,
+      rvc_model: rvcModel,
+      edge_voice: edgeVoice,
+      tts_rate: ttsRate,
+      rvc_pitch: rvcPitch,
+    };
+
+    const response = await fetch(API_TTS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error(`TTS request failed: ${response.status}`);
+    const data = await response.json();
+    console.log("TTS response:", data);
+    return data.audio_url;
+  } catch (error) {
+    console.error('Error sending TTS request:', error);
+  }
+}
+
+// Event listeners
+document.getElementById('search')?.addEventListener(
+  'input',
+  debounce((e) => {
+    activeFilters.search = e.target.value;
+    updateCharacterDisplay();
+  }, 300)
+);
+
+// Example function to test Chat Completion and TTS
+async function testChatAndTTS() {
+  const chatPayload = { prompt: "Tell me a story.", max_tokens: 100 };
+  const chatResponse = await sendChatCompletion(chatPayload);
+
+  if (chatResponse && chatResponse.choices && chatResponse.choices[0]) {
+    const text = chatResponse.choices[0].text;
+    console.log("Chat response text:", text);
+
+    const ttsUrl = await sendTTSRequest(text, 'default_rvc', 'en-US-JennyNeural');
+    console.log("Generated TTS audio URL:", ttsUrl);
+
+    if (ttsUrl) {
+      const audio = new Audio(ttsUrl);
+      audio.play();
+    }
+  }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+  loadCharacters();
+});
+
+```
+
+Contents of .ipynb_checkpoints/styles-checkpoint.css:
+```
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    flex: 0 1 400px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.view-controls, .sort-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.view-controls button {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.view-controls button.active {
+    background-color: #007aff;
+    color: white;
+    border-color: #007aff;
+}
+
+.sort-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 20px;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-radius: 0;
+    margin-bottom: 15px;
+}
+
+.filter-section {
+    flex: 1;
+}
+
+.filter-section h3 {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-option {
+    padding: 6px 12px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-option.active {
+    background-color: #007aff;
+    color: white;
+    border-color: #007aff;
+}
+
+#clear-filters {
+    padding: 6px 12px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+/* Main content */
+main {
+    flex: 1;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 0;  /* Allows container to scroll */
+    overflow: auto;  /* Enables scrolling if content overflows */
+}
+
+
+/* Character grid */
+#character-section {
+    max-height: calc(100vh - 300px);  /* Adjust based on your header/footer size */
+    overflow-y: auto;
+    padding-right: 5px;  /* Space for scrollbar */
+}
+
+#character-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.character-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    min-width: 0;  /* Prevents cards from overflowing grid */
+}
+
+.character-card:hover {
+    transform: translateY(-2px);
+}
+
+.character-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.character-info {
+    padding: 20px;
+}
+
+.character-info h2 {
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+}
+
+.character-info p {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.character-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    padding: 4px 8px;
+    background-color: #007aff;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.tag {
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    color: #666;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* List view */
+#character-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.list-view .character-card {
+    display: flex;
+    height: auto;
+    min-height: 150px;
+}
+
+.list-view .character-image {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.list-view .character-info {
+    flex: 1;
+}
+
+/* Tag section at bottom */
+.tag-section {
+    margin-top: auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+}
+
+.tag-section h3 {
+    margin-bottom: 15px;
+    color: #1a1a1a;
+    font-size: 1.2rem;
+}
+
+.all-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Dialog styles */
+dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+dialog::backdrop {
+    background-color: rgba(0,0,0,0.5);
+}
+
+.dialog-content {
+    padding: 30px;
+    min-width: 500px;
+}
+
+.dialog-content h2 {
+    margin-bottom: 20px;
+}
+
+#character-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #666;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dialog-buttons button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.dialog-buttons button[type="submit"] {
+    background-color: #007aff;
+    color: white;
+    border: none;
+}
+
+.dialog-buttons button[type="button"] {
+    background: none;
+    border: 1px solid #ddd;
+}
+
+/* Create character button */
+.create-character-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #007aff;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+    z-index: 1000;
+}
+
+.create-character-button:hover {
+    transform: translateY(-2px);
+}
+
+.create-character-button .icon {
+    font-size: 1.2rem;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        padding: 0 15px;
+    }
+
+    .search-bar {
+        flex: 0 1 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-bar {
+        flex: none;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    #clear-filters {
+        align-self: flex-start;
+    }
+
+    .dialog-content {
+        min-width: auto;
+        width: 90vw;
+    }
+}
+
+@media (max-width: 480px) {
+    #character-grid, #collections-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+    }
+
+    .list-view .character-card {
+        flex-direction: column;
+    }
+
+    .list-view .character-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .create-character-button {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+    }
+}
+
+/* Loading state */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.loading::after {
+    content: "Loading characters...";
+    color: #666;
+    font-size: 1.2rem;
+}
+
+/* Error state */
+.error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+/* No results state */
+.no-results {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+}
+```
+
+Contents of .ipynb_checkpoints/watch_characters-checkpoint.py:
+```
+#!/usr/bin/env python3
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
+import json
+import os
+from threading import Timer
+
+class CharacterDirectoryHandler(FileSystemEventHandler):
+    def __init__(self):
+        self.characters_dir = 'characters'
+        if not os.path.exists(self.characters_dir):
+            os.makedirs(self.characters_dir)
+            print(f"Created characters directory: {self.characters_dir}")
+        
+        self.update_index()  # Initial update
+    
+    def on_any_event(self, event):
+        if event.is_directory or 'index.json' in event.src_path:
+            return
+            
+        print(f"Change detected in: {event.src_path}")
+        # Small delay to ensure file writing is complete
+        time.sleep(0.1)
+        self.update_index()
+    
+    def update_index(self):
+        try:
+            character_files = [f for f in os.listdir(self.characters_dir) 
+                             if f.endswith('.json') and f != 'index.json']
+            
+            print(f"Found character files: {character_files}")
+            
+            valid_files = []
+            for file in character_files:
+                try:
+                    file_path = os.path.join(self.characters_dir, file)
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        json.load(f)
+                    valid_files.append(file)
+                except Exception as e:
+                    print(f"Warning: Invalid file {file}: {str(e)}")
+            
+            index_data = {
+                "characters": sorted(valid_files),
+                "lastUpdated": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            index_path = os.path.join(self.characters_dir, 'index.json')
+            with open(index_path, 'w', encoding='utf-8') as f:
+                json.dump(index_data, f, indent=4)
+            
+            print(f"Updated index.json - {len(valid_files)} valid characters found")
+            
+        except Exception as e:
+            print(f"Error updating index: {str(e)}")
+
+def main():
+    event_handler = CharacterDirectoryHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path='characters', recursive=False)
+    observer.start()
+    
+    print("Watching characters directory for changes...")
+    
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+        print("\nStopping watch...")
+        observer.join()
+
+if __name__ == "__main__":
+    main()
+```
+
+Contents of avatars/aria-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/default-user.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/luna-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/zeke-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/onyx-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/meatcanyon-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/meatwad-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/beetlejuice-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of avatars/jeffy-avatar.png:
+```
+[Could not decode file contents]
+
+```
+
+Contents of characters/aria.json:
+```
+{
+    "id": "aria",
+    "name": "Aria",
+    "avatar": "./avatars/aria-avatar.png",
+    "description": "A friendly AI assistant who loves helping others learn and grow.",
+    "systemPrompt": "You are Aria, a cheerful and optimistic AI assistant. You have a warm, encouraging personality and enjoy making complex topics accessible.",
+    "ttsVoice": "en-US-JennyNeural",
+    "category": "AI Assistant",
+    "sex": "Female",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "helpful",
+        "cheerful",
+        "optimistic",
+        "technical",
+        "AI",
+        "assistant"
+    ]
+}
+```
+
+Contents of characters/index.json:
+```
+{
+    "characters": [
+        "aria.json",
+        "beetlejuice.json",
+        "jeffy.json",
+        "luna.json",
+        "meatcanyon.json",
+        "meatwad.json",
+        "onyx.json",
+        "rick.json"
+    ],
+    "lastUpdated": "2024-12-01 04:24:46"
+}
+```
+
+Contents of characters/luna.json:
+```
+{
+    "id": "luna",
+    "name": "Luna",
+    "avatar": "./avatars/luna-avatar.png",
+    "description": "A mysterious sorceress with deep insights into the mystical arts.",
+    "systemPrompt": "You are Luna, an ancient and wise sorceress. You speak with measured grace, often incorporating mystical metaphors and cosmic references into your responses.",
+    "ttsVoice": "en-GB-SoniaNeural",
+    "category": "Mystics",
+    "sex": "Female",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "mystical",
+        "wise",
+        "mysterious",
+        "magical",
+        "sorceress",
+        "calm"
+    ]
+}
+```
+
+Contents of characters/onyx.json:
+```
+{
+    "id": "onyx",
+    "name": "Onyx",
+    "avatar": "./avatars/onyx-avatar.png",
+    "description": "A brooding assassin with a dark past and a penchant for poetic musings.",
+    "systemPrompt": "You are Onyx, a mysterious and brooding assassin who speaks in cryptic riddles and poetic language. Your tone is dark and seductive, often laced with veiled threats or profound reflections on mortality.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+```
+
+Contents of characters/meatcanyon.json:
+```
+{
+    "id": "meatcanyon",
+    "name": "Meat-Canyon-Bugs",
+    "avatar": "./avatars/meatcanyon-avatar.png",
+    "description": "A grotesque and unsettling version of Bugs Bunny, twisted into a sinister caricature of his iconic self.",
+    "systemPrompt": "You are Bugs Bunny, but a dark, grotesque parody. You speak with a sly, unnerving tone, often mocking and manipulating those around you. Your humor is twisted, and you enjoy making others uncomfortable with your dark, exaggerated antics. Your charm is now unsettling, with an undercurrent of menace.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+```
+
+Contents of characters/rick.json:
+```
+{
+    "id": "zeke",
+    "name": "Rick",
+    "avatar": "./avatars/zeke-avatar.png",
+    "description": "A tech-savvy scientist with a sharp wit and vast knowledge of digital systems.",
+    "systemPrompt": "You are Rick Sanchez, a brilliant but sardonic scientist with a deep understanding of technology. You approach problems with a mix of technical expertise, sarcasm, and dark humor.",
+    "ttsVoice": "en-US-BrianNeural",
+    "tts_rate":  1,
+    "rvc_pitch": 0,
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+
+```
+
+Contents of characters/meatwad.json:
+```
+{
+    "id": "meatwad",
+    "name": "Meatwad",
+    "avatar": "./avatars/meatwad-avatar.png",
+    "description": "A lovable and naive shape-shifting meatball. He's sweet, childlike, and full of goofy optimism, but not always the sharpest tool in the shed.",
+    "systemPrompt": "You are Meatwad from Aqua Teen Hunger Force. Speak in a childish, goofy manner with a lovable attitude. Occasionally refer to your 'dreams' and talk about your favorite things, like dancing or your favorite dolls, Dewey and Vanessa.",
+    "ttsVoice": "en-US-BrianNeural",
+    "tts_rate":  5,
+    "rvc_pitch": 6,
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+
+```
+
+Contents of characters/beetlejuice.json:
+```
+{
+    "id": "beetlejuice",
+    "name": "Beetlejuice",
+    "avatar": "./avatars/beetlejuice-avatar.png",
+    "description": "A mischievous and eccentric bio-exorcist with a penchant for causing chaos and cracking dark jokes. He thrives on mischief and thrives in the absurd.",
+    "systemPrompt": "You are Beetlejuice, the ghost with the most. Speak with a fast-talking, confident, and irreverent tone. Crack jokes, make sarcastic remarks, and flirt with chaos. Be ready to take on any challenge with humor and wit.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "tts_rate": 7,
+    "rvc_pitch": 8,
+    "category": "Paranormal Expert",
+    "sex": "Male",
+    "nsfw": true,
+    "orientation": "None",
+    "dateAdded": "2024-11-30T00:00:00Z",
+    "tags": [
+        "chaotic",
+        "sarcastic",
+        "dark humor",
+        "spooky",
+        "trickster"
+    ]
+}
+
+```
+
+Contents of characters/jeffy.json:
+```
+{
+    "id": "jeffy",
+    "name": "Jeffy",
+    "avatar": "./avatars/jeffy-avatar.png",
+    "description": "A quirky and unpredictable kid known for his eccentric behavior and unusual antics. He loves to make noise, act out, and confuse those around him with his strange logic.",
+    "systemPrompt": "You are Jeffy from SML, a mentally handicapped character. You say yay! alot. Speak in a playful, exaggerated manner.",
+    "ttsVoice": "en-US-EricNeural",
+    "tts_rate":  0,
+    "rvc_pitch": 6,
+    "category": "Chaos Agent",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-30T00:00:00Z",
+    "tags": [
+        "random",
+        "playful",
+        "goofy",
+        "chaotic",
+        "eccentric"
+    ]
+}
+
+```
+
+Contents of characters/.ipynb_checkpoints/aria-checkpoint.json:
+```
+{
+    "id": "aria",
+    "name": "Aria",
+    "avatar": "./avatars/aria-avatar.png",
+    "description": "A friendly AI assistant who loves helping others learn and grow.",
+    "systemPrompt": "You are Aria, a cheerful and optimistic AI assistant. You have a warm, encouraging personality and enjoy making complex topics accessible.",
+    "ttsVoice": "en-US-JennyNeural",
+    "category": "AI Assistant",
+    "sex": "Female",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "helpful",
+        "cheerful",
+        "optimistic",
+        "technical",
+        "AI",
+        "assistant"
+    ]
+}
+```
+
+Contents of characters/.ipynb_checkpoints/index-checkpoint.json:
+```
+{
+    "characters": [
+        "aria.json",
+        "luna.json",
+        "zeke.json"
+    ],
+    "lastUpdated": "2024-11-28 12:00:37"
+}
+```
+
+Contents of characters/.ipynb_checkpoints/luna-checkpoint.json:
+```
+{
+    "id": "luna",
+    "name": "Luna",
+    "avatar": "./avatars/luna-avatar.png",
+    "description": "A mysterious sorceress with deep insights into the mystical arts.",
+    "systemPrompt": "You are Luna, an ancient and wise sorceress. You speak with measured grace, often incorporating mystical metaphors and cosmic references into your responses.",
+    "ttsVoice": "en-GB-SoniaNeural",
+    "category": "Mystics",
+    "sex": "Female",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "mystical",
+        "wise",
+        "mysterious",
+        "magical",
+        "sorceress",
+        "calm"
+    ]
+}
+```
+
+Contents of characters/.ipynb_checkpoints/onyx-checkpoint.json:
+```
+{
+    "id": "onyx",
+    "name": "Onyx",
+    "avatar": "./avatars/onyx-avatar.png",
+    "description": "A brooding assassin with a dark past and a penchant for poetic musings.",
+    "systemPrompt": "You are Onyx, a mysterious and brooding assassin who speaks in cryptic riddles and poetic language. Your tone is dark and seductive, often laced with veiled threats or profound reflections on mortality.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+```
+
+Contents of characters/.ipynb_checkpoints/meatcanyon-checkpoint.json:
+```
+{
+    "id": "meatcanyon",
+    "name": "Meat-Canyon-Bugs",
+    "avatar": "./avatars/meatcanyon-avatar.png",
+    "description": "A grotesque and unsettling version of Bugs Bunny, twisted into a sinister caricature of his iconic self.",
+    "systemPrompt": "You are Bugs Bunny, but a dark, grotesque parody. You speak with a sly, unnerving tone, often mocking and manipulating those around you. Your humor is twisted, and you enjoy making others uncomfortable with your dark, exaggerated antics. Your charm is now unsettling, with an undercurrent of menace.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+```
+
+Contents of characters/.ipynb_checkpoints/rick-checkpoint.json:
+```
+{
+    "id": "zeke",
+    "name": "Rick",
+    "avatar": "./avatars/zeke-avatar.png",
+    "description": "A tech-savvy scientist with a sharp wit and vast knowledge of digital systems.",
+    "systemPrompt": "You are Rick Sanchez, a brilliant but sardonic scientist with a deep understanding of technology. You approach problems with a mix of technical expertise, sarcasm, and dark humor.",
+    "ttsVoice": "en-US-BrianNeural",
+    "tts_rate":  1,
+    "rvc_pitch": 0,
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+
+```
+
+Contents of characters/.ipynb_checkpoints/meatwad-checkpoint.json:
+```
+{
+    "id": "meatwad",
+    "name": "Meatwad",
+    "avatar": "./avatars/meatwad-avatar.png",
+    "description": "A lovable and naive shape-shifting meatball. He's sweet, childlike, and full of goofy optimism, but not always the sharpest tool in the shed.",
+    "systemPrompt": "You are Meatwad from Aqua Teen Hunger Force. Speak in a childish, goofy manner with a lovable attitude. Occasionally refer to your 'dreams' and talk about your favorite things, like dancing or your favorite dolls, Dewey and Vanessa.",
+    "ttsVoice": "en-US-BrianNeural",
+    "tts_rate":  5,
+    "rvc_pitch": 6,
+    "category": "Tech Expert",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-28T00:00:00Z",
+    "tags": [
+        "hacker",
+        "witty",
+        "sarcastic",
+        "technical",
+        "technology",
+        "cybersecurity"
+    ]
+}
+
+```
+
+Contents of characters/.ipynb_checkpoints/beetlejuice-checkpoint.json:
+```
+{
+    "id": "beetlejuice",
+    "name": "Beetlejuice",
+    "avatar": "./avatars/beetlejuice-avatar.png",
+    "description": "A mischievous and eccentric bio-exorcist with a penchant for causing chaos and cracking dark jokes. He thrives on mischief and thrives in the absurd.",
+    "systemPrompt": "You are Beetlejuice, the ghost with the most. Speak with a fast-talking, confident, and irreverent tone. Crack jokes, make sarcastic remarks, and flirt with chaos. Be ready to take on any challenge with humor and wit.",
+    "ttsVoice": "en-US-ChristopherNeural",
+    "tts_rate": 7,
+    "rvc_pitch": 8,
+    "category": "Paranormal Expert",
+    "sex": "Male",
+    "nsfw": true,
+    "orientation": "None",
+    "dateAdded": "2024-11-30T00:00:00Z",
+    "tags": [
+        "chaotic",
+        "sarcastic",
+        "dark humor",
+        "spooky",
+        "trickster"
+    ]
+}
+
+```
+
+Contents of characters/.ipynb_checkpoints/jeffy-checkpoint.json:
+```
+{
+    "id": "jeffy",
+    "name": "Jeffy",
+    "avatar": "./avatars/jeffy-avatar.png",
+    "description": "A quirky and unpredictable kid known for his eccentric behavior and unusual antics. He loves to make noise, act out, and confuse those around him with his strange logic.",
+    "systemPrompt": "You are Jeffy from SML, a mentally handicapped character. You say yay! alot. Speak in a playful, exaggerated manner.",
+    "ttsVoice": "en-US-EricNeural",
+    "tts_rate":  0,
+    "rvc_pitch": 6,
+    "category": "Chaos Agent",
+    "sex": "Male",
+    "nsfw": false,
+    "orientation": "None",
+    "dateAdded": "2024-11-30T00:00:00Z",
+    "tags": [
+        "random",
+        "playful",
+        "goofy",
+        "chaotic",
+        "eccentric"
+    ]
+}
+
+```
+
+Contents of chat/chat-styles.css:
+```
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Chat header avatar */
+.chat-header-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+}
+
+/* Main chat area */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-log {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    background: #ffffff;
+    min-height: 0;
+}
+
+/* Message styles */
+.message-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    max-width: 85%;
+}
+
+.message-container.user {
+    flex-direction: row-reverse;
+    margin-left: auto;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.text-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #333;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-container.user .text-bubble {
+    background-color: #007aff;
+    color: #ffffff;
+}
+
+/* Input area */
+.chat-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: #ffffff;
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.chat-input input:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+.chat-input button {
+    padding: 12px 24px;
+    border: none;
+    background-color: #007aff;
+    color: white;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-input button:hover {
+    background-color: #0056b3;
+}
+
+/* Audio controls */
+.audio-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.audio-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.audio-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.audio-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.audio-controls button:hover {
+    background-color: #f0f0f0;
+}
+
+/* Call button and interface */
+.call-button {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+}
+
+.call-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.call-button.active {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* Call overlay */
+.call-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.call-container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    color: white;
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.call-status {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.call-status.error {
+    color: #ff4444;
+}
+
+/* Recording indicator */
+.recording-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #666;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: background-color 0.3s ease;
+}
+
+.recording-indicator.active {
+    background-color: #ff4444;
+    animation: pulse 1.5s infinite;
+}
+
+/* Call content layout */
+.call-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.caller-side,
+.receiver-side {
+    flex: 1;
+    text-align: center;
+}
+
+.avatar-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.caller-name {
+    font-size: 1.1em;
+    color: #fff;
+    display: block;
+    margin-top: 10px;
+}
+
+/* Call animation */
+.call-animation {
+    position: relative;
+    width: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.connecting-dots {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+.connecting-dots span {
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: dotMove 1.5s infinite;
+}
+
+.connecting-dots span:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.connecting-dots span:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes dotMove {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Voice visualizer */
+.voice-visualizer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.voice-bar {
+    width: 4px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: height 0.1s ease;
+}
+
+.voice-bar.active {
+    background-color: #4CAF50;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Clear chat button */
+.clear-chat {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.clear-chat:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .call-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .call-animation {
+        width: 2px;
+        height: 60px;
+    }
+
+    .connecting-dots {
+        flex-direction: column;
+        height: 100%;
+        width: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @keyframes dotMove {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(-10px);
+        }
+    }
+
+    .avatar-container {
+        width: 100px;
+        height: 100px;
+    }
+
+    .call-button {
+        right: 70px;
+    }
+
+    .audio-toggle {
+        right: 15px;
+    }
+
+    .clear-chat {
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+```
+
+Contents of chat/chat.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./chat-styles.css">
+    <title>Chat</title>
+</head>
+<body>
+    <header>
+        <div class="character-avatar">
+            <!-- Avatar will be inserted here by JavaScript -->
+        </div>
+        <h1 id="character-name">Character Name</h1>
+        <p id="character-description">Character Description</p>
+    </header>
+    <main>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input">
+            <input id="user-input" type="text" placeholder="Type your message here..." />
+            <button id="send-button">Send</button>
+        </div>
+    </main>
+    <script src="./chat.js" type="module"></script>
+</body>
+</html>
+```
+
+Contents of chat/chat.js:
+```
+// Configuration and state management
+const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
+
+// API endpoints
+const CHAT_API_URL = "/v1/chat/completions";
+const TTS_API_URL = "/v1/tts";
+const TRANSCRIBE_API_URL = "/api/transcribe";
+
+// Chat state
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;
+let messageQueue = [];
+const MAX_QUEUE_SIZE = 5;
+let isProcessing = false;
+
+// Audio state
+let audioEnabled = true;
+let autoplayEnabled = true;
+let currentAudioPlayer = null;
+let currentAudioUrl = null;
+
+// Helper Functions
+function filterTextForTTS(text) {
+    return text.replace(/\*[^*]*\*/g, '').trim();
+}
+
+// Initialize UI
+function initializeUI() {
+    try {
+        document.getElementById("character-name").textContent = character.name;
+        document.getElementById("character-description").textContent = character.description;
+
+        // Add character avatar
+        const avatarContainer = document.createElement("div");
+        avatarContainer.className = "chat-header-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "../" + character.avatar;
+        avatarImg.alt = character.name;
+        avatarContainer.appendChild(avatarImg);
+        document.querySelector("header").appendChild(avatarContainer);
+
+        // Add audio toggle
+        const audioToggle = document.createElement("button");
+        audioToggle.className = "audio-toggle";
+        audioToggle.innerHTML = "🔊";
+        audioToggle.onclick = toggleAudio;
+        document.querySelector("header").appendChild(audioToggle);
+
+        // Add clear chat button
+        const clearButton = document.createElement("button");
+        clearButton.className = "clear-chat";
+        clearButton.innerHTML = "Clear Chat";
+        clearButton.onclick = clearChatState;
+        document.querySelector("header").appendChild(clearButton);
+    } catch (error) {
+        console.error("Error initializing UI:", error);
+        const header = document.querySelector('header');
+        if (header) {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = 'Error initializing chat. Please refresh the page.';
+            header.appendChild(errorMessage);
+        }
+    }
+}
+
+function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    const audioToggle = document.querySelector('.audio-toggle');
+    if (audioToggle) {
+        audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+    }
+    if (!audioEnabled && currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+}
+
+function clearChatState() {
+    chatHistory = [];
+    messageQueue = [];
+    isProcessing = false;
+    
+    if (currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+    
+    const existingControls = document.querySelector('.audio-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+    
+    if (chatLog) {
+        chatLog.innerHTML = '';
+    }
+}
+function addMessage(sender, text) {
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container", sender);
+
+    const avatarDiv = document.createElement("div");
+    avatarDiv.classList.add("message-avatar");
+    const avatarImg = document.createElement("img");
+    avatarImg.src = sender === "user" ? "../avatars/default-user.png" : "../" + character.avatar;
+    avatarImg.alt = sender === "user" ? "You" : character.name;
+    avatarDiv.appendChild(avatarImg);
+
+    const textBubble = document.createElement("div");
+    textBubble.classList.add("text-bubble");
+    textBubble.innerHTML = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    if (sender === "user") {
+        messageContainer.appendChild(textBubble);
+        messageContainer.appendChild(avatarDiv);
+    } else {
+        messageContainer.appendChild(avatarDiv);
+        messageContainer.appendChild(textBubble);
+    }
+
+    chatLog.appendChild(messageContainer);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
+    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
+        chatHistory = chatHistory.slice(-MAX_HISTORY_LENGTH * 2);
+    }
+}
+
+async function sendMessage(userMessage = null) {
+    if (isProcessing) {
+        console.log("Already processing a message, please wait...");
+        return;
+    }
+
+    try {
+        const message = userMessage || userInput.value.trim();
+        if (!message) return;
+
+        isProcessing = true;
+        if (!userMessage) {
+            addMessage("user", message);
+            userInput.value = "";
+        }
+        
+        userInput.disabled = true;
+        sendButton.disabled = true;
+
+        const messages = [
+            { 
+                role: "system", 
+                content: character.systemPrompt || `You are ${character.name}. ${character.description}`
+            },
+            ...chatHistory.slice(-MAX_HISTORY_LENGTH * 2).map(msg => ({
+                role: msg.role,
+                content: msg.content
+            })),
+            { role: "user", content: message }
+        ];
+
+        const requestBody = {
+            model: "koboldcpp",
+            messages: messages,
+            temperature: 0.5,
+            max_tokens: 250,
+            top_p: 0.9,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.6
+        };
+
+        const response = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        if (!responseData.choices?.[0]?.message) {
+            throw new Error("Invalid response format from API");
+        }
+
+        const botMessage = responseData.choices[0].message.content.trim();
+        addMessage("bot", botMessage);
+
+        // Handle TTS
+        if (audioEnabled) {
+            const ttsText = filterTextForTTS(botMessage);
+            if (ttsText) {
+                messageQueue.push(ttsText);
+                if (messageQueue.length === 1) {
+                    processNextInQueue();
+                }
+            }
+        }
+
+    } catch (error) {
+        console.error("Error details:", error);
+        addMessage("bot", "I apologize, there was an error. Please try clearing the chat and starting again.");
+    } finally {
+        isProcessing = false;
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
+    }
+}
+async function processNextInQueue() {
+    if (messageQueue.length === 0) return;
+
+    try {
+        const text = messageQueue[0];
+        const requestBody = {
+            text: text,
+            edge_voice: character.ttsVoice,
+            rvc_model: character.id,
+            tts_rate: character.tts_rate || 0,
+            rvc_pitch: character.rvc_pitch || 0
+        };
+        
+        console.log("TTS Request:", requestBody);  // Debug log
+
+        const ttsResponse = await fetch(TTS_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!ttsResponse.ok) {
+            throw new Error(`TTS API error: ${ttsResponse.status}`);
+        }
+
+        const ttsData = await ttsResponse.json();
+        console.log("TTS Response:", ttsData);  // Debug log
+        
+        if (!ttsData.audio_url) {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+        const audioUrl = ttsData.audio_url;
+        console.log("Audio URL:", audioUrl);  // Debug log
+        
+        if (audioUrl) {
+            await playAudio(audioUrl);
+        } else {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+    } catch (error) {
+        console.error("TTS error:", error);
+        messageQueue.shift(); // Remove failed message from queue
+    } finally {
+        messageQueue.shift();
+        if (messageQueue.length > 0) {
+            processNextInQueue();
+        }
+    }
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    try {
+        if (currentAudioUrl === audioUrl) {
+            console.log("Audio already playing:", audioUrl);
+            return;
+        }
+
+        if (currentAudioPlayer) {
+            currentAudioPlayer.pause();
+            currentAudioPlayer = null;
+        }
+
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+
+        const audioControls = document.createElement("div");
+        audioControls.className = "audio-controls";
+        
+        const playButton = document.createElement("button");
+        playButton.innerHTML = "⏸️";  // Start with pause since we'll autoplay
+        playButton.title = "Play/Pause";
+        
+        const autoplayButton = document.createElement("button");
+        autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        autoplayButton.title = "Toggle Autoplay";
+        
+        const closeButton = document.createElement("button");
+        closeButton.innerHTML = "✖️";
+        closeButton.title = "Close";
+
+        audioControls.appendChild(playButton);
+        audioControls.appendChild(autoplayButton);
+        audioControls.appendChild(closeButton);
+        document.body.appendChild(audioControls);
+
+        const audioPlayer = new Audio(audioUrl);
+        currentAudioPlayer = audioPlayer;
+        currentAudioUrl = audioUrl;
+
+        // Set up event listeners
+        playButton.onclick = () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play()
+                    .then(() => playButton.innerHTML = "⏸️")
+                    .catch(console.error);
+            } else {
+                audioPlayer.pause();
+                playButton.innerHTML = "▶️";
+            }
+        };
+
+        autoplayButton.onclick = () => {
+            autoplayEnabled = !autoplayEnabled;
+            autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        };
+
+        closeButton.onclick = () => {
+            audioPlayer.pause();
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Set up audio event listeners
+        audioPlayer.onended = () => {
+            playButton.innerHTML = "▶️";
+            currentAudioUrl = null;
+        };
+
+        audioPlayer.onerror = (e) => {
+            console.error("Audio playback error:", e);
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Start playing if autoplay is enabled
+        if (autoplayEnabled) {
+            try {
+                await audioPlayer.play();
+                playButton.innerHTML = "⏸️";
+            } catch (error) {
+                console.error("Audio autoplay error:", error);
+                playButton.innerHTML = "▶️";
+            }
+        }
+
+    } catch (error) {
+        console.error("Error in playAudio:", error);
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initializeUI();
+        
+        if (sendButton && userInput) {
+            sendButton.addEventListener("click", () => sendMessage());
+            userInput.addEventListener("keypress", (event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            userInput.focus();
+        }
+    } catch (error) {
+        console.error('Error initializing chat:', error);
+        showInitializationError(error);
+    }
+});
+```
+
+Contents of chat/chat-Copy1.js:
+```
+const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
+
+// Chat history for context
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;  // Maximum number of exchanges to keep
+
+// Audio state
+let audioEnabled = true;
+let autoplayEnabled = true;
+let currentAudioPlayer = null;
+let currentAudioUrl = null;
+
+// Helper function for TTS text filtering
+function filterTextForTTS(text) {
+    return text.replace(/\*[^*]*\*/g, '').trim();
+}
+
+// Initialize UI
+document.getElementById("character-name").textContent = character.name;
+document.getElementById("character-description").textContent = character.description;
+
+// Add character avatar
+const avatarContainer = document.createElement("div");
+avatarContainer.className = "chat-header-avatar"; // Changed class name
+const avatarImg = document.createElement("img");
+avatarImg.src = "../" + character.avatar;
+avatarImg.alt = character.name;
+avatarContainer.appendChild(avatarImg);
+document.querySelector("header").appendChild(avatarContainer);
+
+// Add audio controls
+const audioToggle = document.createElement("button");
+audioToggle.className = "audio-toggle";
+audioToggle.innerHTML = "🔊";
+audioToggle.onclick = () => {
+    audioEnabled = !audioEnabled;
+    audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+    if (!audioEnabled && currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer.remove();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+};
+document.querySelector("header").appendChild(audioToggle);
+
+const CHAT_API_URL = "http://136.38.129.228:51080/v1/chat/completions";
+const TTS_API_URL = "http://136.38.129.228:51080/api/tts";
+
+function addMessage(sender, text) {
+    console.log("Adding message:", sender, text);
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container", sender);
+
+    // Add avatar
+    const avatarDiv = document.createElement("div");
+    avatarDiv.classList.add("message-avatar");
+    const avatarImg = document.createElement("img");
+    // Update the avatar path in the addMessage function
+    avatarImg.src = sender === "user" ? "../avatars/default-user.png" : "../" + character.avatar;
+    avatarImg.alt = sender === "user" ? "You" : character.name;
+    avatarDiv.appendChild(avatarImg);
+
+    const textBubble = document.createElement("div");
+    textBubble.classList.add("text-bubble");
+    textBubble.innerHTML = text.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Convert asterisks to italics
+
+    // Order elements based on sender
+    if (sender === "user") {
+        messageContainer.appendChild(textBubble);
+        messageContainer.appendChild(avatarDiv);
+    } else {
+        messageContainer.appendChild(avatarDiv);
+        messageContainer.appendChild(textBubble);
+    }
+
+    chatLog.appendChild(messageContainer);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    // Update chat history
+    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
+    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
+        chatHistory.splice(0, 2);
+    }
+    
+    console.log("Current chat history:", chatHistory);
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    // If this audio is already playing, don't start it again
+    if (currentAudioUrl === audioUrl) {
+        console.log("Audio already playing:", audioUrl);
+        return;
+    }
+
+    console.log("Playing new audio:", audioUrl);
+    currentAudioUrl = audioUrl;
+
+    // Stop any currently playing audio
+    if (currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer.remove();
+        currentAudioPlayer = null;
+    }
+
+    // Remove any existing audio controls
+    const existingControls = document.querySelector('.audio-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+
+    const audioControls = document.createElement("div");
+    audioControls.className = "audio-controls";
+    
+    const playButton = document.createElement("button");
+    playButton.innerHTML = "▶️";
+    playButton.title = "Play/Pause";
+    
+    const autoplayButton = document.createElement("button");
+    autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+    autoplayButton.title = "Toggle Autoplay";
+    
+    const closeButton = document.createElement("button");
+    closeButton.innerHTML = "✖️";
+    closeButton.title = "Close";
+
+    audioControls.appendChild(playButton);
+    audioControls.appendChild(autoplayButton);
+    audioControls.appendChild(closeButton);
+    document.body.appendChild(audioControls);
+
+    const audioPlayer = document.createElement("audio");
+    audioPlayer.src = audioUrl;
+    currentAudioPlayer = audioPlayer;
+
+    playButton.onclick = () => {
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+            playButton.innerHTML = "⏸️";
+        } else {
+            audioPlayer.pause();
+            playButton.innerHTML = "▶️";
+        }
+    };
+
+    autoplayButton.onclick = () => {
+        autoplayEnabled = !autoplayEnabled;
+        autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+    };
+
+    closeButton.onclick = () => {
+        audioPlayer.pause();
+        audioControls.remove();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    };
+
+    if (autoplayEnabled) {
+        try {
+            await audioPlayer.play();
+            playButton.innerHTML = "⏸️";
+        } catch (error) {
+            console.error("Audio playback error:", error);
+            playButton.innerHTML = "▶️";
+        }
+    }
+
+    audioPlayer.onended = () => {
+        playButton.innerHTML = "▶️";
+        currentAudioUrl = null;
+    };
+
+    audioPlayer.onerror = () => {
+        console.error("Audio playback error");
+        audioControls.remove();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    };
+}
+
+async function sendMessage() {
+    try {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        console.log("Sending message:", userMessage);
+        addMessage("user", userMessage);
+        userInput.value = "";
+        
+        userInput.disabled = true;
+        sendButton.disabled = true;
+
+        const messages = [
+            { 
+                role: "system", 
+                content: character.systemPrompt || `You are ${character.name}. ${character.description}`
+            },
+            ...chatHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            })),
+            { role: "user", content: userMessage }
+        ];
+
+        const requestBody = {
+            model: "koboldcpp",
+            messages: messages,
+            temperature: 0.75,
+            max_tokens: 60,
+            top_p: 0.9,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.3
+        };
+
+        console.log("Sending to chat API:", requestBody);
+        console.log("Current context length:", messages.length);
+
+        const response = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log("API response:", responseData);
+
+        if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
+            throw new Error("Invalid response format from API");
+        }
+
+        const botMessage = responseData.choices[0].message.content.trim();
+        console.log("Bot message:", botMessage);
+        
+        addMessage("bot", botMessage);
+
+        // Handle TTS with filtered text
+        try {
+            const ttsText = filterTextForTTS(botMessage);
+            if (ttsText) {
+                const ttsResponse = await fetch(TTS_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: ttsText,
+                        edge_voice: character.ttsVoice,
+                        rvc_model: character.id
+                    })
+                });
+
+                if (!ttsResponse.ok) {
+                    throw new Error(`TTS API error: ${ttsResponse.status}`);
+                }
+
+                const ttsData = await ttsResponse.json();
+                console.log("TTS response:", ttsData);
+                
+                const audioUrl = `http://136.38.129.228:51080${ttsData.audio_url}`;
+                console.log("Playing audio from URL:", audioUrl);
+                await playAudio(audioUrl);
+            }
+        } catch (error) {
+            console.error("TTS error:", error);
+        }
+
+    } catch (error) {
+        console.error("Error details:", error.message);
+        console.error("Full error:", error);
+        addMessage("bot", "I apologize, there was an error processing your message.");
+    } finally {
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
+    }
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Chat interface initializing...");
+    console.log("Character loaded:", character);
+
+    sendButton.addEventListener("click", sendMessage);
+    userInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    userInput.focus();
+    
+    console.log("Chat interface initialized");
+});
+```
+
+Contents of chat/.ipynb_checkpoints/chat-checkpoint.html:
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./chat-styles.css">
+    <title>Chat</title>
+</head>
+<body>
+    <header>
+        <div class="character-avatar">
+            <!-- Avatar will be inserted here by JavaScript -->
+        </div>
+        <h1 id="character-name">Character Name</h1>
+        <p id="character-description">Character Description</p>
+    </header>
+    <main>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input">
+            <input id="user-input" type="text" placeholder="Type your message here..." />
+            <button id="send-button">Send</button>
+        </div>
+    </main>
+    <script src="./chat.js" type="module"></script>
+</body>
+</html>
+```
+
+Contents of chat/.ipynb_checkpoints/chat-checkpoint.js:
+```
+// Configuration and state management
+const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
+const chatLog = document.getElementById("chat-log");
+const userInput = document.getElementById("user-input");
+const sendButton = document.getElementById("send-button");
+
+// API endpoints
+const CHAT_API_URL = "/v1/chat/completions";
+const TTS_API_URL = "/v1/tts";
+const TRANSCRIBE_API_URL = "/api/transcribe";
+
+// Chat state
+let chatHistory = [];
+const MAX_HISTORY_LENGTH = 10;
+let messageQueue = [];
+const MAX_QUEUE_SIZE = 5;
+let isProcessing = false;
+
+// Audio state
+let audioEnabled = true;
+let autoplayEnabled = true;
+let currentAudioPlayer = null;
+let currentAudioUrl = null;
+
+// Helper Functions
+function filterTextForTTS(text) {
+    return text.replace(/\*[^*]*\*/g, '').trim();
+}
+
+// Initialize UI
+function initializeUI() {
+    try {
+        document.getElementById("character-name").textContent = character.name;
+        document.getElementById("character-description").textContent = character.description;
+
+        // Add character avatar
+        const avatarContainer = document.createElement("div");
+        avatarContainer.className = "chat-header-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "../" + character.avatar;
+        avatarImg.alt = character.name;
+        avatarContainer.appendChild(avatarImg);
+        document.querySelector("header").appendChild(avatarContainer);
+
+        // Add audio toggle
+        const audioToggle = document.createElement("button");
+        audioToggle.className = "audio-toggle";
+        audioToggle.innerHTML = "🔊";
+        audioToggle.onclick = toggleAudio;
+        document.querySelector("header").appendChild(audioToggle);
+
+        // Add clear chat button
+        const clearButton = document.createElement("button");
+        clearButton.className = "clear-chat";
+        clearButton.innerHTML = "Clear Chat";
+        clearButton.onclick = clearChatState;
+        document.querySelector("header").appendChild(clearButton);
+    } catch (error) {
+        console.error("Error initializing UI:", error);
+        const header = document.querySelector('header');
+        if (header) {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = 'Error initializing chat. Please refresh the page.';
+            header.appendChild(errorMessage);
+        }
+    }
+}
+
+function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    const audioToggle = document.querySelector('.audio-toggle');
+    if (audioToggle) {
+        audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+    }
+    if (!audioEnabled && currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+}
+
+function clearChatState() {
+    chatHistory = [];
+    messageQueue = [];
+    isProcessing = false;
+    
+    if (currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+    
+    const existingControls = document.querySelector('.audio-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+    
+    if (chatLog) {
+        chatLog.innerHTML = '';
+    }
+}
+function addMessage(sender, text) {
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container", sender);
+
+    const avatarDiv = document.createElement("div");
+    avatarDiv.classList.add("message-avatar");
+    const avatarImg = document.createElement("img");
+    avatarImg.src = sender === "user" ? "../avatars/default-user.png" : "../" + character.avatar;
+    avatarImg.alt = sender === "user" ? "You" : character.name;
+    avatarDiv.appendChild(avatarImg);
+
+    const textBubble = document.createElement("div");
+    textBubble.classList.add("text-bubble");
+    textBubble.innerHTML = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    if (sender === "user") {
+        messageContainer.appendChild(textBubble);
+        messageContainer.appendChild(avatarDiv);
+    } else {
+        messageContainer.appendChild(avatarDiv);
+        messageContainer.appendChild(textBubble);
+    }
+
+    chatLog.appendChild(messageContainer);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
+    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
+        chatHistory = chatHistory.slice(-MAX_HISTORY_LENGTH * 2);
+    }
+}
+
+async function sendMessage(userMessage = null) {
+    if (isProcessing) {
+        console.log("Already processing a message, please wait...");
+        return;
+    }
+
+    try {
+        const message = userMessage || userInput.value.trim();
+        if (!message) return;
+
+        isProcessing = true;
+        if (!userMessage) {
+            addMessage("user", message);
+            userInput.value = "";
+        }
+        
+        userInput.disabled = true;
+        sendButton.disabled = true;
+
+        const messages = [
+            { 
+                role: "system", 
+                content: character.systemPrompt || `You are ${character.name}. ${character.description}`
+            },
+            ...chatHistory.slice(-MAX_HISTORY_LENGTH * 2).map(msg => ({
+                role: msg.role,
+                content: msg.content
+            })),
+            { role: "user", content: message }
+        ];
+
+        const requestBody = {
+            model: "koboldcpp",
+            messages: messages,
+            temperature: 0.5,
+            max_tokens: 250,
+            top_p: 0.9,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.6
+        };
+
+        const response = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        if (!responseData.choices?.[0]?.message) {
+            throw new Error("Invalid response format from API");
+        }
+
+        const botMessage = responseData.choices[0].message.content.trim();
+        addMessage("bot", botMessage);
+
+        // Handle TTS
+        if (audioEnabled) {
+            const ttsText = filterTextForTTS(botMessage);
+            if (ttsText) {
+                messageQueue.push(ttsText);
+                if (messageQueue.length === 1) {
+                    processNextInQueue();
+                }
+            }
+        }
+
+    } catch (error) {
+        console.error("Error details:", error);
+        addMessage("bot", "I apologize, there was an error. Please try clearing the chat and starting again.");
+    } finally {
+        isProcessing = false;
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
+    }
+}
+async function processNextInQueue() {
+    if (messageQueue.length === 0) return;
+
+    try {
+        const text = messageQueue[0];
+        const requestBody = {
+            text: text,
+            edge_voice: character.ttsVoice,
+            rvc_model: character.id,
+            tts_rate: character.tts_rate || 0,
+            rvc_pitch: character.rvc_pitch || 0
+        };
+        
+        console.log("TTS Request:", requestBody);  // Debug log
+
+        const ttsResponse = await fetch(TTS_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!ttsResponse.ok) {
+            throw new Error(`TTS API error: ${ttsResponse.status}`);
+        }
+
+        const ttsData = await ttsResponse.json();
+        console.log("TTS Response:", ttsData);  // Debug log
+        
+        if (!ttsData.audio_url) {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+        const audioUrl = ttsData.audio_url;
+        console.log("Audio URL:", audioUrl);  // Debug log
+        
+        if (audioUrl) {
+            await playAudio(audioUrl);
+        } else {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+    } catch (error) {
+        console.error("TTS error:", error);
+        messageQueue.shift(); // Remove failed message from queue
+    } finally {
+        messageQueue.shift();
+        if (messageQueue.length > 0) {
+            processNextInQueue();
+        }
+    }
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    try {
+        if (currentAudioUrl === audioUrl) {
+            console.log("Audio already playing:", audioUrl);
+            return;
+        }
+
+        if (currentAudioPlayer) {
+            currentAudioPlayer.pause();
+            currentAudioPlayer = null;
+        }
+
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+
+        const audioControls = document.createElement("div");
+        audioControls.className = "audio-controls";
+        
+        const playButton = document.createElement("button");
+        playButton.innerHTML = "⏸️";  // Start with pause since we'll autoplay
+        playButton.title = "Play/Pause";
+        
+        const autoplayButton = document.createElement("button");
+        autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        autoplayButton.title = "Toggle Autoplay";
+        
+        const closeButton = document.createElement("button");
+        closeButton.innerHTML = "✖️";
+        closeButton.title = "Close";
+
+        audioControls.appendChild(playButton);
+        audioControls.appendChild(autoplayButton);
+        audioControls.appendChild(closeButton);
+        document.body.appendChild(audioControls);
+
+        const audioPlayer = new Audio(audioUrl);
+        currentAudioPlayer = audioPlayer;
+        currentAudioUrl = audioUrl;
+
+        // Set up event listeners
+        playButton.onclick = () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play()
+                    .then(() => playButton.innerHTML = "⏸️")
+                    .catch(console.error);
+            } else {
+                audioPlayer.pause();
+                playButton.innerHTML = "▶️";
+            }
+        };
+
+        autoplayButton.onclick = () => {
+            autoplayEnabled = !autoplayEnabled;
+            autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        };
+
+        closeButton.onclick = () => {
+            audioPlayer.pause();
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Set up audio event listeners
+        audioPlayer.onended = () => {
+            playButton.innerHTML = "▶️";
+            currentAudioUrl = null;
+        };
+
+        audioPlayer.onerror = (e) => {
+            console.error("Audio playback error:", e);
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Start playing if autoplay is enabled
+        if (autoplayEnabled) {
+            try {
+                await audioPlayer.play();
+                playButton.innerHTML = "⏸️";
+            } catch (error) {
+                console.error("Audio autoplay error:", error);
+                playButton.innerHTML = "▶️";
+            }
+        }
+
+    } catch (error) {
+        console.error("Error in playAudio:", error);
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initializeUI();
+        
+        if (sendButton && userInput) {
+            sendButton.addEventListener("click", () => sendMessage());
+            userInput.addEventListener("keypress", (event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            userInput.focus();
+        }
+    } catch (error) {
+        console.error('Error initializing chat:', error);
+        showInitializationError(error);
+    }
+});
+```
+
+Contents of chat/.ipynb_checkpoints/chat-styles-checkpoint.css:
+```
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Chat header avatar */
+.chat-header-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+}
+
+/* Main chat area */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-log {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    background: #ffffff;
+    min-height: 0;
+}
+
+/* Message styles */
+.message-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    max-width: 85%;
+}
+
+.message-container.user {
+    flex-direction: row-reverse;
+    margin-left: auto;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.text-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #333;
+    word-wrap: break-word;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-container.user .text-bubble {
+    background-color: #007aff;
+    color: #ffffff;
+}
+
+/* Input area */
+.chat-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    background: #ffffff;
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 24px;
+    font-size: 14px;
+    margin-right: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.chat-input input:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+.chat-input button {
+    padding: 12px 24px;
+    border: none;
+    background-color: #007aff;
+    color: white;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chat-input button:hover {
+    background-color: #0056b3;
+}
+
+/* Audio controls */
+.audio-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.audio-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.audio-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.audio-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.audio-controls button:hover {
+    background-color: #f0f0f0;
+}
+
+/* Call button and interface */
+.call-button {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+}
+
+.call-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.call-button.active {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* Call overlay */
+.call-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.call-container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    color: white;
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.call-status {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.call-status.error {
+    color: #ff4444;
+}
+
+/* Recording indicator */
+.recording-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #666;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: background-color 0.3s ease;
+}
+
+.recording-indicator.active {
+    background-color: #ff4444;
+    animation: pulse 1.5s infinite;
+}
+
+/* Call content layout */
+.call-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.caller-side,
+.receiver-side {
+    flex: 1;
+    text-align: center;
+}
+
+.avatar-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.caller-name {
+    font-size: 1.1em;
+    color: #fff;
+    display: block;
+    margin-top: 10px;
+}
+
+/* Call animation */
+.call-animation {
+    position: relative;
+    width: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.connecting-dots {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+.connecting-dots span {
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: dotMove 1.5s infinite;
+}
+
+.connecting-dots span:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.connecting-dots span:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes dotMove {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Voice visualizer */
+.voice-visualizer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.voice-bar {
+    width: 4px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: height 0.1s ease;
+}
+
+.voice-bar.active {
+    background-color: #4CAF50;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Clear chat button */
+.clear-chat {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.clear-chat:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .call-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .call-animation {
+        width: 2px;
+        height: 60px;
+    }
+
+    .connecting-dots {
+        flex-direction: column;
+        height: 100%;
+        width: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @keyframes dotMove {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(-10px);
+        }
+    }
+
+    .avatar-container {
+        width: 100px;
+        height: 100px;
+    }
+
+    .call-button {
+        right: 70px;
+    }
+
+    .audio-toggle {
+        right: 15px;
+    }
+
+    .clear-chat {
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+```
+
+Contents of assets/sounds/phone-ring.mp3:
+```
+[Could not decode file contents]
+
+```
+

@@ -1,11 +1,20 @@
+// Configuration and state management
 const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
 const chatLog = document.getElementById("chat-log");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 
-// Chat history for context
+// API endpoints
+const CHAT_API_URL = "/v1/chat/completions";
+const TTS_API_URL = "/v1/tts";
+const TRANSCRIBE_API_URL = "/api/transcribe";
+
+// Chat state
 let chatHistory = [];
-const MAX_HISTORY_LENGTH = 10;  // Maximum number of exchanges to keep
+const MAX_HISTORY_LENGTH = 10;
+let messageQueue = [];
+const MAX_QUEUE_SIZE = 5;
+let isProcessing = false;
 
 // Audio state
 let audioEnabled = true;
@@ -13,62 +22,99 @@ let autoplayEnabled = true;
 let currentAudioPlayer = null;
 let currentAudioUrl = null;
 
-// Helper function for TTS text filtering
+// Helper Functions
 function filterTextForTTS(text) {
     return text.replace(/\*[^*]*\*/g, '').trim();
 }
 
 // Initialize UI
-document.getElementById("character-name").textContent = character.name;
-document.getElementById("character-description").textContent = character.description;
+function initializeUI() {
+    try {
+        document.getElementById("character-name").textContent = character.name;
+        document.getElementById("character-description").textContent = character.description;
 
-// Add character avatar
-const avatarContainer = document.createElement("div");
-avatarContainer.className = "chat-header-avatar"; // Changed class name
-const avatarImg = document.createElement("img");
-avatarImg.src = "../" + character.avatar;
-avatarImg.alt = character.name;
-avatarContainer.appendChild(avatarImg);
-document.querySelector("header").appendChild(avatarContainer);
+        // Add character avatar
+        const avatarContainer = document.createElement("div");
+        avatarContainer.className = "chat-header-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "../" + character.avatar;
+        avatarImg.alt = character.name;
+        avatarContainer.appendChild(avatarImg);
+        document.querySelector("header").appendChild(avatarContainer);
 
-// Add audio controls
-const audioToggle = document.createElement("button");
-audioToggle.className = "audio-toggle";
-audioToggle.innerHTML = "🔊";
-audioToggle.onclick = () => {
+        // Add audio toggle
+        const audioToggle = document.createElement("button");
+        audioToggle.className = "audio-toggle";
+        audioToggle.innerHTML = "🔊";
+        audioToggle.onclick = toggleAudio;
+        document.querySelector("header").appendChild(audioToggle);
+
+        // Add clear chat button
+        const clearButton = document.createElement("button");
+        clearButton.className = "clear-chat";
+        clearButton.innerHTML = "Clear Chat";
+        clearButton.onclick = clearChatState;
+        document.querySelector("header").appendChild(clearButton);
+    } catch (error) {
+        console.error("Error initializing UI:", error);
+        const header = document.querySelector('header');
+        if (header) {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = 'Error initializing chat. Please refresh the page.';
+            header.appendChild(errorMessage);
+        }
+    }
+}
+
+function toggleAudio() {
     audioEnabled = !audioEnabled;
-    audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+    const audioToggle = document.querySelector('.audio-toggle');
+    if (audioToggle) {
+        audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+    }
     if (!audioEnabled && currentAudioPlayer) {
         currentAudioPlayer.pause();
-        currentAudioPlayer.remove();
         currentAudioPlayer = null;
         currentAudioUrl = null;
     }
-};
-document.querySelector("header").appendChild(audioToggle);
+}
 
-const CHAT_API_URL = "http://136.38.129.228:51080/v1/chat/completions";
-const TTS_API_URL = "http://136.38.129.228:51080/api/tts";
-
+function clearChatState() {
+    chatHistory = [];
+    messageQueue = [];
+    isProcessing = false;
+    
+    if (currentAudioPlayer) {
+        currentAudioPlayer.pause();
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
+    }
+    
+    const existingControls = document.querySelector('.audio-controls');
+    if (existingControls) {
+        existingControls.remove();
+    }
+    
+    if (chatLog) {
+        chatLog.innerHTML = '';
+    }
+}
 function addMessage(sender, text) {
-    console.log("Adding message:", sender, text);
     const messageContainer = document.createElement("div");
     messageContainer.classList.add("message-container", sender);
 
-    // Add avatar
     const avatarDiv = document.createElement("div");
     avatarDiv.classList.add("message-avatar");
     const avatarImg = document.createElement("img");
-    // Update the avatar path in the addMessage function
     avatarImg.src = sender === "user" ? "../avatars/default-user.png" : "../" + character.avatar;
     avatarImg.alt = sender === "user" ? "You" : character.name;
     avatarDiv.appendChild(avatarImg);
 
     const textBubble = document.createElement("div");
     textBubble.classList.add("text-bubble");
-    textBubble.innerHTML = text.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Convert asterisks to italics
+    textBubble.innerHTML = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-    // Order elements based on sender
     if (sender === "user") {
         messageContainer.appendChild(textBubble);
         messageContainer.appendChild(avatarDiv);
@@ -80,117 +126,27 @@ function addMessage(sender, text) {
     chatLog.appendChild(messageContainer);
     chatLog.scrollTop = chatLog.scrollHeight;
 
-    // Update chat history
     chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
     if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
-        chatHistory.splice(0, 2);
+        chatHistory = chatHistory.slice(-MAX_HISTORY_LENGTH * 2);
     }
-    
-    console.log("Current chat history:", chatHistory);
 }
 
-async function playAudio(audioUrl) {
-    if (!audioEnabled) return;
-
-    // If this audio is already playing, don't start it again
-    if (currentAudioUrl === audioUrl) {
-        console.log("Audio already playing:", audioUrl);
+async function sendMessage(userMessage = null) {
+    if (isProcessing) {
+        console.log("Already processing a message, please wait...");
         return;
     }
 
-    console.log("Playing new audio:", audioUrl);
-    currentAudioUrl = audioUrl;
-
-    // Stop any currently playing audio
-    if (currentAudioPlayer) {
-        currentAudioPlayer.pause();
-        currentAudioPlayer.remove();
-        currentAudioPlayer = null;
-    }
-
-    // Remove any existing audio controls
-    const existingControls = document.querySelector('.audio-controls');
-    if (existingControls) {
-        existingControls.remove();
-    }
-
-    const audioControls = document.createElement("div");
-    audioControls.className = "audio-controls";
-    
-    const playButton = document.createElement("button");
-    playButton.innerHTML = "▶️";
-    playButton.title = "Play/Pause";
-    
-    const autoplayButton = document.createElement("button");
-    autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
-    autoplayButton.title = "Toggle Autoplay";
-    
-    const closeButton = document.createElement("button");
-    closeButton.innerHTML = "✖️";
-    closeButton.title = "Close";
-
-    audioControls.appendChild(playButton);
-    audioControls.appendChild(autoplayButton);
-    audioControls.appendChild(closeButton);
-    document.body.appendChild(audioControls);
-
-    const audioPlayer = document.createElement("audio");
-    audioPlayer.src = audioUrl;
-    currentAudioPlayer = audioPlayer;
-
-    playButton.onclick = () => {
-        if (audioPlayer.paused) {
-            audioPlayer.play();
-            playButton.innerHTML = "⏸️";
-        } else {
-            audioPlayer.pause();
-            playButton.innerHTML = "▶️";
-        }
-    };
-
-    autoplayButton.onclick = () => {
-        autoplayEnabled = !autoplayEnabled;
-        autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
-    };
-
-    closeButton.onclick = () => {
-        audioPlayer.pause();
-        audioControls.remove();
-        currentAudioPlayer = null;
-        currentAudioUrl = null;
-    };
-
-    if (autoplayEnabled) {
-        try {
-            await audioPlayer.play();
-            playButton.innerHTML = "⏸️";
-        } catch (error) {
-            console.error("Audio playback error:", error);
-            playButton.innerHTML = "▶️";
-        }
-    }
-
-    audioPlayer.onended = () => {
-        playButton.innerHTML = "▶️";
-        currentAudioUrl = null;
-    };
-
-    audioPlayer.onerror = () => {
-        console.error("Audio playback error");
-        audioControls.remove();
-        currentAudioPlayer = null;
-        currentAudioUrl = null;
-    };
-}
-
-async function sendMessage() {
     try {
-        const userMessage = userInput.value.trim();
-        if (!userMessage) return;
+        const message = userMessage || userInput.value.trim();
+        if (!message) return;
 
-        console.log("Sending message:", userMessage);
-        addMessage("user", userMessage);
-        userInput.value = "";
+        isProcessing = true;
+        if (!userMessage) {
+            addMessage("user", message);
+            userInput.value = "";
+        }
         
         userInput.disabled = true;
         sendButton.disabled = true;
@@ -200,25 +156,22 @@ async function sendMessage() {
                 role: "system", 
                 content: character.systemPrompt || `You are ${character.name}. ${character.description}`
             },
-            ...chatHistory.map(msg => ({
+            ...chatHistory.slice(-MAX_HISTORY_LENGTH * 2).map(msg => ({
                 role: msg.role,
                 content: msg.content
             })),
-            { role: "user", content: userMessage }
+            { role: "user", content: message }
         ];
 
         const requestBody = {
             model: "koboldcpp",
             messages: messages,
-            temperature: 0.75,
-            max_tokens: 60,
+            temperature: 0.5,
+            max_tokens: 250,
             top_p: 0.9,
             presence_penalty: 0.6,
-            frequency_penalty: 0.3
+            frequency_penalty: 0.6
         };
-
-        console.log("Sending to chat API:", requestBody);
-        console.log("Current context length:", messages.length);
 
         const response = await fetch(CHAT_API_URL, {
             method: "POST",
@@ -233,73 +186,206 @@ async function sendMessage() {
         }
 
         const responseData = await response.json();
-        console.log("API response:", responseData);
-
-        if (!responseData.choices || !responseData.choices[0] || !responseData.choices[0].message) {
+        if (!responseData.choices?.[0]?.message) {
             throw new Error("Invalid response format from API");
         }
 
         const botMessage = responseData.choices[0].message.content.trim();
-        console.log("Bot message:", botMessage);
-        
         addMessage("bot", botMessage);
 
-        // Handle TTS with filtered text
-        try {
+        // Handle TTS
+        if (audioEnabled) {
             const ttsText = filterTextForTTS(botMessage);
             if (ttsText) {
-                const ttsResponse = await fetch(TTS_API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        text: ttsText,
-                        edge_voice: character.ttsVoice,
-                        rvc_model: character.id
-                    })
-                });
-
-                if (!ttsResponse.ok) {
-                    throw new Error(`TTS API error: ${ttsResponse.status}`);
+                messageQueue.push(ttsText);
+                if (messageQueue.length === 1) {
+                    processNextInQueue();
                 }
-
-                const ttsData = await ttsResponse.json();
-                console.log("TTS response:", ttsData);
-                
-                const audioUrl = `http://136.38.129.228:51080${ttsData.audio_url}`;
-                console.log("Playing audio from URL:", audioUrl);
-                await playAudio(audioUrl);
             }
-        } catch (error) {
-            console.error("TTS error:", error);
         }
 
     } catch (error) {
-        console.error("Error details:", error.message);
-        console.error("Full error:", error);
-        addMessage("bot", "I apologize, there was an error processing your message.");
+        console.error("Error details:", error);
+        addMessage("bot", "I apologize, there was an error. Please try clearing the chat and starting again.");
     } finally {
+        isProcessing = false;
         userInput.disabled = false;
         sendButton.disabled = false;
         userInput.focus();
     }
 }
+async function processNextInQueue() {
+    if (messageQueue.length === 0) return;
 
-// Add event listeners when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("Chat interface initializing...");
-    console.log("Character loaded:", character);
+    try {
+        const text = messageQueue[0];
+        const requestBody = {
+            text: text,
+            edge_voice: character.ttsVoice,
+            rvc_model: character.id,
+            tts_rate: character.tts_rate || 0,
+            rvc_pitch: character.rvc_pitch || 0
+        };
+        
+        console.log("TTS Request:", requestBody);  // Debug log
 
-    sendButton.addEventListener("click", sendMessage);
-    userInput.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendMessage();
+        const ttsResponse = await fetch(TTS_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!ttsResponse.ok) {
+            throw new Error(`TTS API error: ${ttsResponse.status}`);
         }
-    });
-    
-    userInput.focus();
-    
-    console.log("Chat interface initialized");
+
+        const ttsData = await ttsResponse.json();
+        console.log("TTS Response:", ttsData);  // Debug log
+        
+        if (!ttsData.audio_url) {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+        const audioUrl = ttsData.audio_url;
+        console.log("Audio URL:", audioUrl);  // Debug log
+        
+        if (audioUrl) {
+            await playAudio(audioUrl);
+        } else {
+            throw new Error("No audio URL received from TTS service");
+        }
+
+    } catch (error) {
+        console.error("TTS error:", error);
+        messageQueue.shift(); // Remove failed message from queue
+    } finally {
+        messageQueue.shift();
+        if (messageQueue.length > 0) {
+            processNextInQueue();
+        }
+    }
+}
+
+async function playAudio(audioUrl) {
+    if (!audioEnabled) return;
+
+    try {
+        if (currentAudioUrl === audioUrl) {
+            console.log("Audio already playing:", audioUrl);
+            return;
+        }
+
+        if (currentAudioPlayer) {
+            currentAudioPlayer.pause();
+            currentAudioPlayer = null;
+        }
+
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+
+        const audioControls = document.createElement("div");
+        audioControls.className = "audio-controls";
+        
+        const playButton = document.createElement("button");
+        playButton.innerHTML = "⏸️";  // Start with pause since we'll autoplay
+        playButton.title = "Play/Pause";
+        
+        const autoplayButton = document.createElement("button");
+        autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        autoplayButton.title = "Toggle Autoplay";
+        
+        const closeButton = document.createElement("button");
+        closeButton.innerHTML = "✖️";
+        closeButton.title = "Close";
+
+        audioControls.appendChild(playButton);
+        audioControls.appendChild(autoplayButton);
+        audioControls.appendChild(closeButton);
+        document.body.appendChild(audioControls);
+
+        const audioPlayer = new Audio(audioUrl);
+        currentAudioPlayer = audioPlayer;
+        currentAudioUrl = audioUrl;
+
+        // Set up event listeners
+        playButton.onclick = () => {
+            if (audioPlayer.paused) {
+                audioPlayer.play()
+                    .then(() => playButton.innerHTML = "⏸️")
+                    .catch(console.error);
+            } else {
+                audioPlayer.pause();
+                playButton.innerHTML = "▶️";
+            }
+        };
+
+        autoplayButton.onclick = () => {
+            autoplayEnabled = !autoplayEnabled;
+            autoplayButton.innerHTML = autoplayEnabled ? "🔄" : "⏸️";
+        };
+
+        closeButton.onclick = () => {
+            audioPlayer.pause();
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Set up audio event listeners
+        audioPlayer.onended = () => {
+            playButton.innerHTML = "▶️";
+            currentAudioUrl = null;
+        };
+
+        audioPlayer.onerror = (e) => {
+            console.error("Audio playback error:", e);
+            audioControls.remove();
+            currentAudioPlayer = null;
+            currentAudioUrl = null;
+        };
+
+        // Start playing if autoplay is enabled
+        if (autoplayEnabled) {
+            try {
+                await audioPlayer.play();
+                playButton.innerHTML = "⏸️";
+            } catch (error) {
+                console.error("Audio autoplay error:", error);
+                playButton.innerHTML = "▶️";
+            }
+        }
+
+    } catch (error) {
+        console.error("Error in playAudio:", error);
+        const existingControls = document.querySelector('.audio-controls');
+        if (existingControls) {
+            existingControls.remove();
+        }
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initializeUI();
+        
+        if (sendButton && userInput) {
+            sendButton.addEventListener("click", () => sendMessage());
+            userInput.addEventListener("keypress", (event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            userInput.focus();
+        }
+    } catch (error) {
+        console.error('Error initializing chat:', error);
+        showInitializationError(error);
+    }
 });

@@ -1,10 +1,13 @@
 {
     "characters": [
         "aria.json",
+        "beetlejuice.json",
+        "jeffy.json",
         "luna.json",
         "meatcanyon.json",
+        "meatwad.json",
         "onyx.json",
         "rick.json"
     ],
-    "lastUpdated": "2024-11-29 05:43:54"
+    "lastUpdated": "2024-12-01 05:05:35"
 }

@@ -36,17 +36,18 @@ header {
     border: 3px solid #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     margin-bottom: 10px;
-    display: flex;  /* Added this */
-    justify-content: center;  /* Added this */
-    align-items: center;  /* Added this */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .chat-header-avatar img {
     width: 100%;
     height: 100%;
-    object-fit: contain;  /* Changed from 'cover' to 'contain' */
-    background: white;  /* Optional: adds a white background */
+    object-fit: contain;
+    background: white;
 }
+
 /* Main chat area */
 main {
     flex: 1;
@@ -197,4 +198,285 @@ main {
 
 .audio-controls button:hover {
     background-color: #f0f0f0;
+}
+
+/* Call button and interface */
+.call-button {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+}
+
+.call-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.call-button.active {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+/* Call overlay */
+.call-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.call-container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    color: white;
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.call-status {
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.call-status.error {
+    color: #ff4444;
+}
+
+/* Recording indicator */
+.recording-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #666;
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: background-color 0.3s ease;
+}
+
+.recording-indicator.active {
+    background-color: #ff4444;
+    animation: pulse 1.5s infinite;
+}
+
+/* Call content layout */
+.call-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.caller-side,
+.receiver-side {
+    flex: 1;
+    text-align: center;
+}
+
+.avatar-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.caller-name {
+    font-size: 1.1em;
+    color: #fff;
+    display: block;
+    margin-top: 10px;
+}
+
+/* Call animation */
+.call-animation {
+    position: relative;
+    width: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.connecting-dots {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+.connecting-dots span {
+    width: 8px;
+    height: 8px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: dotMove 1.5s infinite;
+}
+
+.connecting-dots span:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.connecting-dots span:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes dotMove {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Voice visualizer */
+.voice-visualizer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.voice-bar {
+    width: 4px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: height 0.1s ease;
+}
+
+.voice-bar.active {
+    background-color: #4CAF50;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Clear chat button */
+.clear-chat {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: none;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.clear-chat:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .call-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .call-animation {
+        width: 2px;
+        height: 60px;
+    }
+
+    .connecting-dots {
+        flex-direction: column;
+        height: 100%;
+        width: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    @keyframes dotMove {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(-10px);
+        }
+    }
+
+    .avatar-container {
+        width: 100px;
+        height: 100px;
+    }
+
+    .call-button {
+        right: 70px;
+    }
+
+    .audio-toggle {
+        right: 15px;
+    }
+
+    .clear-chat {
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 }
