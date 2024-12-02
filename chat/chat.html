@@ -7,20 +7,31 @@
     <title>Chat</title>
 </head>
 <body>
-    <header>
-        <div class="character-avatar">
-            <!-- Avatar will be inserted here by JavaScript -->
-        </div>
-        <h1 id="character-name">Character Name</h1>
-        <p id="character-description">Character Description</p>
-    </header>
-    <main>
+    <div class="chat-container">
+        <img class="chat-background" alt="background" src="" /> <!-- Set by JS -->
+        
+        <header>
+            <button class="home-button" onclick="window.location.href='../'">
+                <span>🏠</span> Home
+            </button>
+            <div class="chat-header-avatar">
+                <!-- Avatar will be inserted here by JavaScript -->
+            </div>
+            <div class="header-text">
+                <h1 id="character-name">Character Name</h1>
+                <p id="character-description">Character Description</p>
+            </div>
+            <button class="clear-chat">Clear Chat</button>
+            <button class="audio-toggle">🔊</button>
+        </header>
+
         <div id="chat-log" class="chat-log"></div>
+
         <div class="chat-input">
             <input id="user-input" type="text" placeholder="Type your message here..." />
             <button id="send-button">Send</button>
         </div>
-    </main>
+    </div>
     <script src="./chat.js" type="module"></script>
 </body>
 </html>
