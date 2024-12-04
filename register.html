@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - SpeakEasy</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-form input {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--surface-2);
+            color: var(--on-surface);
+        }
+
+        .auth-form button {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: var(--on-primary);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .auth-form button:hover {
+            opacity: 0.9;
+        }
+
+        .error-message {
+            color: var(--error);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h1>Create Account</h1>
+        <form class="auth-form" id="registerForm">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+            <div class="error-message" id="errorMessage"></div>
+            <button type="submit">Register</button>
+        </form>
+        
+        <p>Already have an account? <a href="/login.html">Login</a></p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match';
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        email: document.getElementById('email').value,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Registration successful, redirect to home page
+                    window.location.href = '/';
+                } else {
+                    errorMessage.textContent = data.error || 'Registration failed';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorMessage.textContent = 'Registration failed. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>

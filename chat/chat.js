@@ -1,12 +1,9 @@
 // Configuration and state management
+let currentUser = null;
 const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
 const chatLog = document.getElementById("chat-log");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
-
-// API endpoints
-const CHAT_API_URL = "/v1/chat/completions";
-const TTS_API_URL = "/v1/tts";
 
 // Chat state
 let chatHistory = [];
@@ -21,108 +18,61 @@ let autoplayEnabled = true;
 let currentAudioPlayer = null;
 let currentAudioUrl = null;
 
+// Background state and configurations
+const backgroundImg = document.querySelector(".chat-background");
+const videoFormats = ['mp4', 'webm', 'wmv'];
+const imageFormats = ['webp', 'gif', 'jpg', 'png'];
+const allFormats = [...videoFormats, ...imageFormats];
+
 // Helper Functions
 function filterTextForTTS(text) {
     return text.replace(/\*[^*]*\*/g, '').trim();
 }
 
-// Initialize UI
-function initializeUI() {
-    try {
-        // Set character info
-        document.getElementById("character-name").textContent = character.name;
-        document.getElementById("character-description").textContent = character.description;
-
-        // Add character avatar
-        const avatarContainer = document.createElement("div");
-        avatarContainer.className = "chat-header-avatar";
-        const avatarImg = document.createElement("img");
-        avatarImg.src = "../" + character.avatar;
-        avatarImg.alt = character.name;
-        avatarContainer.appendChild(avatarImg);
-        document.querySelector("header").appendChild(avatarContainer);
-
-        // Add background image
-        const backgroundImg = document.querySelector(".chat-background");
-        const backgroundPath = `../characters/${character.id}/background.jpg`;
-        
-        // Check if background image exists
-        fetch(backgroundPath)
-            .then(response => {
-                if (response.ok) {
-                    backgroundImg.src = backgroundPath;
-                } else {
-                    backgroundImg.src = "../assets/images/default-background.jpg";
-                }
-            })
-            .catch(() => {
-                backgroundImg.src = "../assets/images/default-background.jpg";
-            });
-
-        // Add audio toggle
-        const audioToggle = document.querySelector('.audio-toggle');
-        if (audioToggle) {
-            audioToggle.onclick = toggleAudio;
-        }
-
-        // Add clear chat button
-        const clearButton = document.querySelector('.clear-chat');
-        if (clearButton) {
-            clearButton.onclick = clearChatState;
-        }
-
-        // Initialize greeting
-        setTimeout(sendInitialGreeting, 1000);
-
-    } catch (error) {
-        console.error("Error initializing UI:", error);
-        showInitializationError(error);
-    }
-}
-
 function sendInitialGreeting() {
     const hour = new Date().getHours();
-    let timeGreeting = '';
+    let timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+    console.log("Sending initial greeting...");
     
-    if (hour < 12) {
-        timeGreeting = 'Good morning';
-    } else if (hour < 18) {
-        timeGreeting = 'Good afternoon';
-    } else {
-        timeGreeting = 'Good evening';
-    }
+    let characterGreeting = character.greetings ? 
+        character.greetings[Math.floor(Math.random() * character.greetings.length)] :
+        "Hello! How can I help you today?";
 
-    // Add debug logging
-    console.log("Character data:", character);
-    console.log("Greetings array:", character.greetings);
-
-    let characterGreeting = "Hello! How can I help you today?";
-
-    if (character.greetings && Array.isArray(character.greetings) && character.greetings.length > 0) {
-        characterGreeting = character.greetings[Math.floor(Math.random() * character.greetings.length)];
-    } else {
-        console.log("No valid greetings found in character data");
-    }
-
+    // Add initial greeting to chat history
+    const systemMessage = {
+        role: "system",
+        content: character.systemPrompt
+    };
+    
+    const assistantMessage = {
+        role: "assistant",
+        content: characterGreeting
+    };
+    
+    chatHistory.push(systemMessage, assistantMessage);
+    
     const fullGreeting = `${timeGreeting}! ${characterGreeting}`;
     addMessage("bot", fullGreeting);
 
     if (audioEnabled) {
         const ttsText = filterTextForTTS(fullGreeting);
         if (ttsText) {
-            messageQueue.push(ttsText);
-            if (messageQueue.length === 1) {
-                processNextInQueue();
-            }
+            console.log("Adding greeting to message queue:", ttsText);
+            messageQueue = [ttsText]; // Reset queue and add greeting
+            console.log("Current message queue:", messageQueue);
         }
     }
 }
 
 function toggleAudio() {
     audioEnabled = !audioEnabled;
+    console.log("Audio enabled:", audioEnabled);
     const audioToggle = document.querySelector('.audio-toggle');
     if (audioToggle) {
         audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
+        const creditsPerMessage = audioEnabled ? "15" : "10";
+        audioToggle.title = `Credits per message: ${creditsPerMessage}`;
     }
     if (!audioEnabled && currentAudioPlayer) {
         currentAudioPlayer.pause();
@@ -146,7 +96,6 @@ function clearChatState() {
         chatLog.innerHTML = '';
     }
 
-    // Resend initial greeting after clearing
     setTimeout(sendInitialGreeting, 500);
 }
 
@@ -176,12 +125,18 @@ function addMessage(sender, text) {
     chatLog.appendChild(messageContainer);
     chatLog.scrollTop = chatLog.scrollHeight;
 
-    chatHistory.push({ role: sender === "user" ? "user" : "assistant", content: text });
-    if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
-        chatHistory = chatHistory.slice(-MAX_HISTORY_LENGTH * 2);
+    // Only add to chat history if it's not already from initialization
+    if (sender === "user" || chatHistory.length === 0) {
+        chatHistory.push({ 
+            role: sender === "user" ? "user" : "assistant", 
+            content: text 
+        });
+
+        if (chatHistory.length > MAX_HISTORY_LENGTH * 2) {
+            chatHistory = chatHistory.slice(-MAX_HISTORY_LENGTH * 2);
+        }
     }
 }
-
 async function sendMessage(userMessage = null) {
     if (isProcessing) {
         console.log("Already processing a message, please wait...");
@@ -201,60 +156,52 @@ async function sendMessage(userMessage = null) {
         userInput.disabled = true;
         sendButton.disabled = true;
 
-        // Default AI parameters
-        const defaultParams = {
-            temperature: 0.7,
-            max_tokens: 150,
-            top_p: 0.9,
-            presence_penalty: 0.6,
-            frequency_penalty: 0.6
-        };
+        const creditCost = audioEnabled ? 15 : 10;
 
-        // Merge with character-specific parameters if they exist
-        const aiParams = {
-            ...defaultParams,
-            ...character.ai_parameters // This will override defaults only if they exist
-        };
+        // Ensure system prompt is included
+        let messages = chatHistory;
+        if (!chatHistory.some(msg => msg.role === "system")) {
+            messages = [
+                {
+                    role: "system",
+                    content: character.systemPrompt
+                },
+                ...chatHistory
+            ];
+        }
 
-        const messages = [
-            { 
-                role: "system", 
-                content: character.systemPrompt || `You are ${character.name}. ${character.description}`
-            },
-            ...chatHistory.slice(-MAX_HISTORY_LENGTH * 2).map(msg => ({
-                role: msg.role,
-                content: msg.content
-            })),
-            { role: "user", content: message }
-        ];
-
-        const requestBody = {
-            model: "koboldcpp",
-            messages: messages,
-            ...aiParams // Spread the merged parameters
-        };
-
-        console.log("Sending request with parameters:", aiParams);
-
-        const response = await fetch(CHAT_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody)
+        const response = await fetch('/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: "koboldcpp",
+                messages: messages,
+                temperature: character.ai_parameters?.temperature || 0.7,
+                max_tokens: character.ai_parameters?.max_tokens || 150,
+                top_p: character.ai_parameters?.top_p || 0.9,
+                presence_penalty: character.ai_parameters?.presence_penalty || 0.6,
+                frequency_penalty: character.ai_parameters?.frequency_penalty || 0.6
+            })
         });
+
+        if (response.status === 402) {
+            addMessage("bot", "Insufficient credits. Please purchase more credits to continue chatting.");
+            return;
+        }
 
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
 
         const responseData = await response.json();
-        if (!responseData.choices?.[0]?.message) {
-            throw new Error("Invalid response format from API");
-        }
-
         const botMessage = responseData.choices[0].message.content.trim();
         addMessage("bot", botMessage);
 
-        // Handle TTS
+        if (currentUser) {
+            currentUser.user.credits -= creditCost;
+            updateCreditDisplay();
+        }
+
         if (audioEnabled) {
             const ttsText = filterTextForTTS(botMessage);
             if (ttsText) {
@@ -267,7 +214,7 @@ async function sendMessage(userMessage = null) {
 
     } catch (error) {
         console.error("Error details:", error);
-        addMessage("bot", "I apologize, there was an error. Please try clearing the chat and starting again.");
+        addMessage("bot", "I apologize, there was an error. Please try again.");
     } finally {
         isProcessing = false;
         userInput.disabled = false;
@@ -277,10 +224,17 @@ async function sendMessage(userMessage = null) {
 }
 
 async function processNextInQueue() {
-    if (messageQueue.length === 0) return;
+    if (messageQueue.length === 0) {
+        console.log("Message queue is empty");
+        return;
+    }
 
     try {
         const text = messageQueue[0];
+        console.log("Processing TTS for text:", text);
+        console.log("Current character:", character);
+        console.log("Audio enabled:", audioEnabled);
+        
         const requestBody = {
             text: text,
             edge_voice: character.ttsVoice,
@@ -289,7 +243,9 @@ async function processNextInQueue() {
             rvc_pitch: character.rvc_pitch || 0
         };
 
-        const ttsResponse = await fetch(TTS_API_URL, {
+        console.log("Sending TTS request:", requestBody);
+
+        const ttsResponse = await fetch('/v1/tts', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(requestBody)
@@ -300,6 +256,7 @@ async function processNextInQueue() {
         }
 
         const ttsData = await ttsResponse.json();
+        console.log("TTS response:", ttsData);
         
         if (!ttsData.audio_url) {
             throw new Error("No audio URL received from TTS service");
@@ -340,12 +297,10 @@ async function playAudio(audioUrl) {
         currentAudioPlayer = audioPlayer;
         currentAudioUrl = audioUrl;
 
-        if (autoplayEnabled) {
-            try {
-                await audioPlayer.play();
-            } catch (error) {
-                console.error("Audio autoplay error:", error);
-            }
+        try {
+            await audioPlayer.play();
+        } catch (error) {
+            console.error("Audio autoplay error:", error);
         }
 
         audioPlayer.onended = () => {
@@ -372,6 +327,147 @@ function showInitializationError(error) {
         header.appendChild(errorMessage);
     }
 }
+async function initializeUI() {
+    try {
+        // Check authentication first
+        if (!await checkAuth()) return;
+
+        // Set character info
+        document.getElementById("character-name").textContent = character.name;
+        document.getElementById("character-description").textContent = character.description;
+
+        // Add character avatar
+        const avatarContainer = document.createElement("div");
+        avatarContainer.className = "chat-header-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "../" + character.avatar;
+        avatarImg.alt = character.name;
+        avatarContainer.appendChild(avatarImg);
+        document.querySelector("header").appendChild(avatarContainer);
+
+        // Load background
+        await tryLoadBackground();
+
+        // Setup start chat button
+        const startChatOverlay = document.getElementById('start-chat-overlay');
+        const startChatButton = document.getElementById('start-chat-button');
+        const chatInput = document.querySelector('.chat-input');
+
+        if (startChatButton && chatInput) {
+            chatInput.style.display = 'none'; // Hide chat input initially
+            startChatButton.addEventListener('click', () => {
+                console.log("Start chat clicked, message queue:", messageQueue);
+                startChatOverlay.style.display = 'none';
+                chatInput.style.display = 'flex';
+                userInput.focus();
+                
+                // Only process queue if audio is enabled
+                if (audioEnabled && messageQueue.length > 0) {
+                    console.log("Processing initial greeting audio");
+                    processNextInQueue();
+                }
+            });
+        }
+
+        // Add audio toggle
+        const audioToggle = document.querySelector('.audio-toggle');
+        if (audioToggle) {
+            audioToggle.onclick = toggleAudio;
+            audioToggle.title = `Credits per message: ${audioEnabled ? "15" : "10"}`;
+        }
+
+        // Add clear chat button
+        const clearButton = document.querySelector('.clear-chat');
+        if (clearButton) {
+            clearButton.onclick = clearChatState;
+        }
+
+        // Initialize greeting
+        setTimeout(sendInitialGreeting, 1000);
+
+    } catch (error) {
+        console.error("Error initializing UI:", error);
+        showInitializationError(error);
+    }
+}
+
+async function checkAuth() {
+    try {
+        const response = await fetch('/auth/user');
+        if (!response.ok) {
+            window.location.href = '/login.html';
+            return false;
+        }
+        currentUser = await response.json();
+        updateCreditDisplay();
+        return true;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
+
+function updateCreditDisplay() {
+    const headerText = document.querySelector('.header-text');
+    let creditDisplay = document.querySelector('.credit-display');
+    if (!creditDisplay) {
+        creditDisplay = document.createElement('div');
+        creditDisplay.className = 'credit-display';
+        headerText.appendChild(creditDisplay);
+    }
+    creditDisplay.innerHTML = `Credits: ${currentUser.user.credits}`;
+}
+
+// Background loading function
+// Background loading function
+async function tryLoadBackground() {
+    const backgroundContainer = document.querySelector(".chat-background").parentNode;
+    const checkPath = `../characters/${character.id}`;
+    
+    try {
+        // Use fetch with HEAD method to efficiently check for file existence
+        const fileTypes = ['png', 'jpg', 'gif', 'webp', 'mp4', 'webm'];
+        
+        for (const type of fileTypes) {
+            const response = await fetch(`${checkPath}/background.${type}`, { method: 'HEAD' });
+            if (response.ok) {
+                const backgroundUrl = `${checkPath}/background.${type}`;
+                
+                if (videoFormats.includes(type)) {
+                    const video = document.createElement('video');
+                    video.className = 'chat-background';
+                    video.src = backgroundUrl;
+                    
+                    // Essential video attributes for silent background
+                    video.muted = true;
+                    video.defaultMuted = true;
+                    video.autoplay = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.volume = 0;
+                    video.setAttribute('muted', '');
+                    video.setAttribute('playsinline', '');
+                    
+                    if (backgroundImg && backgroundImg.style) {
+                        video.style = backgroundImg.style;
+                    }
+                    
+                    backgroundContainer.replaceChild(video, backgroundImg);
+                } else {
+                    backgroundImg.src = backgroundUrl;
+                }
+                return;
+            }
+        }
+        // If no background found, use default
+        throw new Error('No background found');
+    } catch (error) {
+        console.log('Failed to load character background:', error);
+        backgroundImg.src = "../assets/images/default-background.jpg";
+    }
+}
+
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {

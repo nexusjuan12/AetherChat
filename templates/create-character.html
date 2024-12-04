@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/create-character.css">
+    <title>Create Character</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Character</h1>
+        
+        <form id="characterForm">
+            <div class="form-section">
+                <h3>Basic Information (Required)</h3>
+                
+                <div class="form-group">
+                    <label for="name">Character Name</label>
+                    <input type="text" id="name" name="name" required>
+                    <div class="helper-text">Choose a unique name for your character</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Assistant">Assistant</option>
+                        <option value="Companion">Companion</option>
+                        <option value="Roleplay">Roleplay</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div class="helper-text">Choose the category that best fits your character</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                    <div class="helper-text">Describe your character's personality and purpose</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="greeting">Greeting Message</label>
+                    <textarea id="greeting" name="greeting" required placeholder="Hello! I'm excited to meet you!"></textarea>
+                    <div class="helper-text">This is the first message your character will send when starting a conversation</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>System Prompt (Required)</h3>
+                <div class="form-group">
+                    <textarea id="systemPrompt" name="systemPrompt" required></textarea>
+                    <div class="helper-text">Define how your character should behave and interact</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Voice Settings (Required)</h3>
+                
+                <div class="form-group">
+                    <label for="ttsVoice">TTS Voice</label>
+                    <select id="ttsVoice" name="ttsVoice" required>
+                        <option value="">Select TTS Voice</option>
+                    </select>
+                    <button type="button" id="previewVoiceBtn" class="preview-btn">
+                        Preview Voice
+                        <span class="loading" style="display: none;">...</span>
+                    </button>
+                    <div class="helper-text">Select and preview the voice for your character</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ttsRate">TTS Rate (-100 to +100) - Optional</label>
+                    <div class="slider-control">
+                        <input type="range" id="ttsRate" name="ttsRate" min="-100" max="100" value="0">
+                        <span class="value-display">0</span>
+                    </div>
+                    <div class="helper-text">Adjust the speaking speed of the voice</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rvcPitch">RVC Pitch (-12 to +12) - Optional</label>
+                    <div class="slider-control">
+                        <input type="range" id="rvcPitch" name="rvcPitch" min="-12" max="12" value="0">
+                        <span class="value-display">0</span>
+                    </div>
+                    <div class="helper-text">Adjust the pitch of the voice</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Avatar (Required)</h3>
+                <div class="image-upload">
+                    <div id="avatarPreview" class="preview-container"></div>
+                    <input type="file" id="avatar" name="avatar" accept="image/*" required>
+                    <div class="helper-text">Upload a profile picture (recommended size: 256x256)</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Background Image (Optional)</h3>
+                <div class="image-upload">
+                    <div id="backgroundPreview" class="preview-container"></div>
+                    <input type="file" id="background" name="background" accept="image/*">
+                    <div class="helper-text">Upload a background image for the chat interface</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Voice Model Upload (Optional)</h3>
+                <div class="model-info-box">
+                    <h4>About Voice Models</h4>
+                    <p>Upload RVC (Retrieval-based Voice Conversion) v1 or v2 voice models to give your character a unique voice.</p>
+                    <p>Models can be obtained from: <a href="https://voice-models.com/" target="_blank">voice-models.com</a></p>
+                    <ul>
+                        <li>Extract any downloaded archives before uploading</li>
+                        <li>You need both the .pth model file and the .index file</li>
+                        <li>Models should be RVC v1 or v2 format</li>
+                    </ul>
+                </div>
+
+                <div class="model-upload">
+                    <div class="upload-group">
+                        <label for="modelFile">Model File (.pth)</label>
+                        <input type="file" id="modelFile" name="modelFile" accept=".pth">
+                        <div class="helper-text">The main voice model file (ends in .pth)</div>
+                    </div>
+
+                    <div class="upload-group">
+                        <label for="indexFile">Index File (.index)</label>
+                        <input type="file" id="indexFile" name="indexFile" accept=".index">
+                        <div class="helper-text">The corresponding index file (ends in .index)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Privacy Settings</h3>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="isPrivate">
+                        Make this character private
+                    </label>
+                    <div class="helper-text">Private characters are only visible to you</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">Create Character</button>
+            </div>
+        </form>
+    </div>
+
+    <script type="module" src="/js/characterCreation.js"></script>
+</body>
+</html>

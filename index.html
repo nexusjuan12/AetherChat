@@ -4,12 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./styles.css">
-    <title>SpeakEasy - AI Character Chat</title>
+    <title>AetherChat - AI Character Chat</title>
 </head>
 <body>
     <nav class="nav-panel">
-        <div class="logo">SpeakEasy</div>
+        <div class="logo-container">
+            <img src="./logo.jpg" alt="AetherChat" class="logo-image">
+        </div>
         
+        <div id="auth-section" class="nav-section">
+            <div id="logged-out-view">
+                <button class="nav-button" id="login-button">
+                    <span>👤</span>
+                    Login
+                </button>
+                <button class="nav-button" id="register-button">
+                    <span>✨</span>
+                    Sign Up
+                </button>
+            </div>
+            <div id="logged-in-view" style="display: none">
+                <div class="user-info">
+                    <span id="username-display"></span>
+                    <span id="credits-display"></span>
+                </div>
+                <button class="nav-button" id="logout-button">
+                    <span>🚪</span>
+                    Logout
+                </button>
+            </div>
+        </div>
+            
         <div class="nav-section">
             <h2>Search</h2>
             <input type="text" class="search-bar" id="search" placeholder="Search characters...">
@@ -17,18 +42,10 @@
         
         <div class="nav-section">
             <h2>Create</h2>
-            <button class="nav-button" id="create-character">
+            <a href="/create-character" class="nav-button" id="create-character">
                 <span>+</span>
                 Create New Character
-            </button>
-        </div>
-        
-        <div class="nav-section">
-            <h2>Memory</h2>
-            <button class="nav-button" id="view-memories" disabled>
-                <span>📖</span>
-                View Memories
-            </button>
+            </a>
         </div>
         
         <div class="nav-section">
@@ -46,10 +63,53 @@
         <div id="character-grid" class="character-grid"></div>
     </main>
 
-    <dialog id="character-form-dialog">
-        <!-- Existing dialog content -->
+    <dialog id="auth-modal" class="modal">
+        <div class="modal-content">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <div id="login-error" class="error-message"></div>
+                <div class="form-actions">
+                    <button type="submit">Login</button>
+                    <button type="button" class="switch-to-register">Need an account?</button>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form" style="display: none;">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div id="register-error" class="error-message"></div>
+                <div class="form-actions">
+                    <button type="submit">Register</button>
+                    <button type="button" class="switch-to-login">Already have an account?</button>
+                </div>
+            </form>
+        </div>
+        <button class="modal-close" id="close-auth-modal">&times;</button>
     </dialog>
-    
-    <script src="./script.js" type="module"></script>
+
+    <script type="module" src="./auth.js"></script>
+    <script type="module" src="./characters.js"></script>
+    <script type="module" src="./script.js"></script>
 </body>
 </html>
