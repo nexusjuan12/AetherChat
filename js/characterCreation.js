@@ -1,28 +1,24 @@
 class CharacterCreator {
     constructor() {
-        this.form = document.getElementById('characterForm');
-        console.log('CharacterCreator initialized');
-        this.initializeForm();
-        console.log('Loading available voices...');
-        this.loadAvailableVoices();
-        this.setupEventListeners();
-    }
+    this.form = document.getElementById('characterForm');
+    console.log('CharacterCreator initialized');
+    this.initializeForm();
+    console.log('Loading available voices...');
+    this.loadAvailableVoices();
+    this.loadVoiceModels();  // Add this
+    this.setupVoiceModelHandling();  // Add this
+    this.setupEventListeners();
+}
 
     initializeForm() {
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        
-        // Setup image preview
-        document.querySelector('input[name="avatar"]').addEventListener('change', (e) => 
-            this.handleImagePreview(e, 'avatarPreview'));
-        document.querySelector('input[name="background"]').addEventListener('change', (e) => 
-            this.handleImagePreview(e, 'backgroundPreview'));
-
-        // Setup voice preview
-        const previewBtn = document.getElementById('previewVoiceBtn');
-        if (previewBtn) {
-            previewBtn.addEventListener('click', () => this.handleVoicePreview());
-        }
-    }
+    this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+    
+    // Setup image preview
+    document.querySelector('input[name="avatar"]').addEventListener('change', (e) => 
+        this.handleImagePreview(e, 'avatarPreview'));
+    document.querySelector('input[name="background"]').addEventListener('change', (e) => 
+        this.handleImagePreview(e, 'backgroundPreview'));
+}
 
     setupEventListeners() {
         // Update value displays for sliders
@@ -85,58 +81,53 @@ class CharacterCreator {
             }
         }
     }
-    async handleVoicePreview() {
-        const voiceSelect = document.querySelector('select[name="ttsVoice"]');
-        const selectedVoice = voiceSelect.value;
-        const previewBtn = document.getElementById('previewVoiceBtn');
-        const loadingSpinner = previewBtn.querySelector('.loading');
-
-        if (!selectedVoice) {
-            alert('Please select a voice first');
-            return;
-        }
-
-        try {
-            // Show loading state
-            previewBtn.disabled = true;
-            loadingSpinner.style.display = 'inline-block';
-
-            // Get current rate and pitch values
-            const ttsRate = parseInt(document.querySelector('input[name="ttsRate"]').value) || 0;
-            const rvcPitch = parseInt(document.querySelector('input[name="rvcPitch"]').value) || 0;
-
-            const response = await fetch('/v1/tts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: "Hello! This is a preview of my voice.",
-                    edge_voice: selectedVoice,
-                    tts_rate: ttsRate,
-                    rvc_pitch: rvcPitch
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to generate voice preview');
-            }
-
-            const data = await response.json();
-            
-            // Create and play audio
-            const audio = new Audio(data.audio_url);
-            await audio.play();
-
-        } catch (error) {
-            console.error('Error previewing voice:', error);
-            alert('Failed to preview voice: ' + error.message);
-        } finally {
-            // Reset loading state
-            previewBtn.disabled = false;
-            loadingSpinner.style.display = 'none';
-        }
+    async loadVoiceModels() {
+    try {
+        const response = await fetch('/api/available-voices');
+        if (!response.ok) throw new Error('Failed to fetch voice models');
+        const data = await response.json();
+        
+        const modelSelect = document.getElementById('existingCharacterModel');
+        data.rvc_models.forEach(modelId => {
+            const option = document.createElement('option');
+            option.value = modelId;
+            option.textContent = modelId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            modelSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading voice models:', error);
     }
+}
+
+setupVoiceModelHandling() {
+    const typeSelect = document.getElementById('voiceModelType');
+    const existingSection = document.getElementById('existingModelSection');
+    const uploadSection = document.getElementById('modelUploadSection');
+    const modelFile = document.getElementById('modelFile');
+    const indexFile = document.getElementById('indexFile');
+
+    if (!typeSelect || !existingSection || !uploadSection) {
+        console.error('Voice model elements not found');
+        return;
+    }
+
+    typeSelect.addEventListener('change', (e) => {
+        existingSection.style.display = 'none';
+        uploadSection.style.display = 'none';
+        
+        if (e.target.value === 'existing') {
+            existingSection.style.display = 'block';
+            document.getElementById('existingCharacterModel').required = true;
+            modelFile.required = false;
+            indexFile.required = false;
+        } else if (e.target.value === 'upload') {
+            uploadSection.style.display = 'block';
+            document.getElementById('existingCharacterModel').required = false;
+            modelFile.required = true;
+            indexFile.required = true;
+        }
+    });
+}
 
     async resizeImage(file, targetWidth = 256, targetHeight = 256, isBackground = false) {
         return new Promise((resolve) => {
@@ -221,164 +212,186 @@ class CharacterCreator {
             console.error('Error handling image preview:', error);
         }
     }
-    async handleSubmit(event) {
-        event.preventDefault();
-        
-        try {
-            const characterName = document.querySelector('input[name="name"]').value
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '-');
-                
-            const checkResponse = await fetch(`/check-character/${characterName}`);
-            if (checkResponse.ok) {
-                const exists = await checkResponse.json();
-                if (exists.exists) {
-                    alert('A character with this name already exists. Please choose a different name.');
-                    return;
-                }
-            }
-            
-            // Validate required fields
-            const requiredFields = ['name', 'description', 'systemPrompt', 'ttsVoice'];
-            for (const field of requiredFields) {
-                const value = this.form.elements[field].value.trim();
-                if (!value) {
-                    alert(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
-                    return;
-                }
-            }
+    // In characterCreation.js, modify the handleSubmit function:
 
-            const avatarInput = document.querySelector('input[name="avatar"]');
-            const backgroundInput = document.querySelector('input[name="background"]');
+async handleSubmit(event) {
+    event.preventDefault();
+    
+    try {
+        // Sanitize character name to create ID - replace all special chars with empty string
+        const characterName = document.querySelector('input[name="name"]').value
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, ''); // Remove all non-alphanumeric characters
 
-            if (!avatarInput.files[0]) {
-                alert('Avatar image is required');
+        const checkResponse = await fetch(`/check-character/${characterName}`);
+        if (checkResponse.ok) {
+            const exists = await checkResponse.json();
+            if (exists.exists) {
+                alert('A character with this name already exists. Please choose a different name.');
                 return;
             }
-
-            // Upload images first
-            const avatarPath = await this.uploadImage(avatarInput, 'avatar');
-            const backgroundPath = backgroundInput.files.length > 0 ? 
-                await this.uploadImage(backgroundInput, 'background') : 
-                null;
-
-            const formData = new FormData(this.form);
-            const data = {
-                id: characterName,
-                name: formData.get('name'),
-                description: formData.get('description'),
-                systemPrompt: formData.get('systemPrompt'),
-                ttsVoice: formData.get('ttsVoice'),
-                category: formData.get('category'),
-                is_private: formData.get('isPrivate') === 'on',
-                tts_rate: parseInt(formData.get('ttsRate')) || 0,
-                rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
-                avatar: avatarPath,
-                background: backgroundPath,
-                greeting: formData.get('greeting') || "Hello!", // Added greeting
-                settings: {
-                    tts_rate: parseInt(formData.get('ttsRate')) || 0,
-                    rvc_pitch: parseInt(formData.get('rvcPitch')) || 0
-                }
-            };
-
-            // Validate the data
-            const validatedData = this.validateParameters(data);
-
-            const response = await fetch('/characters/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(validatedData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to create character');
+        }
+        
+        // Validate required fields
+        const requiredFields = ['name', 'description', 'systemPrompt', 'ttsVoice'];
+        for (const field of requiredFields) {
+            const value = this.form.elements[field].value.trim();
+            if (!value) {
+                alert(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
+                return;
             }
-
-            const result = await response.json();
-
-            // Handle model upload if provided
-            const modelFile = document.querySelector('input[name="modelFile"]');
-            if (modelFile.files.length > 0) {
-                await this.uploadModel(characterName);
-            }
-
-            alert('Character created successfully!');
-
-            // Clear all input fields
-            this.form.reset();
-            avatarInput.value = '';
-            backgroundInput.value = '';
-            if (modelFile) modelFile.value = '';
-
-            // Optional: Preview image resets
-            const avatarPreview = document.getElementById('avatarPreview');
-            const backgroundPreview = document.getElementById('backgroundPreview');
-            if (avatarPreview) avatarPreview.src = '';
-            if (backgroundPreview) backgroundPreview.src = '';
-
-            // Redirect after a short delay to allow the user to see the success message
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
-
-        } catch (error) {
-            console.error('Error creating character:', error);
-            alert('Error: ' + error.message);
         }
+
+        const avatarInput = document.querySelector('input[name="avatar"]');
+        const backgroundInput = document.querySelector('input[name="background"]');
+        
+        if (!backgroundInput.files[0]) {
+            alert('Background image/video is required');
+            return;
+        }
+
+        if (!avatarInput.files[0]) {
+            alert('Avatar image is required');
+            return;
+        }
+
+        // Upload images first
+        const avatarPath = await this.uploadImage(avatarInput, 'avatar');
+        const backgroundPath = backgroundInput.files.length > 0 ? 
+            await this.uploadImage(backgroundInput, 'background') : 
+            null;
+
+        const formData = new FormData(this.form);
+
+// Process greetings first
+const greetingsText = formData.get('greetings')?.trim();
+const greetings = greetingsText
+    ? greetingsText.split('\n')
+        .map(g => g.trim())
+        .filter(g => g.length > 0)
+    : ["Hello!"];
+
+const data = {
+    id: characterName,
+    name: formData.get('name'),
+    description: formData.get('description'),
+    systemPrompt: formData.get('systemPrompt'),
+    ttsVoice: formData.get('ttsVoice'),
+    category: formData.get('category'),
+    is_private: formData.get('isPrivate') === 'on',
+    tts_rate: parseInt(formData.get('ttsRate')) || 0,
+    rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
+    avatar: avatarPath,
+    background: backgroundPath,
+    greetings: greetings,  // Use the processed greetings array
+    rvc_model: formData.get('voiceModelType') === 'existing' ? 
+        formData.get('existingCharacterModel') : null,
+    settings: {
+        tts_rate: parseInt(formData.get('ttsRate')) || 0,
+        rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
+        rvc_model: formData.get('voiceModelType') === 'existing' ? 
+            formData.get('existingCharacterModel') : null
     }
+};
 
-    validateParameters(params) {
-        const validated = {};
-        
-        // Required fields
-        if (!params.name) throw new Error('Name is required');
-        if (!params.description) throw new Error('Description is required');
-        if (!params.systemPrompt) throw new Error('System prompt is required');
-        if (!params.ttsVoice) throw new Error('TTS voice is required');
-        if (!params.avatar) throw new Error('Avatar is required');
-        
-        // Validate numeric parameters
-        if (params.temperature !== undefined) {
-            validated.temperature = Math.min(Math.max(0.1, params.temperature), 2.0);
+        // Validate the data
+        const validatedData = this.validateParameters(data);
+
+        const response = await fetch('/characters/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(validatedData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create character');
         }
-        if (params.top_p !== undefined) {
-            validated.top_p = Math.min(Math.max(0.1, params.top_p), 1.0);
+
+        const result = await response.json();
+
+        // Handle model upload if provided
+        const modelFile = document.querySelector('input[name="modelFile"]');
+        if (modelFile.files.length > 0) {
+            await this.uploadModel(characterName);
         }
-        if (params.top_k !== undefined) {
-            validated.top_k = Math.min(Math.max(1, params.top_k), 100);
-        }
-        if (params.tts_rate !== undefined) {
-            validated.tts_rate = Math.min(Math.max(-100, params.tts_rate), 100);
-        }
-        if (params.rvc_pitch !== undefined) {
-            validated.rvc_pitch = Math.min(Math.max(-12, params.rvc_pitch), 12);
-        }
-        
-        // Copy validated fields
-        validated.id = params.id;
-        validated.name = params.name;
-        validated.description = params.description;
-        validated.systemPrompt = params.systemPrompt;
-        validated.ttsVoice = params.ttsVoice;
-        validated.avatar = params.avatar;
-        validated.category = params.category;
-        validated.tags = params.tags;
-        validated.is_private = params.is_private;
-        validated.dateAdded = params.dateAdded;
-        validated.greeting = params.greeting;
-        validated.settings = params.settings;
-        validated.ai_parameters = params.ai_parameters;
-        
-        // Optional background
-        if (params.background) {
-            validated.background = params.background;
-        }
-        
-        return validated;
+
+        alert('Character created successfully!');
+
+        // Clear all input fields
+        this.form.reset();
+        avatarInput.value = '';
+        backgroundInput.value = '';
+        if (modelFile) modelFile.value = '';
+
+        // Optional: Preview image resets
+        const avatarPreview = document.getElementById('avatarPreview');
+        const backgroundPreview = document.getElementById('backgroundPreview');
+        if (avatarPreview) avatarPreview.src = '';
+        if (backgroundPreview) backgroundPreview.src = '';
+
+        // Redirect after a short delay to allow the user to see the success message
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error creating character:', error);
+        alert('Error: ' + error.message);
     }
+}
+
+validateParameters(params) {
+    const validated = {};
+    
+    // Required fields
+    if (!params.name) throw new Error('Name is required');
+    if (!params.description) throw new Error('Description is required');
+    if (!params.systemPrompt) throw new Error('System prompt is required');
+    if (!params.ttsVoice) throw new Error('TTS voice is required');
+    if (!params.avatar) throw new Error('Avatar is required');
+    
+    // Validate numeric parameters
+    if (params.temperature !== undefined) {
+        validated.temperature = Math.min(Math.max(0.1, params.temperature), 2.0);
+    }
+    if (params.top_p !== undefined) {
+        validated.top_p = Math.min(Math.max(0.1, params.top_p), 1.0);
+    }
+    if (params.top_k !== undefined) {
+        validated.top_k = Math.min(Math.max(1, params.top_k), 100);
+    }
+    if (params.tts_rate !== undefined) {
+        validated.tts_rate = Math.min(Math.max(-100, params.tts_rate), 100);
+    }
+    if (params.rvc_pitch !== undefined) {
+        validated.rvc_pitch = Math.min(Math.max(-12, params.rvc_pitch), 12);
+    }
+    
+    // Copy validated fields
+    validated.id = params.id;
+    validated.name = params.name;
+    validated.description = params.description;
+    validated.systemPrompt = params.systemPrompt;
+    validated.ttsVoice = params.ttsVoice;
+    validated.avatar = params.avatar;
+    validated.category = params.category;
+    validated.tags = params.tags || [];
+    validated.is_private = params.is_private;
+    validated.dateAdded = params.dateAdded;
+    validated.greetings = Array.isArray(params.greetings) ? params.greetings : ["Hello!"]; // Ensure greetings is always an array
+    validated.settings = params.settings;
+    validated.ai_parameters = params.ai_parameters;
+    validated.rvc_model = params.rvc_model;
+    
+    // Optional background
+    if (params.background) {
+        validated.background = params.background;
+    }
+    
+    return validated;
+}
 
     async uploadImage(inputElement, type) {
     if (!inputElement?.files[0] && !inputElement?.resizedBlob) return null;
@@ -392,18 +405,20 @@ class CharacterCreator {
         throw new Error('Invalid file type. Please use JPG, PNG, GIF, WEBP or video files.');
     }
 
-    // Get character name from the form and convert to valid ID format
-    const characterName = document.querySelector('input[name="name"]').value
+    // Get character name and convert to valid ID format
+    const characterId = document.querySelector('input[name="name"]').value
         .toLowerCase()
-        .replace(/[^a-z0-9]/g, '-');
+        .replace(/[^a-z0-9]/g, ''); // Removes everything except lowercase letters and numbers
 
     // Create a new File object with the character ID in the filename
     const fileExtension = imageFile.type.split('/')[1];
-    const newFileName = `${characterName}-${type}.${fileExtension}`;
-    const file = new File([imageFile], newFileName, { type: imageFile.type });
+    const newFileName = type === 'avatar' 
+        ? `${characterId}-avatar.${fileExtension}`
+        : `background.${fileExtension}`;
 
+    const file = new File([imageFile], newFileName, { type: imageFile.type });
     formData.append(type, file);
-    formData.append('characterId', characterName);
+    formData.append('characterId', characterId);
 
     try {
         const endpoint = type === 'avatar' ? '/upload/avatar' : '/upload/character-background';
@@ -422,13 +437,21 @@ class CharacterCreator {
         
         const result = await response.json();
         console.log(`Successfully uploaded ${type}:`, result);
-        return result.backgroundPath || result.avatarPath;
+        
+        // Return the relative path consistently formatted
+        if (type === 'avatar') {
+            return `./avatars/${characterId}-avatar.${fileExtension}`;
+        } else {
+            return `./characters/${characterId}/background.${fileExtension}`;
+        }
 
     } catch (error) {
         console.error(`Error uploading ${type}:`, error);
         throw error;
     }
 }
+
+
 
 
 

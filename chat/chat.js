@@ -35,9 +35,11 @@ function sendInitialGreeting() {
 
     console.log("Sending initial greeting...");
     
-    let characterGreeting = character.greetings ? 
-        character.greetings[Math.floor(Math.random() * character.greetings.length)] :
-        "Hello! How can I help you today?";
+    // Check if greetings array exists and has items
+    let characterGreeting = "Hello! How can I help you today?"; // Default greeting
+    if (character.greetings && Array.isArray(character.greetings) && character.greetings.length > 0) {
+        characterGreeting = character.greetings[Math.floor(Math.random() * character.greetings.length)];
+    }
 
     // Add initial greeting to chat history
     const systemMessage = {

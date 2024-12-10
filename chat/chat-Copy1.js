@@ -18,164 +18,15 @@ let autoplayEnabled = true;
 let currentAudioPlayer = null;
 let currentAudioUrl = null;
 
+// Background state and configurations
+const backgroundImg = document.querySelector(".chat-background");
+const videoFormats = ['mp4', 'webm', 'wmv'];
+const imageFormats = ['webp', 'gif', 'jpg', 'png'];
+const allFormats = [...videoFormats, ...imageFormats];
+
 // Helper Functions
 function filterTextForTTS(text) {
     return text.replace(/\*[^*]*\*/g, '').trim();
-}
-
-// Authentication check
-async function checkAuth() {
-    try {
-        const response = await fetch('/auth/user');
-        if (!response.ok) {
-            window.location.href = '/login.html';
-            return false;
-        }
-        currentUser = await response.json();
-        updateCreditDisplay();
-        return true;
-    } catch (error) {
-        console.error('Auth check failed:', error);
-        window.location.href = '/login.html';
-        return false;
-    }
-}
-
-function updateCreditDisplay() {
-    const headerText = document.querySelector('.header-text');
-    let creditDisplay = document.querySelector('.credit-display');
-    if (!creditDisplay) {
-        creditDisplay = document.createElement('div');
-        creditDisplay.className = 'credit-display';
-        headerText.appendChild(creditDisplay);
-    }
-    creditDisplay.innerHTML = `Credits: ${currentUser.user.credits}`;
-}
-
-async function initializeUI() {
-    try {
-        // Check authentication first
-        if (!await checkAuth()) return;
-
-        // Set character info
-        document.getElementById("character-name").textContent = character.name;
-        document.getElementById("character-description").textContent = character.description;
-
-        // Add character avatar
-        const avatarContainer = document.createElement("div");
-        avatarContainer.className = "chat-header-avatar";
-        const avatarImg = document.createElement("img");
-        avatarImg.src = "../" + character.avatar;
-        avatarImg.alt = character.name;
-        avatarContainer.appendChild(avatarImg);
-        document.querySelector("header").appendChild(avatarContainer);
-
-        // Add background image
-        // Add background image with fallback
-const backgroundImg = document.querySelector(".chat-background");
-const characterId = character.id;
-const backgroundFormats = ['jpg', 'gif', 'png'];
-
-async function tryLoadBackground() {
-    const backgroundContainer = document.querySelector(".chat-background").parentNode;
-    const videoFormats = ['mp4', 'webm', 'wmv'];
-    const imageFormats = ['webp', 'gif', 'jpg', 'png'];
-    const allFormats = [...videoFormats, ...imageFormats];
-
-    for (const format of allFormats) {
-        const backgroundPath = `../characters/${characterId}/background.${format}`;
-        try {
-            const response = await fetch(backgroundPath);
-            if (response.ok) {
-                // If it's a video format
-                if (videoFormats.includes(format)) {
-                    const video = document.createElement('video');
-                    video.className = 'chat-background';
-                    video.src = backgroundPath;
-                    
-                    // Essential video attributes for silent background
-                    video.muted = true;
-                    video.defaultMuted = true;
-                    video.autoplay = true;
-                    video.loop = true;
-                    video.playsInline = true;
-                    
-                    // Explicitly remove audio
-                    video.volume = 0;
-                    
-                    // Add attributes to prevent interference
-                    video.setAttribute('muted', '');
-                    video.setAttribute('playsinline', '');
-                    
-                    video.style = backgroundImg.style; // Copy any existing styles
-                    
-                    // Replace img with video
-                    backgroundContainer.replaceChild(video, backgroundImg);
-                    
-                    // Double-check mute after load
-                    video.onloadeddata = () => {
-                        video.muted = true;
-                        video.volume = 0;
-                    };
-
-                    return;
-                } else {
-                    // Handle image formats as before
-                    backgroundImg.src = backgroundPath;
-                    return;
-                }
-            }
-        } catch (error) {
-            console.log(`Failed to load ${format} background`);
-        }
-    }
-    // If all formats fail, use default
-    backgroundImg.src = "../assets/images/default-background.jpg";
-}
-
-
-
-        // Setup start chat button
-        const startChatOverlay = document.getElementById('start-chat-overlay');
-        const startChatButton = document.getElementById('start-chat-button');
-        const chatInput = document.querySelector('.chat-input');
-
-        if (startChatButton && chatInput) {
-            chatInput.style.display = 'none'; // Hide chat input initially
-            startChatButton.addEventListener('click', () => {
-                console.log("Start chat clicked, message queue:", messageQueue);
-                startChatOverlay.style.display = 'none';
-                chatInput.style.display = 'flex';
-                userInput.focus();
-                
-                // Only process queue if audio is enabled
-                if (audioEnabled && messageQueue.length > 0) {
-                    console.log("Processing initial greeting audio");
-                    processNextInQueue();
-                }
-            });
-        }
-
-        // Add audio toggle
-        const audioToggle = document.querySelector('.audio-toggle');
-        if (audioToggle) {
-            audioToggle.onclick = toggleAudio;
-            audioToggle.title = `Credits per message: ${audioEnabled ? "15" : "10"}`;
-        }
-
-        // Add clear chat button
-        const clearButton = document.querySelector('.clear-chat');
-        if (clearButton) {
-            clearButton.onclick = clearChatState;
-        }
-
-        // Initialize greeting
-        setTimeout(sendInitialGreeting, 1000);
-
-    } catch (error) {
-        console.error("Error initializing UI:", error);
-        showInitializationError(error);
-    }
 }
 
 function sendInitialGreeting() {
@@ -286,7 +137,6 @@ function addMessage(sender, text) {
         }
     }
 }
-
 async function sendMessage(userMessage = null) {
     if (isProcessing) {
         console.log("Already processing a message, please wait...");
@@ -477,6 +327,147 @@ function showInitializationError(error) {
         header.appendChild(errorMessage);
     }
 }
+async function initializeUI() {
+    try {
+        // Check authentication first
+        if (!await checkAuth()) return;
+
+        // Set character info
+        document.getElementById("character-name").textContent = character.name;
+        document.getElementById("character-description").textContent = character.description;
+
+        // Add character avatar
+        const avatarContainer = document.createElement("div");
+        avatarContainer.className = "chat-header-avatar";
+        const avatarImg = document.createElement("img");
+        avatarImg.src = "../" + character.avatar;
+        avatarImg.alt = character.name;
+        avatarContainer.appendChild(avatarImg);
+        document.querySelector("header").appendChild(avatarContainer);
+
+        // Load background
+        await tryLoadBackground();
+
+        // Setup start chat button
+        const startChatOverlay = document.getElementById('start-chat-overlay');
+        const startChatButton = document.getElementById('start-chat-button');
+        const chatInput = document.querySelector('.chat-input');
+
+        if (startChatButton && chatInput) {
+            chatInput.style.display = 'none'; // Hide chat input initially
+            startChatButton.addEventListener('click', () => {
+                console.log("Start chat clicked, message queue:", messageQueue);
+                startChatOverlay.style.display = 'none';
+                chatInput.style.display = 'flex';
+                userInput.focus();
+                
+                // Only process queue if audio is enabled
+                if (audioEnabled && messageQueue.length > 0) {
+                    console.log("Processing initial greeting audio");
+                    processNextInQueue();
+                }
+            });
+        }
+
+        // Add audio toggle
+        const audioToggle = document.querySelector('.audio-toggle');
+        if (audioToggle) {
+            audioToggle.onclick = toggleAudio;
+            audioToggle.title = `Credits per message: ${audioEnabled ? "15" : "10"}`;
+        }
+
+        // Add clear chat button
+        const clearButton = document.querySelector('.clear-chat');
+        if (clearButton) {
+            clearButton.onclick = clearChatState;
+        }
+
+        // Initialize greeting
+        setTimeout(sendInitialGreeting, 1000);
+
+    } catch (error) {
+        console.error("Error initializing UI:", error);
+        showInitializationError(error);
+    }
+}
+
+async function checkAuth() {
+    try {
+        const response = await fetch('/auth/user');
+        if (!response.ok) {
+            window.location.href = '/login.html';
+            return false;
+        }
+        currentUser = await response.json();
+        updateCreditDisplay();
+        return true;
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
+
+function updateCreditDisplay() {
+    const headerText = document.querySelector('.header-text');
+    let creditDisplay = document.querySelector('.credit-display');
+    if (!creditDisplay) {
+        creditDisplay = document.createElement('div');
+        creditDisplay.className = 'credit-display';
+        headerText.appendChild(creditDisplay);
+    }
+    creditDisplay.innerHTML = `Credits: ${currentUser.user.credits}`;
+}
+
+// Background loading function
+// Background loading function
+async function tryLoadBackground() {
+    const backgroundContainer = document.querySelector(".chat-background").parentNode;
+    const checkPath = `../characters/${character.id}`;
+    
+    try {
+        // Use fetch with HEAD method to efficiently check for file existence
+        const fileTypes = ['png', 'jpg', 'gif', 'webp', 'mp4', 'webm'];
+        
+        for (const type of fileTypes) {
+            const response = await fetch(`${checkPath}/background.${type}`, { method: 'HEAD' });
+            if (response.ok) {
+                const backgroundUrl = `${checkPath}/background.${type}`;
+                
+                if (videoFormats.includes(type)) {
+                    const video = document.createElement('video');
+                    video.className = 'chat-background';
+                    video.src = backgroundUrl;
+                    
+                    // Essential video attributes for silent background
+                    video.muted = true;
+                    video.defaultMuted = true;
+                    video.autoplay = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.volume = 0;
+                    video.setAttribute('muted', '');
+                    video.setAttribute('playsinline', '');
+                    
+                    if (backgroundImg && backgroundImg.style) {
+                        video.style = backgroundImg.style;
+                    }
+                    
+                    backgroundContainer.replaceChild(video, backgroundImg);
+                } else {
+                    backgroundImg.src = backgroundUrl;
+                }
+                return;
+            }
+        }
+        // If no background found, use default
+        throw new Error('No background found');
+    } catch (error) {
+        console.log('Failed to load character background:', error);
+        backgroundImg.src = "../assets/images/default-background.jpg";
+    }
+}
+
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
