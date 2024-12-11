@@ -30,18 +30,15 @@ function filterTextForTTS(text) {
 }
 
 function sendInitialGreeting() {
-    const hour = new Date().getHours();
-    let timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-
     console.log("Sending initial greeting...");
     
-    // Check if greetings array exists and has items
-    let characterGreeting = "Hello! How can I help you today?"; // Default greeting
+    // Get random greeting or use default
+    let characterGreeting = "Hello! How can I help you today?";
     if (character.greetings && Array.isArray(character.greetings) && character.greetings.length > 0) {
         characterGreeting = character.greetings[Math.floor(Math.random() * character.greetings.length)];
     }
 
-    // Add initial greeting to chat history
+    // Add system prompt and greeting to chat history
     const systemMessage = {
         role: "system",
         content: character.systemPrompt
@@ -54,14 +51,15 @@ function sendInitialGreeting() {
     
     chatHistory.push(systemMessage, assistantMessage);
     
-    const fullGreeting = `${timeGreeting}! ${characterGreeting}`;
-    addMessage("bot", fullGreeting);
+    // Add greeting to chat display
+    addMessage("bot", characterGreeting);
 
+    // Clear existing queue and add greeting for TTS
     if (audioEnabled) {
-        const ttsText = filterTextForTTS(fullGreeting);
+        const ttsText = filterTextForTTS(characterGreeting);
         if (ttsText) {
             console.log("Adding greeting to message queue:", ttsText);
-            messageQueue = [ttsText]; // Reset queue and add greeting
+            messageQueue = [ttsText];
             console.log("Current message queue:", messageQueue);
         }
     }
@@ -226,16 +224,14 @@ async function sendMessage(userMessage = null) {
 }
 
 async function processNextInQueue() {
-    if (messageQueue.length === 0) {
-        console.log("Message queue is empty");
+    if (messageQueue.length === 0 || isAudioPlaying) {
+        console.log("Queue empty or audio playing");
         return;
     }
 
     try {
         const text = messageQueue[0];
         console.log("Processing TTS for text:", text);
-        console.log("Current character:", character);
-        console.log("Audio enabled:", audioEnabled);
         
         const requestBody = {
             text: text,
@@ -258,28 +254,24 @@ async function processNextInQueue() {
         }
 
         const ttsData = await ttsResponse.json();
-        console.log("TTS response:", ttsData);
         
         if (!ttsData.audio_url) {
             throw new Error("No audio URL received from TTS service");
         }
 
-        const audioUrl = ttsData.audio_url;
-        
-        if (audioUrl) {
-            await playAudio(audioUrl);
-        }
+        await playAudio(ttsData.audio_url);
 
     } catch (error) {
         console.error("TTS error:", error);
-        messageQueue.shift();
     } finally {
         messageQueue.shift();
-        if (messageQueue.length > 0) {
-            processNextInQueue();
+        if (messageQueue.length > 0 && !isAudioPlaying) {
+            setTimeout(() => processNextInQueue(), 100); // Small delay between messages
         }
     }
 }
+
+let isAudioPlaying = false;
 
 async function playAudio(audioUrl) {
     if (!audioEnabled) return;
@@ -295,28 +287,31 @@ async function playAudio(audioUrl) {
             currentAudioPlayer = null;
         }
 
+        isAudioPlaying = true;
         const audioPlayer = new Audio(audioUrl);
         currentAudioPlayer = audioPlayer;
         currentAudioUrl = audioUrl;
 
-        try {
-            await audioPlayer.play();
-        } catch (error) {
-            console.error("Audio autoplay error:", error);
-        }
-
-        audioPlayer.onended = () => {
+        audioPlayer.addEventListener('ended', () => {
+            isAudioPlaying = false;
             currentAudioUrl = null;
-        };
+            currentAudioPlayer = null;
+        });
 
-        audioPlayer.onerror = (e) => {
+        audioPlayer.addEventListener('error', (e) => {
             console.error("Audio playback error:", e);
+            isAudioPlaying = false;
             currentAudioPlayer = null;
             currentAudioUrl = null;
-        };
+        });
+
+        await audioPlayer.play();
 
     } catch (error) {
         console.error("Error in playAudio:", error);
+        isAudioPlaying = false;
+        currentAudioPlayer = null;
+        currentAudioUrl = null;
     }
 }
 
@@ -356,21 +351,30 @@ async function initializeUI() {
         const chatInput = document.querySelector('.chat-input');
 
         if (startChatButton && chatInput) {
-            chatInput.style.display = 'none'; // Hide chat input initially
-            startChatButton.addEventListener('click', () => {
-                console.log("Start chat clicked, message queue:", messageQueue);
-                startChatOverlay.style.display = 'none';
-                chatInput.style.display = 'flex';
-                userInput.focus();
-                
-                // Only process queue if audio is enabled
-                if (audioEnabled && messageQueue.length > 0) {
-                    console.log("Processing initial greeting audio");
-                    processNextInQueue();
-                }
-            });
+    chatInput.style.display = 'none';
+    startChatButton.addEventListener('click', async () => {
+        console.log("Start chat clicked, message queue:", messageQueue);
+        startChatOverlay.style.display = 'none';
+        chatInput.style.display = 'flex';
+        userInput.focus();
+        
+        // Clear any existing queue and audio
+        if (currentAudioPlayer) {
+            currentAudioPlayer.pause();
+            currentAudioPlayer = null;
         }
-
+        messageQueue = [];
+        
+        // Send new greeting
+        await sendInitialGreeting();
+        
+        // Process greeting audio if enabled
+        if (audioEnabled && messageQueue.length > 0) {
+            console.log("Processing initial greeting audio");
+            processNextInQueue();
+        }
+    });
+}
         // Add audio toggle
         const audioToggle = document.querySelector('.audio-toggle');
         if (audioToggle) {
@@ -385,7 +389,6 @@ async function initializeUI() {
         }
 
         // Initialize greeting
-        setTimeout(sendInitialGreeting, 1000);
 
     } catch (error) {
         console.error("Error initializing UI:", error);
