@@ -1,0 +1,59 @@
+/* Add to existing styles.css or create new my-library.css */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
+    border: none;
+    border-radius: 8px;
+    color: var(--on-surface);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button.active {
+    background: var(--primary);
+    color: var(--on-primary);
+}
+
+.character-list {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.character-list.active {
+    display: grid;
+}
+
+.character-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.character-actions {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-button {
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--on-surface);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-button:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+}

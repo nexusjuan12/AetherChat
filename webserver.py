@@ -251,7 +251,8 @@ def get_user():
             'id': current_user.id,
             'email': current_user.email,
             'username': current_user.username,
-            'credits': current_user.credits
+            'credits': current_user.credits,  # Added missing comma here
+            'is_admin': current_user.is_admin
         }
     }), 200
 
@@ -263,11 +264,19 @@ def serve_index():
 @app.route('/<path:path>')
 def serve_static(path):
     try:
+        # Strip any route prefixes
+        if path.startswith('edit-character/'):
+            path = path.replace('edit-character/', '', 1)
+        if path.startswith('admin-dashboard/'):  # Add this line
+            path = path.replace('admin-dashboard/', '', 1)  # Add this line
+        if path.startswith('css/') or path.startswith('js/'):
+            return send_from_directory(STATIC_DIR, path)
         return send_from_directory(STATIC_DIR, path)
     except Exception as e:
         print(f"Error serving {path}: {e}")
         return f"Error: Could not serve {path}", 404
 
+        
 @app.route('/v1/tts', methods=['POST', 'OPTIONS'])
 @login_required
 def tts():
@@ -619,21 +628,41 @@ def get_pending_characters():
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
-        pending = Character.query.filter_by(
-            is_private=False,
-            is_approved=False,
-            approval_status='pending'
-        ).all()
-        return jsonify([{
-            'id': char.id,
-            'name': char.name,
-            'description': char.description,
-            'avatar': char.avatar,
-            'category': char.category,
-            'creator_id': char.creator_id
-        } for char in pending])
+        pending_characters = []
+        if os.path.exists(CHARACTER_FOLDER):
+            for filename in os.listdir(CHARACTER_FOLDER):
+                if filename.endswith('.json'):
+                    try:
+                        with open(os.path.join(CHARACTER_FOLDER, filename), 'r', encoding='utf-8') as f:
+                            char_data = json.load(f)
+                            # Add debug logging
+                            print(f"Character data: {char_data}")
+                            
+                            if not char_data.get('isPrivate', False) and \
+                               not char_data.get('isApproved', False) and \
+                               char_data.get('approvalStatus') == 'pending':
+                                # Create character object with explicit background field
+                                char_obj = {
+                                    'id': char_data.get('id', filename.replace('.json', '')),
+                                    'name': char_data.get('name', 'Unknown'),
+                                    'description': char_data.get('description', ''),
+                                    'avatar': char_data.get('avatar', ''),
+                                    'background': char_data.get('background', ''),  # Make sure this matches the JSON field name
+                                    'category': char_data.get('category', 'Other'),
+                                    'creator_id': char_data.get('creator'),
+                                    'approvalStatus': char_data.get('approvalStatus', 'pending')
+                                }
+                                print(f"Adding pending character: {char_obj}")  # Debug log
+                                pending_characters.append(char_obj)
+                    except Exception as e:
+                        print(f"Error reading character file {filename}: {str(e)}")
+                        continue
+        
+        print(f"Total pending characters: {len(pending_characters)}")  # Debug log
+        return jsonify(pending_characters)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error in get_pending_characters: {str(e)}")
+        return jsonify([])
 
 @app.route('/admin/characters/<character_id>/approve', methods=['POST'])
 @login_required
@@ -642,9 +671,36 @@ def approve_character(character_id):
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
+        # Update database
         character = Character.query.get_or_404(character_id)
         character.is_approved = True
         character.approval_status = 'approved'
+        
+        # Update JSON file
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        if os.path.exists(char_file_path):
+            with open(char_file_path, 'r+', encoding='utf-8') as f:
+                data = json.load(f)
+                data['isApproved'] = True
+                data['approvalStatus'] = 'approved'
+                if 'rejectionReason' in data:
+                    del data['rejectionReason']
+                f.seek(0)
+                json.dump(data, f, indent=2)
+                f.truncate()
+        
+        # Award credits to creator
+        creator = User.query.get(character.creator_id)
+        if creator:
+            creator.add_credits(500)
+            transaction = CreditTransaction(
+                user_id=creator.id,
+                amount=500,
+                transaction_type='character_approval',
+                description=f'Character approved: {character.name}'
+            )
+            db.session.add(transaction)
+        
         db.session.commit()
         return jsonify({'message': 'Character approved successfully'})
     except Exception as e:
@@ -659,11 +715,27 @@ def reject_character(character_id):
         
     try:
         data = request.json
+        reason = data.get('reason', 'No reason provided')
+        
+        # Update database
         character = Character.query.get_or_404(character_id)
         character.approval_status = 'rejected'
-        character.rejection_reason = data.get('reason', '')
+        character.is_approved = False
+        
+        # Update JSON file
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        if os.path.exists(char_file_path):
+            with open(char_file_path, 'r+', encoding='utf-8') as f:
+                data = json.load(f)
+                data['approvalStatus'] = 'rejected'
+                data['isApproved'] = False
+                data['rejectionReason'] = reason
+                f.seek(0)
+                json.dump(data, f, indent=2)
+                f.truncate()
+        
         db.session.commit()
-        return jsonify({'message': 'Character rejected'})
+        return jsonify({'message': 'Character rejected', 'reason': reason})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -904,21 +976,60 @@ def submit_for_review(character_id):
 @login_required
 def my_library():
     try:
-        characters = Character.query.filter_by(creator_id=current_user.id).all()
-        pending_reviews = CharacterApprovalQueue.query.filter(
-            CharacterApprovalQueue.character_id.in_([c.id for c in characters]),
-            CharacterApprovalQueue.status == 'pending'
-        ).all()
+        all_characters = []
+        CHARACTER_FOLDER = '/root/main/characters'  # Make sure this path matches your setup
         
-        pending_ids = [r.character_id for r in pending_reviews]
+        # Read all character JSON files
+        for filename in os.listdir(CHARACTER_FOLDER):
+            if filename.endswith('.json'):
+                file_path = os.path.join(CHARACTER_FOLDER, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        char_data = json.load(f)
+                        # Add the character ID from filename if not present
+                        if 'id' not in char_data:
+                            char_data['id'] = filename.replace('.json', '')
+                        all_characters.append(char_data)
+                except Exception as e:
+                    print(f"Error reading character file {filename}: {e}")
+                    continue
+
+        # Filter characters based on user access
+        response_data = {
+            'private': [],
+            'public': [],
+            'pending': []
+        }
+
+        for char in all_characters:
+            # For admin, show all characters
+            if current_user.is_admin:
+                if char.get('isPrivate', False):
+                    response_data['private'].append(char)
+                elif char.get('approvalStatus') == 'pending':
+                    response_data['pending'].append(char)
+                else:
+                    response_data['public'].append(char)
+            # For regular users, show only their characters
+            elif char.get('creator') == current_user.id:
+                if char.get('isPrivate', False):
+                    response_data['private'].append(char)
+                elif char.get('approvalStatus') == 'pending':
+                    response_data['pending'].append(char)
+                elif char.get('isApproved', False):
+                    response_data['public'].append(char)
+
+        print(f"Found {len(all_characters)} total characters")
+        print(f"Returning: {len(response_data['private'])} private, "
+              f"{len(response_data['public'])} public, "
+              f"{len(response_data['pending'])} pending")
         
-        return jsonify({
-            'private': [c.to_dict() for c in characters if c.is_private],
-            'public': [c.to_dict() for c in characters if not c.is_private and c.is_approved],
-            'pending': [c.to_dict() for c in characters if c.id in pending_ids]
-        })
-        
+        return jsonify(response_data)
+
     except Exception as e:
+        print(f"Error in my_library: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/audio/<filename>', methods=['GET'])
@@ -934,6 +1045,420 @@ def get_audio(filename):
         return response
     print(f"Audio file not found: {file_path}")
     return jsonify({"error": "File not found"}), 404
+
+@app.route('/edit-character/<character_id>')
+@login_required
+def edit_character_page(character_id):
+    try:
+        print(f"Attempting to edit character: {character_id}")
+        # Load the character data from JSON
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        print(f"Looking for character file at: {char_file_path}")
+        
+        if not os.path.exists(char_file_path):
+            print(f"Character file not found: {char_file_path}")
+            return redirect(url_for('serve_index'))
+            
+        # Read the character data
+        with open(char_file_path, 'r', encoding='utf-8') as f:
+            char_data = json.load(f)
+            print(f"Character data loaded: {char_data}")
+            print(f"Current user ID: {current_user.id}")
+            print(f"Character creator: {char_data.get('creator')}")
+            print(f"Is admin: {current_user.is_admin}")
+            
+        # Check ownership or admin status
+        if str(char_data.get('creator')) != str(current_user.id) and not current_user.is_admin:
+            print(f"User {current_user.id} not authorized to edit character {character_id}")
+            print(f"Creator from file: {char_data.get('creator')}")
+            print(f"Current user: {current_user.id}")
+            return redirect(url_for('serve_index'))
+            
+        print(f"Authorization passed, rendering edit-character.html for character {character_id}")
+        # Use render_template to serve from templates directory
+        return render_template('edit-character.html')  # Changed this line
+        
+    except Exception as e:
+        print(f"Error rendering edit-character page: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect(url_for('serve_index'))
+
+@app.route('/characters/<character_id>/data')
+@login_required
+def get_character_data(character_id):
+    try:
+        character = Character.query.get_or_404(character_id)
+        
+        # Check ownership
+        if character.creator_id != current_user.id and not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+            
+        # Get character JSON data
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        with open(char_file_path, 'r', encoding='utf-8') as f:
+            char_data = json.load(f)
+            
+        return jsonify(char_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/edit-character', methods=['GET'])
+@login_required
+def edit_character_route():
+    try:
+        response = make_response(render_template('edit-character.html'))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    except Exception as e:
+        print(f"Error rendering edit-character page: {str(e)}")
+        return redirect(url_for('serve_index'))
+
+@app.route('/my-library', methods=['GET'])
+@login_required
+def my_library_page():
+    try:
+        response = make_response(render_template('my-library.html'))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    except Exception as e:
+        print(f"Error rendering my-library page: {str(e)}")
+        return redirect(url_for('serve_index'))
+
+@app.route('/css/<path:filename>')
+def serve_css(filename):
+    return send_from_directory(os.path.join(STATIC_DIR, 'css'), filename)
+
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory(os.path.join(STATIC_DIR, 'js'), filename)
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(STATIC_DIR, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/characters/<character_id>/update', methods=['POST', 'PUT'])
+@login_required
+def update_character(character_id):
+    try:
+        # Load existing character data
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        with open(char_file_path, 'r', encoding='utf-8') as f:
+            existing_char_data = json.load(f)
+            
+        # Check ownership
+        if str(existing_char_data.get('creator')) != str(current_user.id) and not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+            
+        # Get update data
+        data = request.json
+        
+        # Preserve avatar and background if not in update data
+        if 'avatar' not in data or not data['avatar']:
+            data['avatar'] = existing_char_data.get('avatar')
+        if 'background' not in data or not data['background']:
+            data['background'] = existing_char_data.get('background')
+
+        # Update only the fields that are provided
+        for key in data:
+            if data[key] is not None:  # Only update if value is provided
+                existing_char_data[key] = data[key]
+                
+        # Preserve unchangeable fields
+        existing_char_data['id'] = character_id
+        existing_char_data['creator'] = str(existing_char_data.get('creator'))
+        existing_char_data['dateAdded'] = existing_char_data.get('dateAdded')
+        
+        # Save updated data back to file
+        with open(char_file_path, 'w', encoding='utf-8') as f:
+            json.dump(existing_char_data, f, indent=2)
+            
+        # Update database record if it exists
+        character = Character.query.get(character_id)
+        if character:
+            if data.get('name'): character.name = data['name']
+            if data.get('description'): character.description = data['description']
+            if data.get('systemPrompt'): character.system_prompt = data['systemPrompt']
+            if data.get('greetings'): character.greetings = data['greetings']
+            if data.get('category'): character.category = data['category']
+            if data.get('ttsVoice'): character.tts_voice = data['ttsVoice']
+            if 'isPrivate' in data: character.is_private = data['isPrivate']
+            
+            # Update settings
+            if not character.settings:
+                character.settings = {}
+            if data.get('tts_rate') is not None: character.settings['tts_rate'] = data['tts_rate']
+            if data.get('rvc_pitch') is not None: character.settings['rvc_pitch'] = data['rvc_pitch']
+            if data.get('ai_parameters'): character.settings['ai_parameters'] = data['ai_parameters']
+            if data.get('rvc_model'): character.settings['rvc_model'] = data['rvc_model']
+            
+            db.session.commit()
+            
+        return jsonify({
+            'message': 'Character updated successfully',
+            'character_id': character_id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating character: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/characters/<character_id>/clear', methods=['POST'])
+@login_required
+def clear_character_status(character_id):
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    try:
+        # Update database
+        character = Character.query.get_or_404(character_id)
+        character.approval_status = 'pending'
+        character.is_approved = False
+        
+        # Update JSON file
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        if os.path.exists(char_file_path):
+            with open(char_file_path, 'r+', encoding='utf-8') as f:
+                data = json.load(f)
+                data['approvalStatus'] = 'pending'
+                data['isApproved'] = False
+                # Remove rejection reason if it exists
+                if 'rejectionReason' in data:
+                    del data['rejectionReason']
+                f.seek(0)
+                json.dump(data, f, indent=2)
+                f.truncate()
+        
+        db.session.commit()
+        return jsonify({'message': 'Character status cleared successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin-dashboard')
+@login_required
+def admin_dashboard():
+    if not current_user.is_admin:
+        return redirect(url_for('serve_index'))
+    try:
+        response = make_response(render_template('admin-dashboard.html'))
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    except Exception as e:
+        print(f"Error rendering admin dashboard: {str(e)}")
+        return redirect(url_for('serve_index'))
+
+@app.route('/delete-character/<character_id>', methods=['POST'])
+@login_required
+def delete_character(character_id):
+    try:
+        # First check if character exists in database
+        character = Character.query.get_or_404(character_id)
+        
+        # Check if user is authorized to delete
+        if character.creator_id != current_user.id and not current_user.is_admin:
+            return jsonify({'error': 'Unauthorized'}), 403
+            
+        # Delete all associated files
+        cleanup_successful = True
+        error_messages = []
+        
+        # 1. Delete JSON file
+        char_file_path = os.path.join(CHARACTER_FOLDER, f"{character_id}.json")
+        try:
+            if os.path.exists(char_file_path):
+                os.remove(char_file_path)
+                print(f"Deleted JSON file: {char_file_path}")
+        except Exception as e:
+            cleanup_successful = False
+            error_messages.append(f"Failed to delete JSON file: {str(e)}")
+
+        # 2. Delete avatar
+        avatar_path = os.path.join(UPLOAD_FOLDER, f"{character_id}-avatar.png")
+        try:
+            if os.path.exists(avatar_path):
+                os.remove(avatar_path)
+                print(f"Deleted avatar: {avatar_path}")
+        except Exception as e:
+            cleanup_successful = False
+            error_messages.append(f"Failed to delete avatar: {str(e)}")
+
+        # 3. Delete character directory (contains backgrounds, etc)
+        char_dir = os.path.join(CHARACTER_FOLDER, character_id)
+        try:
+            if os.path.exists(char_dir):
+                shutil.rmtree(char_dir)
+                print(f"Deleted character directory: {char_dir}")
+        except Exception as e:
+            cleanup_successful = False
+            error_messages.append(f"Failed to delete character directory: {str(e)}")
+
+        # 4. Delete voice model directory
+        model_dir = os.path.join('/root/models', character_id)
+        try:
+            if os.path.exists(model_dir):
+                shutil.rmtree(model_dir)
+                print(f"Deleted model directory: {model_dir}")
+        except Exception as e:
+            cleanup_successful = False
+            error_messages.append(f"Failed to delete model directory: {str(e)}")
+
+        # 5. Delete from database
+        try:
+            db.session.delete(character)
+            db.session.commit()
+            print(f"Deleted character from database: {character_id}")
+        except Exception as e:
+            db.session.rollback()
+            cleanup_successful = False
+            error_messages.append(f"Failed to delete from database: {str(e)}")
+
+        if not cleanup_successful:
+            return jsonify({
+                'message': 'Character deleted with some errors',
+                'errors': error_messages
+            }), 207  # 207 Multi-Status
+            
+        return jsonify({
+            'message': 'Character and all associated files deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting character: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users/<user_id>/toggle-status', methods=['POST'])
+@login_required
+def toggle_user_status(user_id):
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.json
+        user.is_active = data.get('status', not user.is_active)
+        db.session.commit()
+        return jsonify({'message': 'User status updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users/<user_id>/credits', methods=['POST'])
+@login_required
+def modify_user_credits(user_id):
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    try:
+        user = User.query.get_or_404(user_id)
+        data = request.json
+        amount = data.get('amount', 0)
+        
+        # Create a transaction record
+        transaction = CreditTransaction(
+            user_id=user.id,
+            amount=amount,
+            transaction_type='admin_modification',
+            description=f'Admin credit modification'
+        )
+        
+        user.credits = amount  # Set to new amount
+        db.session.add(transaction)
+        db.session.commit()
+        
+        return jsonify({'message': 'Credits updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users')
+@login_required
+def get_users():
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    try:
+        users = User.query.all()
+        return jsonify([{
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'credits': user.credits,
+            'is_active': user.is_active
+        } for user in users])
+    except Exception as e:
+        print(f"Error in get_users: {str(e)}")  # Add logging
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/stats')
+@login_required
+def get_admin_stats():
+    if not current_user.is_admin:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    try:
+        # Initialize counters
+        stats = {
+            'total_characters': 0,
+            'pending_characters': 0,
+            'approved_characters': 0,
+            'rejected_characters': 0,
+            'private_characters': 0,
+            'public_characters': 0,
+            'total_users': 0,
+            'total_transactions': 0
+        }
+        
+        # Make sure CHARACTER_FOLDER exists
+        if os.path.exists(CHARACTER_FOLDER):
+            for filename in os.listdir(CHARACTER_FOLDER):
+                if filename.endswith('.json'):
+                    try:
+                        stats['total_characters'] += 1
+                        with open(os.path.join(CHARACTER_FOLDER, filename), 'r', encoding='utf-8') as f:
+                            char_data = json.load(f)
+                            if char_data.get('isPrivate', False):
+                                stats['private_characters'] += 1
+                            elif char_data.get('isApproved', False):
+                                stats['approved_characters'] += 1
+                                stats['public_characters'] += 1
+                            elif char_data.get('approvalStatus') == 'pending':
+                                stats['pending_characters'] += 1
+                            elif char_data.get('approvalStatus') == 'rejected':
+                                stats['rejected_characters'] += 1
+                    except Exception as e:
+                        print(f"Error reading character file {filename}: {str(e)}")
+                        continue
+        
+        # Get user and transaction counts from database
+        try:
+            stats['total_users'] = User.query.count()
+            stats['total_transactions'] = CreditTransaction.query.count()
+        except Exception as e:
+            print(f"Error getting database counts: {str(e)}")
+        
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Error in get_admin_stats: {str(e)}")
+        return jsonify({
+            'total_characters': 0,
+            'pending_characters': 0,
+            'approved_characters': 0,
+            'rejected_characters': 0,
+            'private_characters': 0,
+            'public_characters': 0,
+            'total_users': 0,
+            'total_transactions': 0
+        })
 
 # Initialize database
 with app.app_context():
