@@ -198,7 +198,7 @@ function createCharacterCard(char) {
     card.addEventListener('click', () => {
     if (!currentUser) {
         sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
-        window.location.href = './login.html';
+        window.location.href = '/login';
         return;
     }
     sessionStorage.setItem('selectedCharacter', JSON.stringify(char));

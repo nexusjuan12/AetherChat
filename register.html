@@ -49,59 +49,67 @@
         }
     </style>
 </head>
+</head>
 <body>
     <div class="auth-container">
-        <h1>Create Account</h1>
-        <form class="auth-form" id="registerForm">
-            <input type="text" id="username" placeholder="Username" required>
+        <h1>Login to SpeakEasy</h1>
+        <form class="auth-form" id="loginForm">
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
-            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
             <div class="error-message" id="errorMessage"></div>
-            <button type="submit">Register</button>
+            <div class="success-message" id="successMessage"></div> <!-- Add this -->
+            <button type="submit">Login</button>
         </form>
         
-        <p>Already have an account? <a href="/login.html">Login</a></p>
+        <div class="oauth-buttons">
+            <button class="oauth-button" id="googleLogin">
+                <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20">
+                Continue with Google
+            </button>
+        </div>
+        
+        <p>Don't have an account? <a href="/register.html">Register</a></p>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const errorMessage = document.getElementById('errorMessage');
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password !== confirmPassword) {
-                errorMessage.textContent = 'Passwords do not match';
-                return;
-            }
-
+            errorMessage.textContent = '';
+            
             try {
-                const response = await fetch('/auth/register', {
+                const response = await fetch('/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username: document.getElementById('username').value,
                         email: document.getElementById('email').value,
-                        password: password
+                        password: document.getElementById('password').value
                     })
                 });
 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Registration successful, redirect to home page
                     window.location.href = '/';
                 } else {
-                    errorMessage.textContent = data.error || 'Registration failed';
+                    // Show specific message for unverified emails
+                    if (response.status === 403) {
+                        errorMessage.textContent = 'Please verify your email before logging in. Check your inbox for the verification link.';
+                    } else {
+                        errorMessage.textContent = data.error || 'Login failed';
+                    }
                 }
             } catch (error) {
-                console.error('Registration error:', error);
-                errorMessage.textContent = 'Registration failed. Please try again.';
+                console.error('Login error:', error);
+                errorMessage.textContent = 'Login failed. Please try again.';
             }
+        });
+
+        document.getElementById('googleLogin').addEventListener('click', () => {
+            window.location.href = '/auth/google';
         });
     </script>
 </body>

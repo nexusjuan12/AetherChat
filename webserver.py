@@ -6,7 +6,7 @@ import os
 import shutil
 from werkzeug.utils import secure_filename
 from flask import render_template, redirect, url_for, make_response
-from datetime import timedelta
+from datetime import datetime, timedelta
 import shutil
 import json
 from flask import Flask, request, jsonify, send_from_directory, send_file, Response, session, g
@@ -21,6 +21,10 @@ import time
 import uuid
 from dotenv import load_dotenv
 from tts_with_rvc import TTS_RVC
+from main.email_service import send_verification_email
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 
 # Load environment variables
 load_dotenv('/root/.env')
@@ -29,7 +33,22 @@ app = Flask(__name__,
     template_folder='/root/templates',
     static_folder='/root/main'
 )
-CORS(app, supports_credentials=True)
+CORS(app, 
+    supports_credentials=True,
+    resources={
+        r"/*": {
+            "origins": [
+                "http://yourwaifai.uk",
+                "https://yourwaifai.uk",
+                "http://www.yourwaifai.uk",
+                "https://www.yourwaifai.uk"
+            ],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
+        }
+    }
+)
 
 # App Configuration
 app.config.update(
@@ -37,11 +56,11 @@ app.config.update(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SECRET_KEY=os.getenv('SECRET_KEY', 'dev-key-change-this'),
     STATIC_FOLDER='/root/main',
-    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     PERMANENT_SESSION_LIFETIME=timedelta(days=31),  
-    SESSION_COOKIE_DOMAIN=None,  
+    SESSION_COOKIE_DOMAIN='yourwaifai.uk',  
     SESSION_COOKIE_PATH='/'  
 )
 
@@ -80,6 +99,9 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False) 
     google_id = db.Column(db.String(200), unique=True)
     characters = db.relationship('Character', backref='creator', lazy=True)
+    email_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String(100), unique=True)
+    verification_token_expires = db.Column(db.DateTime)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -185,30 +207,157 @@ def register():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already registered'}), 409
         
+    # Generate verification token
+    verification_token = str(uuid.uuid4())
+    token_expiry = datetime.utcnow() + timedelta(hours=24)
+    
     user = User(
         email=data['email'],
-        username=data.get('username', data['email'].split('@')[0])
+        username=data.get('username', data['email'].split('@')[0]),
+        verification_token=verification_token,
+        verification_token_expires=token_expiry,
+        email_verified=False,
+        created_at=datetime.utcnow()
     )
     user.set_password(data['password'])
     
     try:
         db.session.add(user)
-        db.session.commit()
+        db.session.flush()  # Get user ID without committing
         
-        login_user(user)
+        # Send verification email
+        if send_verification_email(user.email, verification_token):
+            db.session.commit()
+            return jsonify({
+                'message': 'Registration successful. Please check your email to verify your account.',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.username,
+                    'credits': user.credits
+                }
+            }), 201
+        else:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to send verification email'}), 500
+            
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
         
+@app.route('/auth/google', methods=['GET', 'POST'])
+def google_auth():
+    if request.method == 'GET':
+        # Redirect to Google OAuth login page
+        return redirect(f'https://accounts.google.com/o/oauth2/v2/auth?' + 
+            f'client_id={os.getenv("GOOGLE_CLIENT_ID")}&' +
+            'response_type=code&' +
+            f'redirect_uri={os.getenv("GOOGLE_REDIRECT_URI")}&' +
+            'scope=email profile&' +
+            'access_type=offline')
+    
+    # POST request handling (existing code)
+    try:
+        token = request.json.get('token')
+        idinfo = id_token.verify_oauth2_token(
+            token, 
+            google_requests.Request(), 
+            os.getenv('GOOGLE_CLIENT_ID')
+        )
+
+        email = idinfo['email']
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            user = User(
+                email=email,
+                username=idinfo.get('name', email.split('@')[0]),
+                google_id=idinfo['sub'],
+                email_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        login_user(user, remember=True)
+        session.permanent = True
+
         return jsonify({
-            'message': 'Registration successful',
+            'message': 'Login successful',
             'user': {
                 'id': user.id,
                 'email': user.email,
                 'username': user.username,
                 'credits': user.credits
             }
-        }), 201
+        }), 200
+
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e)}), 400
+
+# Add OAuth callback route
+@app.route('/auth/google/callback')
+def google_callback():
+    try:
+        code = request.args.get('code')
+        token_response = requests.post('https://oauth2.googleapis.com/token', data={
+            'code': code,
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+            'redirect_uri': os.getenv('GOOGLE_REDIRECT_URI'),
+            'grant_type': 'authorization_code'
+        })
+
+        token_data = token_response.json()
+        id_token_info = id_token.verify_oauth2_token(
+            token_data['id_token'],
+            google_requests.Request(),
+            os.getenv('GOOGLE_CLIENT_ID')
+        )
+
+        email = id_token_info['email']
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            user = User(
+                email=email,
+                username=id_token_info.get('name', email.split('@')[0]),
+                google_id=id_token_info['sub'],
+                email_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        login_user(user, remember=True)
+        session.permanent = True
+
+        return redirect('/')
+
+    except Exception as e:
+        print(f"Google callback error: {str(e)}")
+        return redirect('/login?error=google_auth_failed')
+
+@app.route('/verify/<token>')
+def verify_email(token):
+    user = User.query.filter_by(verification_token=token).first()
+    
+    if not user:
+        return render_template('verification_error.html', 
+                             message="Invalid verification token"), 404
+                             
+    if user.email_verified:
+        return render_template('verification_error.html', 
+                             message="Email already verified"), 400
+                             
+    if user.verification_token_expires < datetime.utcnow():
+        return render_template('verification_error.html', 
+                             message="Verification token has expired"), 400
+    
+    user.email_verified = True
+    user.verification_token = None
+    user.verification_token_expires = None
+    db.session.commit()
+    
+    return render_template('verification_success.html')
 
 @app.route('/auth/login', methods=['POST'])
 def login():
@@ -220,8 +369,12 @@ def login():
     user = User.query.filter_by(email=data['email']).first()
     
     if user and user.check_password(data['password']):
-        login_user(user, remember=True)  
-        session.permanent = True  
+        # Check if email is verified for non-Google accounts
+        if not user.google_id and not user.email_verified:
+            return jsonify({'error': 'Please verify your email before logging in'}), 403
+            
+        login_user(user, remember=True)
+        session.permanent = True
         user.last_login = datetime.utcnow()
         db.session.commit()
         
@@ -231,12 +384,13 @@ def login():
                 'id': user.id,
                 'email': user.email,
                 'username': user.username,
-                'credits': user.credits
+                'credits': user.credits,
+                'is_admin': user.is_admin
             }
         }), 200
     
     return jsonify({'error': 'Invalid credentials'}), 401
-
+    
 @app.route('/auth/logout')
 @login_required
 def logout():
@@ -1459,6 +1613,41 @@ def get_admin_stats():
             'total_users': 0,
             'total_transactions': 0
         })
+
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin', '')
+    allowed_origins = [
+        'https://yourwaifai.uk',
+        'https://www.yourwaifai.uk',
+        'http://136.38.129.228:51069'  # Keep during testing
+    ]
+    
+    if origin in allowed_origins:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    
+    # Add security headers
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+@app.route('/terms-of-service')
+def terms_of_service():
+    return render_template('terms_of_service.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('login.html', google_client_id=os.getenv('GOOGLE_CLIENT_ID'))
+
 
 # Initialize database
 with app.app_context():

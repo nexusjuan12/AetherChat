@@ -185,8 +185,6 @@ async function handleLogout() {
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     
-    loginButton?.addEventListener('click', () => openAuthModal('login'));
-    registerButton?.addEventListener('click', () => openAuthModal('register'));
     logoutButton?.addEventListener('click', handleLogout);
     closeAuthModalButton?.addEventListener('click', closeAuthModal);
     
