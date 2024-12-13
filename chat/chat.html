@@ -3,41 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../styles.css">
     <link rel="stylesheet" href="./chat-styles.css">
-    <title>Chat</title>
+    <title>Chat - AetherChat</title>
 </head>
 <body>
-    <div class="chat-container">
-        <img class="chat-background" alt="background" src="" /> <!-- Set by JS -->
-        
-        <header>
-            <button class="home-button" onclick="window.location.href='../'">
-                <span>🏠</span> Home
-            </button>
-            <div class="chat-header-avatar">
-                <!-- Avatar will be inserted here by JavaScript -->
+    <div class="chat-layout">
+        <nav class="nav-panel">
+            <div class="logo-container">
+                <img src="../logo.jpg" alt="AetherChat" class="logo-image">
             </div>
-            <div class="header-text">
-                <h1 id="character-name">Character Name</h1>
-                <p id="character-description">Character Description</p>
+            
+            <div id="auth-section" class="nav-section">
+                <div id="logged-out-view">
+                    <button class="nav-button" id="login-button" onclick="window.location.href='/login'">
+                        Login
+                    </button>
+                    <button class="nav-button" id="register-button" onclick="window.location.href='/register'">
+                        Sign Up
+                    </button>
+                </div>
+                <div id="logged-in-view" style="display: none">
+                    <div class="user-info">
+                        <span id="username-display"></span>
+                        <span id="credits-display"></span>
+                    </div>
+                    <button class="nav-button" id="logout-button">
+                        Logout
+                    </button>
+                </div>
             </div>
-            <button class="clear-chat">Clear Chat</button>
-            <button class="audio-toggle">🔊</button>
-        </header>
+            
+            <div class="nav-section">
+                <h2>Search</h2>
+                <input type="text" class="search-bar" id="search" placeholder="Search characters...">
+            </div>
+            
+            <div class="nav-section">
+                <h2>Create</h2>
+                <a href="/create-character" class="nav-button" id="create-character">
+                    Create Character
+                </a>
+                <a href="/my-library" class="nav-button" id="my-library">
+                    My Library
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h2>Categories</h2>
+                <div id="category-filters"></div>
+            </div>
+            
+            <div class="nav-section">
+                <h2>Tags</h2>
+                <div id="tag-filters"></div>
+            </div>
+        </nav>
 
-        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-container">
+            <img class="chat-background" alt="background" src="" />
+            
+            <header>
+                <div class="header-text">
+                    <h1 id="character-name">Character Name</h1>
+                    <p id="character-description" style="display: none;"></p>
+                </div>
+            </header>
 
-        <div id="start-chat-overlay" class="start-chat-overlay">
-    <button id="start-chat-button" class="start-chat-button">
-        <span>👋</span> Start Chatting
-    </button>
-</div>
-        
-        <div class="chat-input">
-            <input id="user-input" type="text" placeholder="Type your message here..." />
-            <button id="send-button">Send</button>
+            <div id="chat-log" class="chat-log"></div>
+
+            <div class="start-chat-overlay" id="start-chat-overlay">
+                <button id="start-chat-button" class="start-chat-button">
+                    <span>👋</span> Start Chatting
+                </button>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-wrapper">
+                    <input id="user-input" type="text" placeholder="Type your message here..." />
+                    <div class="message-cost">Text: 10 credits • Voice: 15 credits</div>
+                </div>
+                <button class="audio-toggle">🔊</button>
+                <button id="send-button">Send</button>
+            </div>
         </div>
     </div>
+
+    <script src="./auth.js" type="module"></script>
+    <script src="./characters.js" type="module"></script>
     <script src="./chat.js" type="module"></script>
 </body>
 </html>

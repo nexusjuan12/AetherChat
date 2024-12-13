@@ -8,7 +8,12 @@ from threading import Timer
 
 class CharacterDirectoryHandler(FileSystemEventHandler):
     def __init__(self):
-        self.characters_dir = 'characters'
+        # Use relative paths
+        self.main_dir = '.'  # Current directory
+        self.characters_dir = os.path.join(self.main_dir, 'characters')
+        self.index_path = os.path.join(self.main_dir, 'index.json')
+        
+        # Ensure characters directory exists
         if not os.path.exists(self.characters_dir):
             os.makedirs(self.characters_dir)
             print(f"Created characters directory: {self.characters_dir}")
@@ -16,7 +21,8 @@ class CharacterDirectoryHandler(FileSystemEventHandler):
         self.update_index()  # Initial update
     
     def on_any_event(self, event):
-        if event.is_directory or 'index.json' in event.src_path:
+        # Skip directory events and ignore the index.json itself
+        if event.is_directory:
             return
             
         print(f"Change detected in: {event.src_path}")
@@ -26,8 +32,9 @@ class CharacterDirectoryHandler(FileSystemEventHandler):
     
     def update_index(self):
         try:
+            # Get all JSON files in characters directory
             character_files = [f for f in os.listdir(self.characters_dir) 
-                             if f.endswith('.json') and f != 'index.json']
+                             if f.endswith('.json')]
             
             print(f"Found character files: {character_files}")
             
@@ -36,7 +43,7 @@ class CharacterDirectoryHandler(FileSystemEventHandler):
                 try:
                     file_path = os.path.join(self.characters_dir, file)
                     with open(file_path, 'r', encoding='utf-8') as f:
-                        json.load(f)
+                        json.load(f)  # Validate JSON format
                     valid_files.append(file)
                 except Exception as e:
                     print(f"Warning: Invalid file {file}: {str(e)}")
@@ -46,11 +53,11 @@ class CharacterDirectoryHandler(FileSystemEventHandler):
                 "lastUpdated": time.strftime("%Y-%m-%d %H:%M:%S")
             }
             
-            index_path = os.path.join(self.characters_dir, 'index.json')
-            with open(index_path, 'w', encoding='utf-8') as f:
+            # Write index.json to main directory instead of characters directory
+            with open(self.index_path, 'w', encoding='utf-8') as f:
                 json.dump(index_data, f, indent=4)
             
-            print(f"Updated index.json - {len(valid_files)} valid characters found")
+            print(f"Updated index.json in main directory - {len(valid_files)} valid characters found")
             
         except Exception as e:
             print(f"Error updating index: {str(e)}")
@@ -58,6 +65,8 @@ class CharacterDirectoryHandler(FileSystemEventHandler):
 def main():
     event_handler = CharacterDirectoryHandler()
     observer = Observer()
+    
+    # Watch the characters directory but write index to parent
     observer.schedule(event_handler, path='characters', recursive=False)
     observer.start()
     

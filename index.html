@@ -7,54 +7,57 @@
     <title>AetherChat - AI Character Chat</title>
 </head>
 <body>
+    <button class="menu-toggle" aria-label="Toggle Navigation Menu">☰</button>
+
     <nav class="nav-panel">
         <div class="logo-container">
             <img src="./logo.jpg" alt="AetherChat" class="logo-image">
         </div>
         
-        <div id="auth-section" class="nav-section">
-            <div id="logged-out-view">
-                <button class="nav-button" id="login-button" onclick="window.location.href='/login'">
-                    Login
-                </button>
-                <button class="nav-button" id="register-button" onclick="window.location.href='/register'">
-                    Sign Up
-                </button>
-            </div>
-            <div id="logged-in-view" style="display: none">
-                <div class="user-info">
-                    <span id="username-display"></span>
-                    <span id="credits-display"></span>
+        <div class="nav-content">
+            <div class="top-controls">
+                <div id="auth-section">
+                    <div id="logged-out-view">
+                        <button class="nav-button" id="login-button" onclick="window.location.href='/login'">
+                            Login
+                        </button>
+                        <button class="nav-button" id="register-button" onclick="window.location.href='/register'">
+                            Sign Up
+                        </button>
+                    </div>
+                    <div id="logged-in-view" style="display: none">
+                        <div class="user-info">
+                            <span id="username-display"></span>
+                            <span id="credits-display"></span>
+                        </div>
+                        <button class="nav-button" id="logout-button">
+                            Logout
+                        </button>
+                    </div>
                 </div>
-                <button class="nav-button" id="logout-button">
-                    Logout
-                </button>
+                
+                <input type="text" class="search-bar" id="search" placeholder="Search characters...">
             </div>
-        </div>
             
-        <div class="nav-section">
-            <h2>Search</h2>
-            <input type="text" class="search-bar" id="search" placeholder="Search characters...">
-        </div>
-        
-        <div class="nav-section">
-            <h2>Create</h2>
-            <a href="/create-character" class="nav-button" id="create-character">
-                Create Character
-            </a>
-            <a href="/my-library" class="nav-button" id="my-library">
-                My Library
-            </a>
-        </div>
-        
-        <div class="nav-section">
-            <h2>Categories</h2>
-            <div id="category-filters"></div>
-        </div>
-        
-        <div class="nav-section">
-            <h2>Tags</h2>
-            <div id="tag-filters"></div>
+            <div class="create-section">
+                <h2>Create</h2>
+                <a href="/create-character" class="nav-button" id="create-character">
+                    Create Character
+                </a>
+                <a href="/my-library" class="nav-button" id="my-library">
+                    My Library
+                </a>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-tab="categories">Categories</button>
+                <button class="filter-tab" data-tab="tags">Tags</button>
+            </div>
+            
+            <div class="filter-content">
+                <div id="category-filters" class="filter-group"></div>
+                <div id="tag-filters" class="filter-group" style="display: none;"></div>
+            </div>
         </div>
     </nav>
 
@@ -69,11 +72,11 @@
                 <h2>Login</h2>
                 <div class="form-group">
                     <label for="login-email">Email</label>
-                    <input type="email" id="login-email" required>
+                    <input type="email" id="login-email" placeholder="Email" required>
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
                 </div>
                 <div id="login-error" class="error-message"></div>
                 <div class="form-actions">
@@ -87,15 +90,15 @@
                 <h2>Create Account</h2>
                 <div class="form-group">
                     <label for="register-username">Username</label>
-                    <input type="text" id="register-username" required>
+                    <input type="text" id="register-username" placeholder="Username" required>
                 </div>
                 <div class="form-group">
                     <label for="register-email">Email</label>
-                    <input type="email" id="register-email" required>
+                    <input type="email" id="register-email" placeholder="Email" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password</label>
-                    <input type="password" id="register-password" required>
+                    <input type="password" id="register-password" placeholder="Password" required>
                 </div>
                 <div id="register-error" class="error-message"></div>
                 <div class="form-actions">
@@ -104,11 +107,29 @@
                 </div>
             </form>
         </div>
-        <button class="modal-close" id="close-auth-modal">&times;</button>
+        <button class="modal-close" id="close-auth-modal" aria-label="Close">&times;</button>
     </dialog>
 
     <script type="module" src="./auth.js"></script>
     <script type="module" src="./characters.js"></script>
     <script type="module" src="./script.js"></script>
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show/hide appropriate content
+                const tabName = tab.dataset.tab;
+                document.getElementById('category-filters').style.display = 
+                    tabName === 'categories' ? 'flex' : 'none';
+                document.getElementById('tag-filters').style.display = 
+                    tabName === 'tags' ? 'flex' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>

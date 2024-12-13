@@ -14,7 +14,7 @@ let activeFilters = {
 async function loadCharacters() {
     try {
         console.log("Fetching character index...");
-        const response = await fetch('./characters/index.json');
+        const response = await fetch('./index.json');
         if (!response.ok) throw new Error(`Failed to load character index: ${response.status}`);
 
         const data = await response.json();

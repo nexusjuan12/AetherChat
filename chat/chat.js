@@ -427,7 +427,7 @@ async function initializeUI() {
 
         // Add clear chat button
         const clearButton = document.querySelector('.clear-chat');
-        if (clearButton) {
+        if (clearButton){
             clearButton.onclick = clearChatState;
         }
 
@@ -448,6 +448,23 @@ async function checkAuth() {
         }
         currentUser = await response.json();
         updateCreditDisplay();
+        
+        // Update nav panel login state
+        const loggedOutView = document.getElementById('logged-out-view');
+        const loggedInView = document.getElementById('logged-in-view');
+        const usernameDisplay = document.getElementById('username-display');
+        const creditsDisplay = document.getElementById('credits-display');
+        
+        if (currentUser) {
+            loggedOutView.style.display = 'none';
+            loggedInView.style.display = 'block';
+            usernameDisplay.textContent = currentUser.user.username;
+            creditsDisplay.textContent = `Credits: ${currentUser.user.credits}`;
+        } else {
+            loggedOutView.style.display = 'block';
+            loggedInView.style.display = 'none';
+        }
+        
         return true;
     } catch (error) {
         console.error('Auth check failed:', error);
@@ -455,6 +472,7 @@ async function checkAuth() {
         return false;
     }
 }
+
 
 // Background loading function
 // Background loading function

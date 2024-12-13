@@ -1,5 +1,22 @@
 {
-    "characters": [],
-    "lastUpdated": "2024-11-28T00:00:00Z"
+    "characters": [
+        "aria.json",
+        "beetlejuice.json",
+        "jeffy.json",
+        "luna.json",
+        "meatcanyon.json",
+        "meatwad.json",
+        "melon.json",
+        "melon4.json",
+        "michaeljackson.json",
+        "onyx.json",
+        "power2.json",
+        "power3.json",
+        "richardnixon.json",
+        "rick.json",
+        "ricksanchez.json",
+        "wheatley-portal-2.json",
+        "bigfoot.json"
+    ],
+    "lastUpdated": "2024-12-10 10:50:54"
 }
-EOF

@@ -1,3 +1,9 @@
+// Audio state
+let audioEnabled = true;
+let autoplayEnabled = true;
+let currentAudioPlayer = null;
+let currentAudioUrl = null;
+
 // Configuration and state management
 let currentUser = null;
 const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
@@ -5,18 +11,17 @@ const chatLog = document.getElementById("chat-log");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 
+// Function to get current credit cost
+function getCreditCost() {
+    return audioEnabled ? 15 : 10;
+}
+
 // Chat state
 let chatHistory = [];
 const MAX_HISTORY_LENGTH = 10;
 let messageQueue = [];
 const MAX_QUEUE_SIZE = 5;
 let isProcessing = false;
-
-// Audio state
-let audioEnabled = true;
-let autoplayEnabled = true;
-let currentAudioPlayer = null;
-let currentAudioUrl = null;
 
 // Background state and configurations
 const backgroundImg = document.querySelector(".chat-background");
@@ -28,6 +33,7 @@ const allFormats = [...videoFormats, ...imageFormats];
 function filterTextForTTS(text) {
     return text.replace(/\*[^*]*\*/g, '').trim();
 }
+
 
 function sendInitialGreeting() {
     console.log("Sending initial greeting...");
@@ -137,9 +143,37 @@ function addMessage(sender, text) {
         }
     }
 }
+function updateCreditDisplay() {
+    // Try both credit display locations
+    const headerText = document.querySelector('.header-text');
+    const creditsDisplay = document.querySelector('.credit-display');
+    let creditDisplay;
+
+    if (creditsDisplay) {
+        creditDisplay = creditsDisplay;
+    } else if (headerText) {
+        creditDisplay = document.createElement('div');
+        creditDisplay.className = 'credit-display';
+        headerText.appendChild(creditDisplay);
+    }
+
+    if (creditDisplay && currentUser) {
+        creditDisplay.innerHTML = `Credits: ${currentUser.user.credits}`;
+        console.log(`Updated credit display: ${currentUser.user.credits}`);
+    }
+}
+
 async function sendMessage(userMessage = null) {
     if (isProcessing) {
         console.log("Already processing a message, please wait...");
+        return;
+    }
+
+    const creditCost = getCreditCost();
+
+    // Check credits before proceeding
+    if (currentUser && currentUser.user.credits < creditCost) {
+        addMessage("bot", "Insufficient credits. Please purchase more credits to continue chatting.");
         return;
     }
 
@@ -155,8 +189,6 @@ async function sendMessage(userMessage = null) {
         
         userInput.disabled = true;
         sendButton.disabled = true;
-
-        const creditCost = audioEnabled ? 15 : 10;
 
         // Ensure system prompt is included
         let messages = chatHistory;
@@ -197,9 +229,13 @@ async function sendMessage(userMessage = null) {
         const botMessage = responseData.choices[0].message.content.trim();
         addMessage("bot", botMessage);
 
+        // Update credits after successful message
         if (currentUser) {
             currentUser.user.credits -= creditCost;
             updateCreditDisplay();
+            
+            // Log credit usage
+            console.log(`Credits used: ${creditCost}. Remaining credits: ${currentUser.user.credits}`);
         }
 
         if (audioEnabled) {
@@ -214,7 +250,14 @@ async function sendMessage(userMessage = null) {
 
     } catch (error) {
         console.error("Error details:", error);
-        addMessage("bot", "I apologize, there was an error. Please try again.");
+        addMessage("bot", "I apologize, there was an error. Your credits have been refunded.");
+        
+        // Refund credits if there was an error
+        if (currentUser) {
+            currentUser.user.credits += creditCost;
+            updateCreditDisplay();
+            console.log(`Credits refunded: ${creditCost}. Current credits: ${currentUser.user.credits}`);
+        }
     } finally {
         isProcessing = false;
         userInput.disabled = false;
@@ -384,7 +427,7 @@ async function initializeUI() {
 
         // Add clear chat button
         const clearButton = document.querySelector('.clear-chat');
-        if (clearButton) {
+        if (clearButton){
             clearButton.onclick = clearChatState;
         }
 
@@ -411,17 +454,6 @@ async function checkAuth() {
         window.location.href = '/login.html';
         return false;
     }
-}
-
-function updateCreditDisplay() {
-    const headerText = document.querySelector('.header-text');
-    let creditDisplay = document.querySelector('.credit-display');
-    if (!creditDisplay) {
-        creditDisplay = document.createElement('div');
-        creditDisplay.className = 'credit-display';
-        headerText.appendChild(creditDisplay);
-    }
-    creditDisplay.innerHTML = `Credits: ${currentUser.user.credits}`;
 }
 
 // Background loading function
