@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .character-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .character-image {
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .stats-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .status-pending { background-color: #ffd700; }
+        .status-approved { background-color: #90EE90; }
+        .status-rejected { background-color: #ffcccb; }
+
+        .background-preview-media {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .user-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .badge {
+            padding: 5px 10px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-box h5 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-box p {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="mb-4">Admin Dashboard</h1>
+
+        <!-- Stats Section -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Pending Reviews</h5>
+                    <p id="pendingCount">Loading...</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Approved</h5>
+                    <p id="approvedCount">Loading...</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Rejected</h5>
+                    <p id="rejectedCount">Loading...</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Total Characters</h5>
+                    <p id="totalCount">Loading...</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Total Users</h5>
+                    <p id="totalUsers">Loading...</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-box">
+                    <h5>Transactions</h5>
+                    <p id="totalTransactions">Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-3">User Management</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <div id="userList">
+                            <!-- Users will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Characters Section -->
+        <h2 class="mb-3">Pending Characters</h2>
+        <div id="pendingCharacters" class="row">
+            <!-- Characters will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject Character</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="rejectForm">
+                        <div class="mb-3">
+                            <label for="rejectionReason" class="form-label">Reason for Rejection</label>
+                            <textarea class="form-control" id="rejectionReason" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmReject">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div class="modal fade" id="creditsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modify User Credits</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="creditsForm">
+                        <div class="mb-3">
+                            <label for="creditsAmount" class="form-label">Credits Amount</label>
+                            <input type="number" class="form-control" id="creditsAmount" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmCredits">Update Credits</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

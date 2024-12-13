@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library - AetherChat</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./css/my-library.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="nav-panel">
+        <div class="logo-container">
+            <a href="/">
+                <img src="./logo.jpg" alt="AetherChat" class="logo-image">
+            </a>
+        </div>
+        
+        <div id="auth-section" class="nav-section">
+            <div id="logged-in-view">
+                <div class="user-info">
+                    <span id="username-display"></span>
+                    <span id="credits-display"></span>
+                </div>
+                <button class="nav-button" id="logout-button">
+                    Logout
+                </button>
+            </div>
+        </div>
+            
+        <div class="nav-section">
+            <h2>Navigation</h2>
+            <a href="/" class="nav-button">Home</a>
+            <a href="/create-character" class="nav-button">Create Character</a>
+            <a href="/my-library" class="nav-button active">My Library</a>
+            <a href="/admin-dashboard" class="nav-button admin-only" style="display: none;">Admin Dashboard</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h1>My Characters</h1>
+            
+            <!-- Character List Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="private">Private Characters</button>
+                <button class="tab-button" data-tab="public">Public Characters</button>
+                <button class="tab-button" data-tab="pending">Pending Review</button>
+            </div>
+
+            <!-- Character Lists -->
+            <div class="character-lists">
+                <div id="private-characters" class="character-list active"></div>
+                <div id="public-characters" class="character-list"></div>
+                <div id="pending-characters" class="character-list"></div>
+            </div>
+
+            <!-- Character Edit Modal -->
+            <dialog id="edit-modal" class="modal">
+                <!-- Form will be dynamically populated -->
+            </dialog>
+        </div>
+    </main>
+
+    <script src="./js/my-library.js" type="module"></script>
+    <script>
+        // Check if user is admin and show admin dashboard button
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/auth/user');
+                const data = await response.json();
+                
+                // Update user info
+                if (data.user) {
+                    document.getElementById('username-display').textContent = data.user.username;
+                    document.getElementById('credits-display').textContent = `${data.user.credits} credits`;
+                    
+                    // Check if user is admin (you'll need to add this to your user endpoint)
+                    if (data.user.is_admin) {
+                        document.querySelector('.admin-only').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking user status:', error);
+            }
+        });
+    </script>
+</body>
+</html>

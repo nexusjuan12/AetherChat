@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css">
+    <title>AetherChat - Upgrade Your Experience</title>
+    <style>
+        .subscription-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .plans-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .plan-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .plan-card.featured {
+            border: 1px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 1rem;
+            right: -2rem;
+            background: #3498db;
+            color: white;
+            padding: 0.5rem 3rem;
+            transform: rotate(45deg);
+            font-size: 0.8rem;
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 1rem 0;
+        }
+
+        .price span {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        .plan-features {
+            margin: 2rem 0;
+        }
+
+        .plan-features ul {
+            list-style: none;
+            padding: 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .plan-features li {
+            padding: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .plan-features li::before {
+            content: "→";
+            color: #3498db;
+        }
+
+        .plan-button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .upgrade-button {
+            background: #3498db;
+            color: white;
+        }
+
+        .upgrade-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .current-plan {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .current-credits {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .current-credits h3 {
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        #credit-balance {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #next-refresh {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" aria-label="Toggle Navigation Menu">☰</button>
+
+    <nav class="nav-panel">
+        <!-- Your existing nav panel code -->
+    </nav>
+
+    <main>
+        <div class="subscription-container">
+            <h1>Upgrade Your AetherChat Experience</h1>
+            
+            <div class="plans-container">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h2>Explorer</h2>
+                        <div class="price">Free</div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>1000 monthly credits</li>
+                            <li>Public character access</li>
+                            <li>Create 3 characters</li>
+                            <li>Basic chat features</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button current-plan">Current Plan</button>
+                </div>
+
+                <div class="plan-card featured">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <div class="plan-header">
+                        <h2>Creator</h2>
+                        <div class="price">$9.99<span>/month</span></div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>5000 monthly credits</li>
+                            <li>Unlimited characters</li>
+                            <li>Early access features</li>
+                            <li>Priority support</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button upgrade-button">Upgrade Now</button>
+                </div>
+
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h2>Aether Master</h2>
+                        <div class="price">$24.99<span>/month</span></div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li>Unlimited credits</li>
+                            <li>API access</li>
+                            <li>Premium templates</li>
+                            <li>Advanced features</li>
+                            <li>Premium support</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button upgrade-button">Upgrade Now</button>
+                </div>
+            </div>
+
+            <div class="current-credits">
+                <h3>Your Credits: <span id="credit-balance">1000</span></h3>
+                <p>Next credit refresh: <span id="next-refresh">January 1, 2024</span></p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="./auth.js"></script>
+    <script type="module" src="./subscription.js"></script>
+</body>
+</html>
+
