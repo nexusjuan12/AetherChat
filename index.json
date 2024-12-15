@@ -2,6 +2,8 @@
     "characters": [
         "aria.json",
         "beetlejuice.json",
+        "bigfoot.json",
+        "index.json",
         "jeffy.json",
         "luna.json",
         "meatcanyon.json",
@@ -10,13 +12,10 @@
         "melon4.json",
         "michaeljackson.json",
         "onyx.json",
-        "power2.json",
         "power3.json",
         "richardnixon.json",
         "rick.json",
-        "ricksanchez.json",
-        "wheatley-portal-2.json",
-        "bigfoot.json"
+        "wheatley-portal-2.json"
     ],
-    "lastUpdated": "2024-12-10 10:50:54"
+    "lastUpdated": "2024-12-15 06:14:51"
 }

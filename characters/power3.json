@@ -15,8 +15,8 @@
   "dateAdded": "2024-12-04T14:37:31.259277",
   "creator": "288d260e-028c-4eef-aa08-f27a680a162d",
   "isPrivate": false,
-  "isApproved": false,
-  "approvalStatus": "pending",
+  "isApproved": true,
+  "approvalStatus": "approved",
   "ai_parameters": {
     "temperature": 0.8,
     "max_tokens": 150,

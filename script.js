@@ -10,50 +10,48 @@ let activeFilters = {
     sort: 'random'
 };
 
-// Load characters from the index
+// Load characters from the server
 async function loadCharacters() {
     try {
-        console.log("Fetching character index...");
-        const response = await fetch('./index.json');
-        if (!response.ok) throw new Error(`Failed to load character index: ${response.status}`);
-
-        const data = await response.json();
-        console.log("Character index loaded:", data);
-
-        // Load individual character files
-        characters = await Promise.all(
-    data.characters.map(async (file) => {
-        try {
-            const response = await fetch(`./characters/${file}`);
-            if (!response.ok) throw new Error(`Failed to load character file: ${file}`);
-            return await response.json();
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
-    })
-);
-
-// Only filter private characters
-characters = characters.filter((char) => {
-    if (!char) return false;
-    if (char.isPrivate) {
-        return currentUser && char.creator === currentUser.id;
-    }
-    return true;  // Show all non-private characters
-});
+        console.log("Loading characters...");
+        const response = await fetch('/characters/my-library', {
+            credentials: 'include'
+        });
         
+        if (!response.ok) throw new Error(`Failed to load characters: ${response.status}`);
+        
+        const data = await response.json();
+        console.log("Raw character data:", data);
 
-        // Filter out null values and private characters unless they belong to the user
-        characters = characters.filter((char) => {
+        // If user is logged in, they should see:
+        // 1. All public characters
+        // 2. Their private characters
+        // 3. Their pending characters
+        // If not logged in, they only see approved public characters
+        characters = [];
+        
+        if (currentUser) {
+            characters = [
+                ...(data.public || []),                // Public characters
+                ...(data.private || []),              // User's private characters
+                ...(data.pending?.filter(char =>      // User's pending characters
+                    char.creator_id === currentUser.id) || [])
+            ];
+        } else {
+            characters = [...(data.public || [])];    // Only approved public characters
+        }
+
+        // Filter out null values and validate character objects
+        characters = characters.filter(char => {
             if (!char) return false;
-            if (char.isPrivate) {
-                return currentUser && char.creator === currentUser.id;
+            if (!char.name) {
+                console.warn("Found character without name:", char);
+                return false;
             }
             return true;
         });
 
-        console.log("Final character list:", characters);
+        console.log("Processed character list:", characters);
         initializeFilters();
         updateCharacterDisplay();
     } catch (error) {
@@ -96,7 +94,6 @@ function initializeFilters() {
 function createFilterButton(value, type) {
     const button = document.createElement('button');
     button.classList.add('filter-button');
-    // Check if the filter set exists before trying to use it
     const filterSet = type === 'category' ? activeFilters.categories : activeFilters.tags;
     if (filterSet && filterSet.has(value)) {
         button.classList.add('active');
@@ -116,7 +113,6 @@ function toggleFilter(value, type) {
     updateCharacterDisplay();
 }
 
-// Update character display
 function updateCharacterDisplay() {
     const characterGrid = document.getElementById('character-grid');
     if (!characterGrid) return;
@@ -138,18 +134,32 @@ function updateCharacterDisplay() {
 
     sortedChars.forEach((char) => {
         const card = createCharacterCard(char);
-        characterGrid.appendChild(card);
+        if (card) characterGrid.appendChild(card);
     });
 }
 
 function filterCharacters() {
     return characters.filter((char) => {
-        const matchesSearch = char.name.toLowerCase().includes(activeFilters.search.toLowerCase()) ||
-                            char.description.toLowerCase().includes(activeFilters.search.toLowerCase());
+        if (!char) return false;
+        
+        // Debug log to see character structure
+        console.log("Filtering character:", char);
+
+        // Handle both possible property name formats
+        const name = char.name || char.characterId || '';
+        const description = char.description || '';
+        const category = char.category || '';
+        const charTags = char.tags || [];
+
+        const matchesSearch = (name.toLowerCase().includes(activeFilters.search.toLowerCase()) ||
+                             description.toLowerCase().includes(activeFilters.search.toLowerCase()));
+                             
         const matchesCategories = !activeFilters.categories.size || 
-                                activeFilters.categories.has(char.category);
+                                activeFilters.categories.has(category);
+                                
         const matchesTags = !activeFilters.tags.size || 
-                          char.tags?.some((tag) => activeFilters.tags.has(tag));
+                           charTags.some((tag) => activeFilters.tags.has(tag));
+
         return matchesSearch && matchesCategories && matchesTags;
     });
 }
@@ -158,10 +168,10 @@ function sortCharacters(chars) {
     const charsCopy = [...chars];
     switch (activeFilters.sort) {
         case 'name':
-            charsCopy.sort((a, b) => a.name.localeCompare(b.name));
+            charsCopy.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             break;
         case 'newest':
-            charsCopy.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+            charsCopy.sort((a, b) => new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0));
             break;
         case 'random':
         default:
@@ -174,36 +184,66 @@ function sortCharacters(chars) {
 }
 
 function createCharacterCard(char) {
+    if (!char) return null;
+
     const card = document.createElement('div');
     card.classList.add('character-card');
 
-    const tagsHtml = char.tags
-        ? char.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')
-        : '';
+    const name = char.name || 'Unnamed Character';
+    const description = char.description || 'No description available';
+    const avatar = char.avatar || './avatars/default-user.png';
+    const category = char.category || '';
+    const tags = char.tags || [];
+    const isPrivate = char.isPrivate || false;
+    const isPending = char.approvalStatus === 'pending';
+    const isCreator = currentUser && char.creator_id === currentUser.id;
+
+    // Create status badge based on character status
+    let statusBadge = '';
+    if (isPrivate) {
+        statusBadge = '<span class="private-badge">Private</span>';
+    } else if (isPending && isCreator) {
+        statusBadge = '<span class="pending-badge">Pending Approval</span>';
+    }
+
+    const tagsHtml = tags
+        .map((tag) => `<span class="tag">${tag}</span>`)
+        .join('');
 
     card.innerHTML = `
-        <img class="character-image" src="${char.avatar}" alt="${char.name}" 
+        <img class="character-image" src="${avatar}" alt="${name}" 
              onerror="this.src='./avatars/default-user.png'">
         <div class="character-info">
-            <h2>${char.name}</h2>
-            <p>${char.description}</p>
+            <h2>${name}</h2>
+            <p>${description}</p>
             <div class="character-meta">
-                ${char.category ? `<span class="category-badge">${char.category}</span>` : ''}
+                ${category ? `<span class="category-badge">${category}</span>` : ''}
                 ${tagsHtml}
-                ${char.isPrivate ? '<span class="private-badge">Private</span>' : ''}
+                ${statusBadge}
             </div>
         </div>
     `;
 
     card.addEventListener('click', () => {
-    if (!currentUser) {
-        sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
-        window.location.href = '/login';
-        return;
-    }
-    sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
-    window.location.href = './chat/chat.html';
-});
+        // Allow access if:
+        // 1. Character is public and approved
+        // 2. User is logged in and is the creator
+        // 3. User is logged in and character is pending approval but they're the creator
+        if (!currentUser) {
+            if (!isPending && !isPrivate) {
+                sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
+                window.location.href = './chat/chat.html';
+            } else {
+                window.location.href = '/login';
+            }
+            return;
+        }
+
+        if (isCreator || (!isPrivate && !isPending)) {
+            sessionStorage.setItem('selectedCharacter', JSON.stringify(char));
+            window.location.href = './chat/chat.html';
+        }
+    });
 
     return card;
 }

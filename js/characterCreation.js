@@ -1,24 +1,30 @@
 class CharacterCreator {
     constructor() {
-    this.form = document.getElementById('characterForm');
-    console.log('CharacterCreator initialized');
-    this.initializeForm();
-    console.log('Loading available voices...');
-    this.loadAvailableVoices();
-    this.loadVoiceModels();  // Add this
-    this.setupVoiceModelHandling();  // Add this
-    this.setupEventListeners();
-}
+        this.form = document.getElementById('characterForm');
+        console.log('CharacterCreator initialized');
+        this.initializeForm();
+        console.log('Loading available voices...');
+        this.loadAvailableVoices();
+        this.loadVoiceModels();
+        this.setupVoiceModelHandling();
+        this.setupEventListeners();
+        this.uploadProgress = this.uploadStatus.querySelector('.progress');
+        
+   
+
+        
+    
+    }
 
     initializeForm() {
-    this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-    
-    // Setup image preview
-    document.querySelector('input[name="avatar"]').addEventListener('change', (e) => 
-        this.handleImagePreview(e, 'avatarPreview'));
-    document.querySelector('input[name="background"]').addEventListener('change', (e) => 
-        this.handleImagePreview(e, 'backgroundPreview'));
-}
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        
+        // Setup image preview
+        document.querySelector('input[name="avatar"]').addEventListener('change', (e) => 
+            this.handleImagePreview(e, 'avatarPreview'));
+        document.querySelector('input[name="background"]').addEventListener('change', (e) => 
+            this.handleImagePreview(e, 'backgroundPreview'));
+    }
 
     setupEventListeners() {
         // Update value displays for sliders
@@ -81,52 +87,111 @@ class CharacterCreator {
             }
         }
     }
+
     async loadVoiceModels() {
-    try {
-        const response = await fetch('/api/available-voices');
-        if (!response.ok) throw new Error('Failed to fetch voice models');
-        const data = await response.json();
-        
-        const modelSelect = document.getElementById('existingCharacterModel');
-        data.rvc_models.forEach(modelId => {
-            const option = document.createElement('option');
-            option.value = modelId;
-            option.textContent = modelId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            modelSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading voice models:', error);
-    }
-}
-
-setupVoiceModelHandling() {
-    const typeSelect = document.getElementById('voiceModelType');
-    const existingSection = document.getElementById('existingModelSection');
-    const uploadSection = document.getElementById('modelUploadSection');
-    const modelFile = document.getElementById('modelFile');
-    const indexFile = document.getElementById('indexFile');
-
-    if (!typeSelect || !existingSection || !uploadSection) {
-        console.error('Voice model elements not found');
-        return;
-    }
-
-    typeSelect.addEventListener('change', (e) => {
-        existingSection.style.display = 'none';
-        uploadSection.style.display = 'none';
-        
-        if (e.target.value === 'existing') {
-            existingSection.style.display = 'block';
-            document.getElementById('existingCharacterModel').required = true;
-            modelFile.required = false;
-            indexFile.required = false;
-        } else if (e.target.value === 'upload') {
-            uploadSection.style.display = 'block';
-            document.getElementById('existingCharacterModel').required = false;
-            modelFile.required = true;
-            indexFile.required = true;
+        try {
+            const response = await fetch('/api/available-voices');
+            if (!response.ok) throw new Error('Failed to fetch voice models');
+            const data = await response.json();
+            
+            const modelSelect = document.getElementById('existingCharacterModel');
+            data.rvc_models.forEach(modelId => {
+                const option = document.createElement('option');
+                option.value = modelId;
+                option.textContent = modelId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                modelSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading voice models:', error);
         }
-    });
+    }
+
+    setupVoiceModelHandling() {
+        const typeSelect = document.getElementById('voiceModelType');
+        const existingSection = document.getElementById('existingModelSection');
+        const uploadSection = document.getElementById('modelUploadSection');
+        const modelFile = document.getElementById('modelFile');
+        const indexFile = document.getElementById('indexFile');
+
+        if (!typeSelect || !existingSection || !uploadSection) {
+            console.error('Voice model elements not found');
+            return;
+        }
+
+        typeSelect.addEventListener('change', (e) => {
+            existingSection.style.display = 'none';
+            uploadSection.style.display = 'none';
+            
+            if (e.target.value === 'existing') {
+                existingSection.style.display = 'block';
+                document.getElementById('existingCharacterModel').required = true;
+                modelFile.required = false;
+                indexFile.required = false;
+            } else if (e.target.value === 'upload') {
+                uploadSection.style.display = 'block';
+                document.getElementById('existingCharacterModel').required = false;
+                modelFile.required = true;
+                indexFile.required = true;
+            }
+        });
+    }
+
+    async uploadModel(characterId) {
+    const modelFile = document.querySelector('input[name="modelFile"]').files[0];
+    const indexFile = document.querySelector('input[name="indexFile"]').files[0];
+
+    if (!modelFile || !indexFile) {
+        console.log('No model files selected, skipping upload');
+        return null;
+    }
+
+    console.log('Starting model upload process...');
+
+    try {
+        // Upload model file first
+        console.log('Uploading model file...');
+        const modelFormData = new FormData();
+        modelFormData.append('modelFile', modelFile);
+        modelFormData.append('characterId', characterId);
+
+        const modelResponse = await fetch('/characters/upload-model', {
+            method: 'POST',
+            body: modelFormData,
+            credentials: 'include'
+        });
+
+        if (!modelResponse.ok) {
+            const errorText = await modelResponse.text();
+            console.error('Model file upload failed:', errorText);
+            throw new Error(`Model file upload failed: ${errorText}`);
+        }
+
+        // Upload index file next
+        console.log('Uploading index file...');
+        const indexFormData = new FormData();
+        indexFormData.append('indexFile', indexFile);
+        indexFormData.append('characterId', characterId);
+
+        const indexResponse = await fetch('/characters/upload-model', {
+            method: 'POST',
+            body: indexFormData,
+            credentials: 'include'
+        });
+
+        if (!indexResponse.ok) {
+            const errorText = await indexResponse.text();
+            console.error('Index file upload failed:', errorText);
+            throw new Error(`Index file upload failed: ${errorText}`);
+        }
+
+        const result = await indexResponse.json();
+        console.log('Model upload complete:', result);
+        return result;
+
+    } catch (error) {
+        console.error('Model upload error:', error);
+        throw error;
+    }
 }
 
     async resizeImage(file, targetWidth = 256, targetHeight = 256, isBackground = false) {
@@ -218,11 +283,36 @@ async handleSubmit(event) {
     event.preventDefault();
     
     try {
-        // Sanitize character name to create ID - replace all special chars with empty string
+        // Get and validate model data first
+        const voiceModelType = document.getElementById('voiceModelType').value;
+        const modelFile = document.querySelector('input[name="modelFile"]');
+        const indexFile = document.querySelector('input[name="indexFile"]');
+        const existingModel = document.querySelector('select[name="existingCharacterModel"]')?.value;
+
+        // Validate model requirement
+        if (!voiceModelType) {
+            alert('Please select a voice model type (upload new or use existing)');
+            return;
+        }
+
+        if (voiceModelType === 'upload') {
+            if (!modelFile.files[0] || !indexFile.files[0]) {
+                alert('Both model (.pth) and index (.index) files are required');
+                return;
+            }
+        } else if (voiceModelType === 'existing') {
+            if (!existingModel) {
+                alert('Please select an existing character model');
+                return;
+            }
+        }
+
+        // Sanitize character name to create ID
         const characterName = document.querySelector('input[name="name"]').value
             .toLowerCase()
-            .replace(/[^a-z0-9]/g, ''); // Remove all non-alphanumeric characters
+            .replace(/[^a-z0-9]/g, '');
 
+        // Check if character exists
         const checkResponse = await fetch(`/check-character/${characterName}`);
         if (checkResponse.ok) {
             const exists = await checkResponse.json();
@@ -232,7 +322,24 @@ async handleSubmit(event) {
             }
         }
         
-        // Validate required fields
+        // Upload model first if needed
+        let modelUploadSuccess = false;
+        if (voiceModelType === 'upload') {
+            try {
+                const modelResult = await this.uploadModel(characterName);
+                if (!modelResult) {
+                    throw new Error('Model upload failed');
+                }
+                modelUploadSuccess = true;
+                console.log('Model upload successful:', modelResult);
+            } catch (error) {
+                console.error('Model upload failed:', error);
+                alert('Failed to upload model files. Character creation cancelled: ' + error.message);
+                return; // Stop character creation if model upload fails
+            }
+        }
+
+        // Rest of validation and file uploads
         const requiredFields = ['name', 'description', 'systemPrompt', 'ttsVoice'];
         for (const field of requiredFields) {
             const value = this.form.elements[field].value.trim();
@@ -255,48 +362,41 @@ async handleSubmit(event) {
             return;
         }
 
-        // Upload images first
+        // Upload media files
         const avatarPath = await this.uploadImage(avatarInput, 'avatar');
         const backgroundPath = backgroundInput.files.length > 0 ? 
             await this.uploadImage(backgroundInput, 'background') : 
             null;
 
+        // Prepare character data
         const formData = new FormData(this.form);
+        const data = {
+            id: characterName,
+            name: formData.get('name'),
+            description: formData.get('description'),
+            systemPrompt: formData.get('systemPrompt'),
+            ttsVoice: formData.get('ttsVoice'),
+            category: formData.get('category'),
+            is_private: formData.get('isPrivate') === 'on',
+            tts_rate: parseInt(formData.get('ttsRate')) || 0,
+            rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
+            avatar: avatarPath,
+            background: backgroundPath,
+            greetings: formData.get('greetings')?.trim().split('\n').filter(g => g.trim()) || ["Hello!"],
+            rvc_model: voiceModelType === 'existing' ? existingModel : 
+                      (modelUploadSuccess ? characterName : null),
+            settings: {
+                tts_rate: parseInt(formData.get('ttsRate')) || 0,
+                rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
+                rvc_model: voiceModelType === 'existing' ? existingModel :
+                          (modelUploadSuccess ? characterName : null)
+            }
+        };
 
-// Process greetings first
-const greetingsText = formData.get('greetings')?.trim();
-const greetings = greetingsText
-    ? greetingsText.split('\n')
-        .map(g => g.trim())
-        .filter(g => g.length > 0)
-    : ["Hello!"];
-
-const data = {
-    id: characterName,
-    name: formData.get('name'),
-    description: formData.get('description'),
-    systemPrompt: formData.get('systemPrompt'),
-    ttsVoice: formData.get('ttsVoice'),
-    category: formData.get('category'),
-    is_private: formData.get('isPrivate') === 'on',
-    tts_rate: parseInt(formData.get('ttsRate')) || 0,
-    rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
-    avatar: avatarPath,
-    background: backgroundPath,
-    greetings: greetings,  // Use the processed greetings array
-    rvc_model: formData.get('voiceModelType') === 'existing' ? 
-        formData.get('existingCharacterModel') : null,
-    settings: {
-        tts_rate: parseInt(formData.get('ttsRate')) || 0,
-        rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
-        rvc_model: formData.get('voiceModelType') === 'existing' ? 
-            formData.get('existingCharacterModel') : null
-    }
-};
-
-        // Validate the data
+        // Validate parameters
         const validatedData = this.validateParameters(data);
 
+        // Create character
         const response = await fetch('/characters/create', {
             method: 'POST',
             headers: {
@@ -310,38 +410,17 @@ const data = {
         }
 
         const result = await response.json();
-
-        // Handle model upload if provided
-        const modelFile = document.querySelector('input[name="modelFile"]');
-        if (modelFile.files.length > 0) {
-            await this.uploadModel(characterName);
-        }
+        console.log('Character creation successful:', result);
 
         alert('Character created successfully!');
-
-        // Clear all input fields
-        this.form.reset();
-        avatarInput.value = '';
-        backgroundInput.value = '';
-        if (modelFile) modelFile.value = '';
-
-        // Optional: Preview image resets
-        const avatarPreview = document.getElementById('avatarPreview');
-        const backgroundPreview = document.getElementById('backgroundPreview');
-        if (avatarPreview) avatarPreview.src = '';
-        if (backgroundPreview) backgroundPreview.src = '';
-
-        // Redirect after a short delay to allow the user to see the success message
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 1500);
+        window.location.href = '/my-library';
 
     } catch (error) {
         console.error('Error creating character:', error);
         alert('Error: ' + error.message);
     }
 }
-
+    
 validateParameters(params) {
     const validated = {};
     
@@ -451,42 +530,11 @@ validateParameters(params) {
     }
 }
 
+} // Close the class definition here
 
-
-
-
-    async uploadModel(characterId) {
-        const modelFile = document.querySelector('input[name="modelFile"]').files[0];
-        const indexFile = document.querySelector('input[name="indexFile"]').files[0];
-
-        if (!modelFile || !indexFile) {
-            return null;
-        }
-
-        const formData = new FormData();
-        formData.append('modelFile', modelFile);
-        formData.append('indexFile', indexFile);
-        formData.append('characterId', characterId);
-
-        try {
-            const response = await fetch('/characters/upload-model', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to upload model');
-            }
-
-            return await response.json();
-
-        } catch (error) {
-            console.error('Error uploading model:', error);
-            throw error;
-        }
-    }
-}
-
+// Initialize the class when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     new CharacterCreator();
 });
+
+    
