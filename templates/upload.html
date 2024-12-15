@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Model Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        #status {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+        }
+
+        .error {
+            color: #dc3545;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .success {
+            color: #28a745;
+            background-color: #e6ffe6;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">Waiting for upload...</div>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+    </div>
+
+    <script>
+        const status = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+
+        function updateStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = type; // 'error', 'success', or default
+            
+            // Send status update to parent
+            if (window.parent) {
+                window.parent.postMessage({
+                    type: 'status',
+                    data: { message }
+                }, '*');
+            }
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = `${percent}%`;
+            
+            // Send progress update to parent
+            if (window.parent) {
+                window.parent.postMessage({
+                    type: 'progress',
+                    progress: percent
+                }, '*');
+            }
+        }
+
+        window.addEventListener('message', async (event) => {
+            // Verify origin
+            const allowedOrigins = [
+                'https://yourwaifai.uk',
+                'http://yourwaifai.uk',
+                'http://136.38.129.228:51069'
+            ];
+            
+            if (!allowedOrigins.includes(event.origin)) {
+                updateStatus(`Invalid origin: ${event.origin}`, 'error');
+                return;
+            }
+            
+            updateStatus('Received upload request...');
+            
+            const { characterId, modelFile, indexFile } = event.data;
+            
+            if (!modelFile || !indexFile) {
+                updateStatus('Error: Missing files', 'error');
+                event.source.postMessage({
+                    type: 'upload_error',
+                    success: false,
+                    error: 'Missing files'
+                }, event.origin);
+                return;
+            }
+            
+            updateStatus(`Processing: ${modelFile.name}, ${indexFile.name}`);
+            
+            const formData = new FormData();
+            formData.append('modelFile', modelFile);
+            formData.append('indexFile', indexFile);
+            formData.append('characterId', characterId);
+            
+            try {
+                updateStatus('Uploading files...');
+                
+                const xhr = new XMLHttpRequest();
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        updateProgress(percent);
+                    }
+                };
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            updateStatus('Upload complete!', 'success');
+                            const result = JSON.parse(xhr.responseText);
+                            event.source.postMessage({
+                                type: 'upload_complete',
+                                success: true,
+                                data: result
+                            }, event.origin);
+                        } else {
+                            const error = xhr.responseText || 'Upload failed';
+                            updateStatus(`Error: ${error}`, 'error');
+                            event.source.postMessage({
+                                type: 'upload_error',
+                                success: false,
+                                error: error
+                            }, event.origin);
+                        }
+                    }
+                };
+                
+                xhr.open('POST', '/characters/upload-model', true);
+                xhr.send(formData);
+                
+            } catch (error) {
+                updateStatus(`Error: ${error.message}`, 'error');
+                event.source.postMessage({
+                    type: 'upload_error',
+                    success: false,
+                    error: error.message
+                }, event.origin);
+            }
+        });
+
+        // Send ready message to parent
+        window.addEventListener('load', () => {
+            updateStatus('Upload handler ready');
+            if (window.parent) {
+                window.parent.postMessage({
+                    type: 'ready',
+                    success: true
+                }, '*');
+            }
+        });
+    </script>
+</body>
+</html>

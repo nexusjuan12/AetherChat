@@ -445,3 +445,20 @@ main {
         font-size: 14px;
     }
 }
+.private-badge {
+    background-color: #6c757d;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.pending-badge {
+    background-color: #ffc107;
+    color: black;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
