@@ -66,90 +66,90 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Handle file uploads with progress bars
-    const setupFileUpload = (inputId, previewId, progressBar) => {
-        const input = document.getElementById(inputId);
-        const preview = document.getElementById(previewId);
-        
-        if (!input) return;
+const setupFileUpload = (inputId, previewId, progressBar) => {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    
+    if (!input) return;
 
-        input.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-            // Handle model and index files
-            if (inputId === 'modelFile' || inputId === 'indexFile') {
-                const formData = new FormData();
-                formData.append('characterId', characterId);
-                
-                if (inputId === 'modelFile') {
-                    if (!file.name.endsWith('.pth')) {
-                        alert('Please upload a .pth file for the model');
-                        return;
-                    }
-                    formData.append('modelFile', file);
-                } else {
-                    if (!file.name.endsWith('.index')) {
-                        alert('Please upload a .index file');
-                        return;
-                    }
-                    formData.append('indexFile', file);
+        // Handle model and index files
+        if (inputId === 'modelFile' || inputId === 'indexFile') {
+            const formData = new FormData();
+            formData.append('characterId', characterId);
+            
+            if (inputId === 'modelFile') {
+                if (!file.name.endsWith('.pth')) {
+                    alert('Please upload a .pth file for the model');
+                    return;
                 }
-
-                progressBar.style.width = '0%';
-                progressBar.textContent = 'Starting upload...';
-
-                try {
-                    const response = await fetch('/characters/upload-model', {
-                        method: 'POST',
-                        body: formData,
-                        credentials: 'include'
-                    });
-
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('Upload error response:', errorText);
-                        throw new Error(errorText || 'Failed to upload file');
-                    }
-                    
-                    const result = await response.json();
-                    console.log(`${inputId} upload response:`, result);
-                    
-                    progressBar.style.width = '100%';
-                    progressBar.textContent = 'Upload complete';
-
-                    // If both files are uploaded, show success message
-                    const modelInput = document.getElementById('modelFile');
-                    const indexInput = document.getElementById('indexFile');
-                    if (modelInput.files.length > 0 && indexInput.files.length > 0) {
-                        alert('Voice model files uploaded successfully!');
-                    }
-
-                } catch (error) {
-                    console.error(`Error uploading ${inputId}:`, error);
-                    progressBar.style.width = '0%';
-                    progressBar.textContent = 'Upload failed';
-                    alert(`Failed to upload ${inputId}: ${error.message}`);
-                }
+                formData.append('modelFile', file);
             } else {
-                // Handle media file upload (avatar/background)
-                if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        if (file.type.startsWith('video/')) {
-                            preview.innerHTML = `
-                                <video controls>
-                                    <source src="${e.target.result}" type="${file.type}">
-                                    Your browser does not support the video tag.
-                                </video>`;
-                        } else {
-                            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                        }
-                    };
-                    reader.readAsDataURL(file);
+                if (!file.name.endsWith('.index')) {
+                    alert('Please upload a .index file');
+                    return;
                 }
+                formData.append('indexFile', file);
             }
-        });
-    };
+
+            progressBar.style.width = '0%';
+            progressBar.textContent = 'Starting upload...';
+
+            try {
+                const response = await fetch('/characters/upload-model', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Upload error response:', errorText);
+                    throw new Error(errorText || 'Failed to upload file');
+                }
+                
+                const result = await response.json();
+                console.log(`${inputId} upload response:`, result);
+                
+                progressBar.style.width = '100%';
+                progressBar.textContent = 'Upload complete';
+
+                // If both files are uploaded, show success message
+                const modelInput = document.getElementById('modelFile');
+                const indexInput = document.getElementById('indexFile');
+                if (modelInput.files.length > 0 && indexInput.files.length > 0) {
+                    alert('Voice model files uploaded successfully!');
+                }
+
+            } catch (error) {
+                console.error(`Error uploading ${inputId}:`, error);
+                progressBar.style.width = '0%';
+                progressBar.textContent = 'Upload failed';
+                alert(`Failed to upload ${inputId}: ${error.message}`);
+            }
+        } else {
+            // Handle media file upload (avatar/background)
+            if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (file.type.startsWith('video/')) {
+                        preview.innerHTML = `
+                            <video controls>
+                                <source src="${e.target.result}" type="${file.type}">
+                                Your browser does not support the video tag.
+                            </video>`;
+                    } else {
+                        preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+};
 
     // Set up file upload handlers
     const setupFileUploads = () => {
@@ -160,7 +160,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setupFileUploads();
-    
+
+    // Set up file upload handlers
+    const setupFileUploads = () => {
+        setupFileUpload('avatar', 'avatarPreview', document.querySelector('#avatar + .progress-bar .progress'));
+        setupFileUpload('background', 'backgroundPreview', document.querySelector('#background + .progress-bar .progress'));
+        setupFileUpload('modelFile', null, document.querySelector('#modelFile + .progress-bar .progress'));
+        setupFileUpload('indexFile', null, document.querySelector('#indexFile + .progress-bar .progress'));
+    };
+
+    setupFileUploads();
+
     // Fetch and populate character data
     fetch(`/characters/${characterId}/data`, {
         credentials: 'include'
@@ -175,49 +185,34 @@ document.addEventListener('DOMContentLoaded', () => {
         // Basic Info
         document.getElementById('name').value = data.name || '';
         document.getElementById('category').value = data.category || '';
-        
-        // Fix description parsing - remove the JSON artifacts if present
-        let description = data.description || '';
-        if (typeof description === 'string') {
-            description = description.replace(/^"description":\s*"|",$/, '');
-        }
-        document.getElementById('description').value = description;
-        
-        // System Prompt and TTS Voice
-        document.getElementById('systemPrompt').value = data.system_prompt || data.systemPrompt || '';
-        document.getElementById('ttsVoice').value = data.tts_voice || data.ttsVoice || '';
+        document.getElementById('description').value = data.description?.replace(/^"description": "|",$/, '') || '';
+        document.getElementById('systemPrompt').value = data.systemPrompt || '';
+        document.getElementById('ttsVoice').value = data.ttsVoice || '';
 
         // Voice Settings
         document.getElementById('tts_rate').value = data.tts_rate || 0;
         document.getElementById('rvc_pitch').value = data.rvc_pitch || 0;
 
-        // AI Parameters - handle both nested and flat structures
-        const aiParams = data.ai_parameters || data;
-        document.getElementById('temperature').value = aiParams.temperature || aiParams.ai_temperature || 0.8;
-        document.getElementById('top_p').value = aiParams.top_p || aiParams.ai_top_p || 0.9;
-        document.getElementById('presence_penalty').value = aiParams.presence_penalty || aiParams.ai_presence_penalty || 0.6;
-        document.getElementById('frequency_penalty').value = aiParams.frequency_penalty || aiParams.ai_frequency_penalty || 0.6;
-        document.getElementById('max_tokens').value = aiParams.max_tokens || aiParams.ai_max_tokens || 150;
+        // AI Parameters
+        if (data.ai_parameters) {
+            document.getElementById('temperature').value = data.ai_parameters.temperature || 0.8;
+            document.getElementById('top_p').value = data.ai_parameters.top_p || 0.9;
+            document.getElementById('presence_penalty').value = data.ai_parameters.presence_penalty || 0.6;
+            document.getElementById('frequency_penalty').value = data.ai_parameters.frequency_penalty || 0.6;
+            document.getElementById('max_tokens').value = data.ai_parameters.max_tokens || 150;
+        }
 
-        // Greetings - handle both array and string formats
-        const greetingsField = document.getElementById('greetings');
+        // Greetings
         if (Array.isArray(data.greetings)) {
-            greetingsField.value = data.greetings.join('\n');
+            document.getElementById('greetings').value = data.greetings.join('\n');
         } else if (data.greeting) {
-            greetingsField.value = data.greeting;
-        } else if (typeof data.greetings === 'string') {
-            greetingsField.value = data.greetings;
+            document.getElementById('greetings').value = data.greeting;
         }
 
         // RVC Model
         if (data.rvc_model) {
-            const voiceModelType = document.getElementById('voiceModelType');
-            const existingModelSection = document.getElementById('existingModelSection');
-            
             voiceModelType.value = 'existing';
             existingModelSection.style.display = 'block';
-            
-            // Load voice models and set the correct one
             loadVoiceModels().then(() => {
                 const modelSelect = document.getElementById('existingCharacterModel');
                 if (modelSelect) {
@@ -227,32 +222,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Visibility
-        document.getElementById('isPrivate').checked = data.is_private || data.isPrivate || false;
+        document.getElementById('isPrivate').checked = data.isPrivate || false;
 
-        // Media Previews - handle both full URLs and relative paths
+        // Media Previews
         if (data.avatar) {
             const avatarPreview = document.getElementById('avatarPreview');
-            const avatarUrl = data.avatar.startsWith('http') ? data.avatar : data.avatar;
-            avatarPreview.innerHTML = `<img src="${avatarUrl}" alt="Character Avatar">`;
+            avatarPreview.innerHTML = `<img src="${data.avatar}" alt="Character Avatar">`;
         }
         
         if (data.background) {
             const backgroundPreview = document.getElementById('backgroundPreview');
-            const backgroundUrl = data.background.startsWith('http') ? data.background : data.background;
-            const isVideo = backgroundUrl.match(/\.(mp4|webm|wmv)$/i);
+            const isVideo = data.background.match(/\.(mp4|webm|wmv)$/i);
             
             if (isVideo) {
                 backgroundPreview.innerHTML = `
                     <video controls>
-                        <source src="${backgroundUrl}" type="video/${isVideo[1]}">
+                        <source src="${data.background}" type="video/${isVideo[1]}">
                         Your browser does not support the video tag.
                     </video>`;
             } else {
-                backgroundPreview.innerHTML = `<img src="${backgroundUrl}" alt="Character Background">`;
+                backgroundPreview.innerHTML = `<img src="${data.background}" alt="Character Background">`;
             }
         }
 
-        // Update all slider displays
+        // Update slider displays
         updateSliderDisplays();
     })
     .catch(error => {

@@ -13,7 +13,7 @@ const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 
 // New parameter state management
-let currentParameters = {
+let sessionParameters = {
     voice: {
         rvcPitch: character.rvc_pitch || 0,
         ttsRate: character.tts_rate || 0
@@ -85,8 +85,6 @@ function initializeParameters() {
 }
 
 function setupParameterListener(input, updateFn) {
-    const debouncedSave = debounce(saveParameters, 1000);
-
     input.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
         const valueDisplay = input.nextElementSibling;
@@ -95,49 +93,11 @@ function setupParameterListener(input, updateFn) {
             valueDisplay.textContent = value.toFixed(1);
         }
 
-        // Update the character object
+        // Update only the session parameters
         updateFn(value);
-
-        // Save changes
-        debouncedSave();
     });
 }
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-async function saveParameters() {
-    try {
-        const response = await fetch(`/characters/${character.id}/update`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                rvc_pitch: character.rvc_pitch,
-                tts_rate: character.tts_rate,
-                ai_parameters: character.ai_parameters
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to save parameters');
-        }
-
-        console.log('Parameters saved successfully');
-    } catch (error) {
-        console.error('Error saving parameters:', error);
-    }
-}
 
 // Function to get current credit cost
 function getCreditCost() {
@@ -336,11 +296,12 @@ async function sendMessage(userMessage = null) {
             body: JSON.stringify({
                 model: "koboldcpp",
                 messages: messages,
-                temperature: character.ai_parameters?.temperature || 0.7,
+                // Use session parameters instead of character parameters
+                temperature: sessionParameters.ai.temperature,
                 max_tokens: character.ai_parameters?.max_tokens || 150,
-                top_p: character.ai_parameters?.top_p || 0.9,
-                presence_penalty: character.ai_parameters?.presence_penalty || 0.6,
-                frequency_penalty: character.ai_parameters?.frequency_penalty || 0.6
+                top_p: sessionParameters.ai.topP,
+                presence_penalty: sessionParameters.ai.presencePenalty,
+                frequency_penalty: sessionParameters.ai.frequencyPenalty
             })
         });
 
