@@ -4,12 +4,140 @@ let autoplayEnabled = true;
 let currentAudioPlayer = null;
 let currentAudioUrl = null;
 
+
 // Configuration and state management
 let currentUser = null;
 const character = JSON.parse(sessionStorage.getItem("selectedCharacter"));
 const chatLog = document.getElementById("chat-log");
 const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
+
+// New parameter state management
+let currentParameters = {
+    voice: {
+        rvcPitch: character.rvc_pitch || 0,
+        ttsRate: character.tts_rate || 0
+    },
+    ai: {
+        temperature: character.ai_parameters?.temperature || 0.7,
+        topP: character.ai_parameters?.top_p || 0.9,
+        presencePenalty: character.ai_parameters?.presence_penalty || 0.6,
+        frequencyPenalty: character.ai_parameters?.frequency_penalty || 0.6
+    }
+};
+
+// Parameter Management Functions
+function initializeParameters() {
+    console.log("Initializing parameters from character:", character);
+
+    // Setup all parameter controls
+    const parameterControls = {
+        'rvc-pitch': {
+            value: character.rvc_pitch || 0,
+            updateFn: (value) => character.rvc_pitch = value
+        },
+        'tts-rate': {
+            value: character.tts_rate || 0,
+            updateFn: (value) => character.tts_rate = value
+        },
+        'temperature': {
+            value: character.ai_parameters?.temperature || 0.7,
+            updateFn: (value) => {
+                if (!character.ai_parameters) character.ai_parameters = {};
+                character.ai_parameters.temperature = value;
+            }
+        },
+        'top-p': {
+            value: character.ai_parameters?.top_p || 0.9,
+            updateFn: (value) => {
+                if (!character.ai_parameters) character.ai_parameters = {};
+                character.ai_parameters.top_p = value;
+            }
+        },
+        'presence-penalty': {
+            value: character.ai_parameters?.presence_penalty || 0.6,
+            updateFn: (value) => {
+                if (!character.ai_parameters) character.ai_parameters = {};
+                character.ai_parameters.presence_penalty = value;
+            }
+        },
+        'frequency-penalty': {
+            value: character.ai_parameters?.frequency_penalty || 0.6,
+            updateFn: (value) => {
+                if (!character.ai_parameters) character.ai_parameters = {};
+                character.ai_parameters.frequency_penalty = value;
+            }
+        }
+    };
+
+    // Initialize each parameter control
+    Object.entries(parameterControls).forEach(([id, config]) => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.value = config.value;
+            const valueDisplay = input.nextElementSibling;
+            if (valueDisplay) {
+                valueDisplay.textContent = config.value.toFixed(1);
+            }
+            setupParameterListener(input, config.updateFn);
+        }
+    });
+}
+
+function setupParameterListener(input, updateFn) {
+    const debouncedSave = debounce(saveParameters, 1000);
+
+    input.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        const valueDisplay = input.nextElementSibling;
+        
+        if (valueDisplay) {
+            valueDisplay.textContent = value.toFixed(1);
+        }
+
+        // Update the character object
+        updateFn(value);
+
+        // Save changes
+        debouncedSave();
+    });
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+async function saveParameters() {
+    try {
+        const response = await fetch(`/characters/${character.id}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rvc_pitch: character.rvc_pitch,
+                tts_rate: character.tts_rate,
+                ai_parameters: character.ai_parameters
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save parameters');
+        }
+
+        console.log('Parameters saved successfully');
+    } catch (error) {
+        console.error('Error saving parameters:', error);
+    }
+}
 
 // Function to get current credit cost
 function getCreditCost() {
@@ -376,6 +504,10 @@ async function initializeUI() {
         document.getElementById("character-name").textContent = character.name;
         document.getElementById("character-description").textContent = character.description;
 
+        
+        // Initialize parameters
+        initializeParameters();
+
         // Add character avatar
         const avatarContainer = document.createElement("div");
         avatarContainer.className = "chat-header-avatar";
@@ -539,6 +671,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             userInput.focus();
+        }
+
+        // Set up audio toggle
+        const audioToggle = document.querySelector('.audio-toggle');
+        if (audioToggle) {
+            audioToggle.onclick = toggleAudio;
+            audioToggle.title = `Credits per message: ${audioEnabled ? "15" : "10"}`;
         }
     } catch (error) {
         console.error('Error initializing chat:', error);

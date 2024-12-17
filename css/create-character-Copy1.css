@@ -13,7 +13,6 @@
     --on-error: #000000;
 }
 
-/* Base Styles */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--background);
@@ -31,13 +30,11 @@ body {
     box-shadow: 0 0 20px rgba(0, 180, 255, 0.1);
 }
 
-/* Typography */
-h1, h2, h3, h4 {
+h1, h2, h3 {
     color: var(--primary);
     text-shadow: 0 0 10px rgba(0, 180, 255, 0.3);
 }
 
-/* Form Sections */
 .form-section {
     margin-bottom: 30px;
     padding: 20px;
@@ -50,7 +47,6 @@ h1, h2, h3, h4 {
     margin-bottom: 20px;
 }
 
-/* Form Elements */
 label {
     display: block;
     margin-bottom: 8px;
@@ -75,50 +71,10 @@ textarea {
     resize: vertical;
 }
 
-/* Helper Text */
 .helper-text {
     margin-top: 5px;
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.7);
-}
-
-/* Info Box Styling */
-.info-box {
-    background: var(--surface);
-    border: 1px solid rgba(0, 180, 255, 0.2);
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
-}
-
-.info-box h4 {
-    color: var(--primary);
-    margin-bottom: 10px;
-}
-
-.info-box p {
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: var(--on-surface);
-}
-
-.info-box ul {
-    padding-left: 20px;
-    color: var(--on-surface);
-}
-
-.info-box li {
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-}
-
-.info-box a {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-.info-box a:hover {
-    text-decoration: underline;
 }
 
 /* Slider Controls */
@@ -166,6 +122,7 @@ textarea {
     font-weight: bold;
 }
 
+
 /* File Inputs */
 input[type="file"] {
     width: 100%;
@@ -190,39 +147,29 @@ input[type="file"] {
     height: auto;
 }
 
-/* Progress Bars and Upload Status */
-.progress-bar,
-.upload-progress {
+/* Progress Bars */
+.progress-bar {
     width: 100%;
-    height: 4px;
+    height: 20px;
     background-color: var(--surface);
-    border-radius: 2px;
+    border-radius: 10px;
     overflow: hidden;
     margin-top: 10px;
+    display: none;
 }
 
-.progress,
-.upload-progress .progress {
+.progress {
     width: 0%;
     height: 100%;
     background: linear-gradient(45deg, var(--primary), var(--primary-variant));
     transition: width 0.3s ease;
 }
 
-.progress-text,
-.upload-status-text {
+.progress-text {
     text-align: center;
-    font-size: 0.9rem;
-    margin: 10px 0;
+    font-size: 12px;
+    margin-top: 5px;
     color: var(--on-surface);
-}
-
-.upload-status {
-    margin-top: 15px;
-    padding: 15px;
-    background: var(--surface);
-    border-radius: 8px;
-    border: 1px solid rgba(0, 180, 255, 0.2);
 }
 
 /* Checkbox Styling */
@@ -264,6 +211,16 @@ input[type="checkbox"] {
     transform: none;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .form-section {
+        padding: 15px;
+    }
+}
 /* Upload Frame Styles */
 #uploadFrameContainer {
     position: fixed;
@@ -279,32 +236,48 @@ input[type="checkbox"] {
 }
 
 .upload-frame-wrapper {
-    background: var(--surface);
+    background: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Hide iframe */
+.upload-status {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.upload-status-text {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #666;
+}
+
+.upload-progress {
+    width: 100%;
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.upload-progress .progress {
+    width: 0%;
+    height: 100%;
+    background: #4CAF50;
+    transition: width 0.3s ease;
+}
+
+/* Make sure the upload frame container is above everything else */
+#uploadFrameContainer {
+    z-index: 9999;
+}
+
+/* Hide the iframe by default but show status */
 #uploadFrame {
     display: none;
 }
 
 .debug #uploadFrame {
     display: block;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        padding: 15px;
-    }
-
-    .form-section {
-        padding: 15px;
-    }
-    
-    .info-box {
-        padding: 10px;
-    }
 }

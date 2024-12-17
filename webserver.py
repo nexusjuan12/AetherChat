@@ -27,6 +27,9 @@ from google.auth.transport import requests as google_requests
 from flask_talisman import Talisman
 from flask_cors import CORS, cross_origin
 import stripe
+from sqlalchemy import and_
+import time
+from queue_system import request_queue, setup_queue_handlers
 
 # Load environment variables
 load_dotenv('/root/.env')
@@ -148,6 +151,42 @@ class User(UserMixin, db.Model):
             return True
         return False
 
+    # Add the new method here, indented at the same level as the others
+    def deduct_credits_atomic(self, amount):
+        """
+        Atomically deduct credits from user balance.
+        Returns True if successful, False if insufficient credits.
+        """
+        max_retries = 3
+        retry_delay = 0.1
+
+        for attempt in range(max_retries):
+            try:
+                # Create a new session for this transaction
+                with db.session.begin():
+                    user = db.session.query(User).filter(
+                        User.id == self.id
+                    ).with_for_update().first()
+
+                    if not user or user.credits < amount:
+                        return False
+
+                    # Update credits directly in the transaction
+                    user.credits = user.credits - amount
+                    return True
+
+            except Exception as e:
+                db.session.rollback()
+                if attempt == max_retries - 1:
+                    print(f"Error in atomic credit deduction: {e}")
+                    return False
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+
+        return False  # All retries failed
+        return False  # All retries failed     
+
+
 class StripeTransaction(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
@@ -238,6 +277,72 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS 
         
+def kobold_handler(data):
+    """Handle Kobold API requests"""
+    try:
+        # Your existing Kobold API call
+        kobold_response = requests.post(
+            'http://127.0.0.1:5000/v1/chat/completions', 
+            json=data
+        )
+        return kobold_response.json()
+    except Exception as e:
+        raise Exception(f"Kobold API error: {str(e)}")
+
+def tts_handler(data):
+    """Handle TTS generation requests"""
+    try:
+        print("TTS handler received data:", data)  # Debug log
+        text = data.get("text")
+        character_id = data.get("rvc_model")
+        edge_voice = data.get("edge_voice")
+        tts_rate = data.get("tts_rate", 0)
+        rvc_pitch = data.get("rvc_pitch", 0)
+
+        model_path = f"/root/models/{character_id}/{character_id}.pth"
+        index_path = f"/root/models/{character_id}/{character_id}.index"
+
+        # Verify files exist
+        if not os.path.exists(model_path):
+            raise Exception(f"Model file not found: {model_path}")
+        if not os.path.exists(index_path):
+            raise Exception(f"Index file not found: {index_path}")
+
+        unique_id = str(uuid.uuid4())
+        output_filename = f"response_{unique_id}.wav"
+        output_path = os.path.join(OUTPUT_DIRECTORY, output_filename)
+
+        print(f"Initializing TTS with model: {model_path}")  # Debug log
+        tts = TTS_RVC(
+            rvc_path="src/rvclib",
+            model_path=model_path,
+            input_directory="/root/input/",
+            index_path=index_path
+        )
+        
+        print(f"Setting voice: {edge_voice}")  # Debug log
+        tts.set_voice(edge_voice)
+        
+        print("Generating audio...")  # Debug log
+        tts(
+            text=text,
+            pitch=rvc_pitch,
+            tts_rate=tts_rate,
+            output_filename=output_path
+        )
+
+        if not os.path.exists(output_path):
+            raise Exception("Failed to generate audio file")
+
+        print(f"Audio generated successfully: {output_path}")  # Debug log
+        return {"audio_url": f"/audio/{output_filename}"}
+        
+    except Exception as e:
+        print(f"TTS handler error: {str(e)}")  # Error log
+        import traceback
+        traceback.print_exc()
+        raise Exception(f"TTS error: {str(e)}")
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
@@ -477,7 +582,7 @@ def serve_static(path):
         return f"Error: Could not serve {path}", 404
 
         
-@app.route('/v1/tts', methods=['POST', 'OPTIONS'])
+@app.route('/v1/tts', methods=['POST'])
 @login_required
 def tts():
     if request.method == 'OPTIONS':
@@ -487,7 +592,7 @@ def tts():
         CREDITS_PER_TTS = 5
         
         # Check if user has enough credits
-        if not current_user.deduct_credits(CREDITS_PER_TTS):
+        if not current_user.deduct_credits_atomic(CREDITS_PER_TTS):
             return jsonify({
                 'error': 'Insufficient credits',
                 'credits_required': CREDITS_PER_TTS,
@@ -504,107 +609,74 @@ def tts():
         )
         db.session.add(transaction)
 
-        # Your existing TTS code
+        # Add request to queue
         data = request.json
-        text = data.get("text")
-        character_id = data.get("rvc_model") or data.get("id")
-        edge_voice = data.get("edge_voice")
-        tts_rate = data.get("tts_rate", 0)
-        rvc_pitch = data.get("rvc_pitch", 0)
-
-        if not text or not character_id or not edge_voice:
-            # Refund credits if request is invalid
-            current_user.add_credits(CREDITS_PER_TTS)
-            db.session.delete(transaction)
-            db.session.commit()
-            return jsonify({"error": "Text, character_id, and edge_voice are required"}), 400
-
-        model_path = f"/root/models/{character_id}/{character_id}.pth"
-        index_path = f"/root/models/{character_id}/{character_id}.index"
-
-        if not os.path.exists(model_path) or not os.path.exists(index_path):
-            # Refund credits if models not found
-            current_user.add_credits(CREDITS_PER_TTS)
-            db.session.delete(transaction)
-            db.session.commit()
-            return jsonify({"error": f"Voice model files not found for {character_id}"}), 404
-
-        unique_id = str(uuid.uuid4())
-        output_filename = f"response_{unique_id}.wav"
-        output_path = os.path.join(OUTPUT_DIRECTORY, output_filename)
-
-        try:
-            tts = TTS_RVC(
-                rvc_path="src/rvclib",
-                model_path=model_path,
-                input_directory="/root/input/",
-                index_path=index_path
-            )
-            
-            tts.set_voice(edge_voice)
-            tts(
-                text=text,
-                pitch=rvc_pitch,
-                tts_rate=tts_rate,
-                output_filename=output_path
-            )
-
-            if not os.path.exists(output_path):
+        request_id = request_queue.add_request(current_user.id, 'tts', data)
+        
+        # Check initial status
+        status = request_queue.get_status(request_id)
+        
+        if status['status'] == 'queued' and status['position'] > 3:
+            return jsonify({
+                'status': 'queued',
+                'position': status['position'],
+                'request_id': request_id
+            })
+        
+        # Poll for completion if position is low
+        max_attempts = 30
+        for _ in range(max_attempts):
+            status = request_queue.get_status(request_id)
+            if status['status'] == 'complete':
+                db.session.commit()
+                return jsonify(status['result'])
+            elif status['status'] == 'error':
                 current_user.add_credits(CREDITS_PER_TTS)
                 db.session.delete(transaction)
                 db.session.commit()
-                return jsonify({"error": "Failed to generate audio file"}), 500
-
-            # Commit transaction if successful
-            db.session.commit()
-            
-            # Prepare response with credit warning if needed
-            response_data = {"audio_url": f"/audio/{output_filename}"}
-            if current_user.credits < 100:  # Warning threshold
-                response_data['credit_warning'] = {
-                    'warning': True,
-                    'message': f'You have {current_user.credits} credits remaining.',
-                    'show_upgrade': current_user.subscription_tier == 'explorer',
-                    'credits_remaining': current_user.credits
-                }
-                
-            return jsonify(response_data)
-
-        except Exception as e:
-            current_user.add_credits(CREDITS_PER_TTS)
-            db.session.delete(transaction)
-            db.session.commit()
-            print(f"Error in TTS generation: {str(e)}")
-            return jsonify({"error": str(e)}), 500
+                return jsonify({'error': status['result']['error']}), 500
+            time.sleep(1)
+        
+        # Timeout - refund credits
+        current_user.add_credits(CREDITS_PER_TTS)
+        db.session.delete(transaction)
+        db.session.commit()
+        return jsonify({'error': 'Request timeout'}), 408
 
     except Exception as e:
         if 'transaction' in locals():
             current_user.add_credits(CREDITS_PER_TTS)
             db.session.delete(transaction)
             db.session.commit()
-        print(f"TTS Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/v1/chat/completions', methods=['POST', 'OPTIONS'])
+@app.route('/v1/chat/status/<request_id>')
+@login_required
+def check_chat_status(request_id):
+    status = request_queue.get_status(request_id)
+    if not status:
+        return jsonify({'error': 'Request not found'}), 404
+    return jsonify(status)
+
+@app.route('/v1/chat/completions', methods=['POST'])
 @login_required
 def chat_completions():
     if request.method == 'OPTIONS':
-        return '', 204
-        
+        return handle_options()
+
     try:
-        # Credit cost per message
         CREDITS_PER_MESSAGE = 10
         
         # Check if user has enough credits
-        if not current_user.deduct_credits(CREDITS_PER_MESSAGE):
+        if not current_user.deduct_credits_atomic(CREDITS_PER_MESSAGE):
             return jsonify({
                 'error': 'Insufficient credits',
                 'credits_required': CREDITS_PER_MESSAGE,
                 'credits_available': current_user.credits,
                 'purchase_url': '/subscription'
             }), 402
-            
-        # Log the transaction
+
+        # Create transaction record
         transaction = CreditTransaction(
             user_id=current_user.id,
             amount=-CREDITS_PER_MESSAGE,
@@ -612,44 +684,50 @@ def chat_completions():
             description='Chat completion message'
         )
         db.session.add(transaction)
-        
-        # Your existing Kobold API call
+
+        # Add request to queue
         data = request.json
-        print(f"Forwarding chat request to Kobold: {data}")
-        kobold_response = requests.post('http://127.0.0.1:5000/v1/chat/completions', json=data)
+        request_id = request_queue.add_request(current_user.id, 'chat', data)
         
-        if not kobold_response.ok:
-            # Refund credits if API call fails
-            current_user.add_credits(CREDITS_PER_MESSAGE)
-            db.session.delete(transaction)
-            db.session.commit()
-            print(f"Kobold API error: {kobold_response.status_code} - {kobold_response.text}")
-            return jsonify({"error": f"Kobold API error: {kobold_response.status_code}"}), 500
-            
-        # Commit the transaction if successful
+        # Check initial status
+        status = request_queue.get_status(request_id)
+        
+        if status['status'] == 'queued' and status['position'] > 3:
+            # Return queued status if position is high
+            return jsonify({
+                'status': 'queued',
+                'position': status['position'],
+                'request_id': request_id
+            })
+        
+        # Poll for completion if position is low
+        max_attempts = 30  # 30 second timeout
+        for _ in range(max_attempts):
+            status = request_queue.get_status(request_id)
+            if status['status'] == 'complete':
+                db.session.commit()  # Commit the transaction
+                return jsonify(status['result'])
+            elif status['status'] == 'error':
+                # Refund credits on error
+                current_user.add_credits(CREDITS_PER_MESSAGE)
+                db.session.delete(transaction)
+                db.session.commit()
+                return jsonify({'error': status['result']['error']}), 500
+            time.sleep(1)
+        
+        # Timeout - refund credits
+        current_user.add_credits(CREDITS_PER_MESSAGE)
+        db.session.delete(transaction)
         db.session.commit()
-        
-        # Add credit warning to response if needed
-        response_data = kobold_response.json()
-        if current_user.credits < 100:  # Warning threshold
-            response_data['credit_warning'] = {
-                'warning': True,
-                'message': f'You have {current_user.credits} credits remaining.',
-                'show_upgrade': current_user.subscription_tier == 'explorer',
-                'credits_remaining': current_user.credits
-            }
-            
-        return jsonify(response_data)
+        return jsonify({'error': 'Request timeout'}), 408
         
     except Exception as e:
         if 'transaction' in locals():
             current_user.add_credits(CREDITS_PER_MESSAGE)
             db.session.delete(transaction)
             db.session.commit()
-        print(f"Chat Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-
+        return jsonify({'error': str(e)}), 500
+        
 # Create Character Routes
 @app.route('/create-character', methods=['GET', 'POST'])
 @login_required
@@ -2211,11 +2289,20 @@ def upload_large_model():
         print(f"Model upload error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/register')
+def register_page():
+    return render_template('register.html', google_client_id=os.getenv('GOOGLE_CLIENT_ID'))
+
         
 # Initialize database
 with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        # Initialize queue handlers
+        setup_queue_handlers(kobold_handler, tts_handler)
+        
     print("Starting app on internal port 8081 (external 51069)...")
     app.run(host='0.0.0.0', port=8081, debug=False)

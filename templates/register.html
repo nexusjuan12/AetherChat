@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AetherChat</title>
+    <link rel="stylesheet" href="./styles.css">
+    <style>
+        .auth-container {
+            max-width: 450px;
+            margin: 50px auto;
+            padding: 2rem;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 180, 255, 0.2);
+            border: 1px solid rgba(0, 180, 255, 0.2);
+            width: 90%;
+        }
+
+        .auth-container h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            background: linear-gradient(45deg, var(--primary), var(--primary-variant));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 180, 255, 0.3);
+        }
+
+        .oauth-buttons {
+            margin: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .oauth-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--surface-2);
+            border: 1px solid rgba(0, 180, 255, 0.1);
+            border-radius: 8px;
+            color: var(--on-surface);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .oauth-button:hover {
+            background: var(--surface);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 180, 255, 0.2);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--on-surface);
+            opacity: 0.6;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            margin: 0 10px;
+        }
+
+        .success-message {
+            color: var(--secondary);
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(3, 218, 198, 0.1);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--on-surface);
+        }
+
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h1>Create Account</h1>
+        
+        <div class="oauth-buttons">
+            <button class="oauth-button" id="googleRegister">
+                <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20">
+                Sign up with Google
+            </button>
+        </div>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <form class="auth-form" id="registerForm">
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            <button type="submit" class="nav-button">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Log in</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            errorMessage.textContent = '';
+            successMessage.style.display = 'none';
+            
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    successMessage.textContent = 'Registration successful! Please check your email to verify your account.';
+                    successMessage.style.display = 'block';
+                    document.getElementById('registerForm').reset();
+                } else {
+                    errorMessage.textContent = data.error || 'Registration failed';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorMessage.textContent = 'Registration failed. Please try again.';
+            }
+        });
+
+        document.getElementById('googleRegister').addEventListener('click', () => {
+            window.location.href = '/auth/google';
+        });
+    </script>
+</body>
+</html>

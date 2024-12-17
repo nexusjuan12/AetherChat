@@ -72,28 +72,6 @@
                     <label for="ttsVoice">TTS Voice</label>
                     <select id="ttsVoice" name="ttsVoice" required>
                         <option value="">Select Voice</option>
-                        <option value="en-GB-LibbyNeural">en-GB-LibbyNeural</option>
-                        <option value="en-GB-MaisieNeural">en-GB-MaisieNeural</option>
-                        <option value="en-GB-RyanNeural">en-GB-RyanNeural</option>
-                        <option value="en-GB-SoniaNeural">en-GB-SoniaNeural</option>
-                        <option value="en-GB-ThomasNeural">en-GB-ThomasNeural</option>
-                        <option value="en-US-AvaMultilingualNeural">en-US-AvaMultilingualNeural</option>
-                        <option value="en-US-AndrewMultilingualNeural">en-US-AndrewMultilingualNeural</option>
-                        <option value="en-US-EmmaMultilingualNeural">en-US-EmmaMultilingualNeural</option>
-                        <option value="en-US-BrianMultilingualNeural">en-US-BrianMultilingualNeural</option>
-                        <option value="en-US-AvaNeural">en-US-AvaNeural</option>
-                        <option value="en-US-AndrewNeural">en-US-AndrewNeural</option>
-                        <option value="en-US-EmmaNeural">en-US-EmmaNeural</option>
-                        <option value="en-US-BrianNeural">en-US-BrianNeural</option>
-                        <option value="en-US-AnaNeural">en-US-AnaNeural</option>
-                        <option value="en-US-AriaNeural">en-US-AriaNeural</option>
-                        <option value="en-US-ChristopherNeural">en-US-ChristopherNeural</option>
-                        <option value="en-US-EricNeural">en-US-EricNeural</option>
-                        <option value="en-US-GuyNeural">en-US-GuyNeural</option>
-                        <option value="en-US-JennyNeural">en-US-JennyNeural</option>
-                        <option value="en-US-MichelleNeural">en-US-MichelleNeural</option>
-                        <option value="en-US-RogerNeural">en-US-RogerNeural</option>
-                        <option value="en-US-SteffanNeural">en-US-SteffanNeural</option>
                     </select>
                 </div>
 
@@ -104,6 +82,21 @@
                         <option value="existing">Use Existing Character Model</option>
                         <option value="upload">Upload New Voice Model</option>
                     </select>
+                </div>
+
+                <!-- Voice Model Information Box -->
+                <div class="form-group">
+                    <div class="info-box">
+                        <h4>Voice Model Information</h4>
+                        <p>You can find RVC voice models at <a href="https://voice-models.com" target="_blank">voice-models.com</a>. 
+                           The site features over 30,000 unique voices for various characters.</p>
+                        <p>Important Notes:</p>
+                        <ul>
+                            <li>Extract any archives and upload only the .index and .pth files</li>
+                            <li>Model uploads can take several minutes to process</li>
+                            <li>Please be patient during the upload process</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- Existing Character Model Selection -->
@@ -120,20 +113,13 @@
                     <div class="form-group">
                         <label for="modelFile">Model File (.pth)</label>
                         <input type="file" id="modelFile" name="modelFile" accept=".pth">
-                        <div class="progress-bar">
-                            <div class="progress"></div>
-                            <div class="progress-text"></div>
-                        </div>
+                        <div class="helper-text">Upload the RVC model file (.pth)</div>
                     </div>
                     <div class="form-group">
                         <label for="indexFile">Index File (.index)</label>
                         <input type="file" id="indexFile" name="indexFile" accept=".index">
-                        <div class="progress-bar">
-                            <div class="progress"></div>
-                            <div class="progress-text"></div>
-                        </div>
+                        <div class="helper-text">Upload the corresponding index file (.index)</div>
                     </div>
-                    <div class="helper-text">Upload new voice model files</div>
                 </div>
 
                 <div class="slider-control">
@@ -182,6 +168,14 @@
                         Make this character private
                     </label>
                     <div class="helper-text">Private characters are only visible to you</div>
+                </div>
+            </div>
+
+            <!-- Upload Status Container -->
+            <div id="uploadStatus" class="upload-status" style="display: none;">
+                <div class="upload-status-text">Uploading RVC model files... This may take a few minutes.</div>
+                <div class="upload-progress">
+                    <div class="progress"></div>
                 </div>
             </div>
 

@@ -33,6 +33,50 @@
                     </button>
                 </div>
             </div>
+
+            <div class="nav-section parameters-section">
+                <h2>Chat Parameters</h2>
+                
+                <!-- Voice Parameters -->
+                <div class="parameter-group">
+                    <h3>Voice Settings</h3>
+                    <div class="parameter-control">
+                        <label for="rvc-pitch">RVC Pitch</label>
+                        <input type="range" id="rvc-pitch" min="-18" max="18" value="0" step="1">
+                        <span class="parameter-value">0</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label for="tts-rate">TTS Rate</label>
+                        <input type="range" id="tts-rate" min="-5" max="5" value="0" step="0.1">
+                        <span class="parameter-value">0</span>
+                    </div>
+                </div>
+
+                <!-- AI Parameters -->
+                <div class="parameter-group">
+                    <h3>AI Settings</h3>
+                    <div class="parameter-control">
+                        <label for="temperature">Temperature</label>
+                        <input type="range" id="temperature" min="0" max="1" value="0.7" step="0.1">
+                        <span class="parameter-value">0.7</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label for="top-p">Top P</label>
+                        <input type="range" id="top-p" min="0" max="1" value="0.9" step="0.1">
+                        <span class="parameter-value">0.9</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label for="presence-penalty">Presence Penalty</label>
+                        <input type="range" id="presence-penalty" min="0" max="2" value="0.6" step="0.1">
+                        <span class="parameter-value">0.6</span>
+                    </div>
+                    <div class="parameter-control">
+                        <label for="frequency-penalty">Frequency Penalty</label>
+                        <input type="range" id="frequency-penalty" min="0" max="2" value="0.6" step="0.1">
+                        <span class="parameter-value">0.6</span>
+                    </div>
+                </div>
+            </div>
             
             <div class="nav-section">
                 <h2>Search</h2>
@@ -47,16 +91,6 @@
                 <a href="/my-library" class="nav-button" id="my-library">
                     My Library
                 </a>
-            </div>
-            
-            <div class="nav-section">
-                <h2>Categories</h2>
-                <div id="category-filters"></div>
-            </div>
-            
-            <div class="nav-section">
-                <h2>Tags</h2>
-                <div id="tag-filters"></div>
             </div>
         </nav>
 
@@ -89,8 +123,9 @@
         </div>
     </div>
 
-    <script src="./auth.js" type="module"></script>
-    <script src="./characters.js" type="module"></script>
-    <script src="./chat.js" type="module"></script>
+    <!-- Update these paths -->
+    <script src="/chat/auth.js" type="module"></script>
+    <script src="/chat/characters.js" type="module"></script>
+    <script src="/chat/chat.js" type="module"></script>
 </body>
 </html>

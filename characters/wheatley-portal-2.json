@@ -12,7 +12,7 @@
   "dateAdded": "2024-12-04T10:29:56.274717",
   "creator": "bd0a8047-907b-4cfe-839e-a8edbff1556c",
   "isPrivate": false,
-  "isApproved": false,
+  "isApproved": true,
   "ai_parameters": {},
   "background": "./characters/wheatley-portal-2/background.gif",
   "rvc_model": "wheatley-portal-2"
