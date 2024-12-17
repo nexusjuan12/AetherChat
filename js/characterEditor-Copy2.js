@@ -44,6 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             const modelSelect = document.getElementById('existingCharacterModel');
+            if (!modelSelect) {
+                console.error('existingCharacterModel select element not found');
+                return;
+            }
+
+            // Clear existing options
             modelSelect.innerHTML = '<option value="">Select a Character\'s Voice Model</option>';
             
             if (data.rvc_models && Array.isArray(data.rvc_models)) {
@@ -59,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Handle file previews
+    // Handle file uploads with progress bars
     const setupFileUpload = (inputId, previewId, progressBar) => {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
@@ -70,21 +76,77 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Only handle media previews here
-            if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    if (file.type.startsWith('video/')) {
-                        preview.innerHTML = `
-                            <video controls>
-                                <source src="${e.target.result}" type="${file.type}">
-                                Your browser does not support the video tag.
-                            </video>`;
-                    } else {
-                        preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            // Handle model and index files
+            if (inputId === 'modelFile' || inputId === 'indexFile') {
+                const formData = new FormData();
+                formData.append('characterId', characterId);
+                
+                if (inputId === 'modelFile') {
+                    if (!file.name.endsWith('.pth')) {
+                        alert('Please upload a .pth file for the model');
+                        return;
                     }
-                };
-                reader.readAsDataURL(file);
+                    formData.append('modelFile', file);
+                } else {
+                    if (!file.name.endsWith('.index')) {
+                        alert('Please upload a .index file');
+                        return;
+                    }
+                    formData.append('indexFile', file);
+                }
+
+                progressBar.style.width = '0%';
+                progressBar.textContent = 'Starting upload...';
+
+                try {
+                    const response = await fetch('/characters/upload-model', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Upload error response:', errorText);
+                        throw new Error(errorText || 'Failed to upload file');
+                    }
+                    
+                    const result = await response.json();
+                    console.log(`${inputId} upload response:`, result);
+                    
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = 'Upload complete';
+
+                    // If both files are uploaded, show success message
+                    const modelInput = document.getElementById('modelFile');
+                    const indexInput = document.getElementById('indexFile');
+                    if (modelInput.files.length > 0 && indexInput.files.length > 0) {
+                        alert('Voice model files uploaded successfully!');
+                    }
+
+                } catch (error) {
+                    console.error(`Error uploading ${inputId}:`, error);
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = 'Upload failed';
+                    alert(`Failed to upload ${inputId}: ${error.message}`);
+                }
+            } else {
+                // Handle media file upload (avatar/background)
+                if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (file.type.startsWith('video/')) {
+                            preview.innerHTML = `
+                                <video controls>
+                                    <source src="${e.target.result}" type="${file.type}">
+                                    Your browser does not support the video tag.
+                                </video>`;
+                        } else {
+                            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         });
     };
@@ -197,98 +259,16 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error loading character data:', error);
         alert('Failed to load character data: ' + error.message);
     });
-    // Helper function for model uploads
-    async function uploadModel(characterId) {
-        const modelFile = document.getElementById('modelFile').files[0];
-        const indexFile = document.getElementById('indexFile').files[0];
-
-        if (!modelFile || !indexFile) {
-            console.log('No model files selected, skipping upload');
-            return null;
-        }
-
-        try {
-            // Upload model file first
-            const modelFormData = new FormData();
-            modelFormData.append('modelFile', modelFile);
-            modelFormData.append('characterId', characterId);
-
-            const modelResponse = await fetch('/characters/upload-model', {
-                method: 'POST',
-                body: modelFormData,
-                credentials: 'include'
-            });
-
-            if (!modelResponse.ok) {
-                const errorText = await modelResponse.text();
-                throw new Error(`Model file upload failed: ${errorText}`);
-            }
-
-            // Upload index file next
-            const indexFormData = new FormData();
-            indexFormData.append('indexFile', indexFile);
-            indexFormData.append('characterId', characterId);
-
-            const indexResponse = await fetch('/characters/upload-model', {
-                method: 'POST',
-                body: indexFormData,
-                credentials: 'include'
-            });
-
-            if (!indexResponse.ok) {
-                const errorText = await indexResponse.text();
-                throw new Error(`Index file upload failed: ${errorText}`);
-            }
-
-            const result = await indexResponse.json();
-            console.log('Model upload complete:', result);
-            return result;
-
-        } catch (error) {
-            console.error('Model upload error:', error);
-            throw error;
-        }
-    }
 
     // Handle form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const formData = new FormData(form);
         
         try {
-            // Handle voice model updates first if needed
-            const voiceModelType = document.getElementById('voiceModelType').value;
-            let modelUploadSuccess = false;
-            
-            if (voiceModelType === 'upload') {
-                const modelInput = document.getElementById('modelFile');
-                const indexInput = document.getElementById('indexFile');
-                
-                // If either file is selected, both must be provided
-                if (modelInput.files.length > 0 || indexInput.files.length > 0) {
-                    if (!modelInput.files[0] || !indexInput.files[0]) {
-                        throw new Error('Both model (.pth) and index (.index) files are required');
-                    }
-
-                    try {
-                        // Upload the model files
-                        const modelResult = await uploadModel(characterId);
-                        if (!modelResult) {
-                            throw new Error('Model upload failed');
-                        }
-                        modelUploadSuccess = true;
-                        console.log('Model upload successful:', modelResult);
-                    } catch (error) {
-                        console.error('Model upload failed:', error);
-                        alert('Failed to upload model files. Update cancelled: ' + error.message);
-                        return;
-                    }
-                }
-            }
-
-            const formData = new FormData(form);
             const jsonData = {};
-            
             formData.forEach((value, key) => {
+                // Skip empty file inputs
                 if ((key === 'modelFile' || key === 'indexFile' || key === 'avatar' || key === 'background') && 
                     (value instanceof File && value.size === 0)) {
                     return;
@@ -319,27 +299,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // RVC model selection
-            if (voiceModelType === 'existing') {
-                const existingModel = formData.get('existingCharacterModel');
-                if (existingModel) {
-                    jsonData.rvc_model = existingModel;
-                }
-            } else if (voiceModelType === 'upload' && modelUploadSuccess) {
-                jsonData.rvc_model = characterId;
-            }
-
             // Voice settings
             jsonData.tts_rate = parseInt(formData.get('tts_rate')) || 0;
             jsonData.rvc_pitch = parseInt(formData.get('rvc_pitch')) || 0;
 
+            // RVC model selection
+            if (voiceModelType.value === 'existing') {
+                const existingModel = formData.get('existingCharacterModel');
+                if (existingModel) {
+                    jsonData.rvc_model = existingModel;
+                }
+            }
+
             // AI Parameters
             jsonData.ai_parameters = {
-                temperature: parseFloat(formData.get('temperature')),
-                top_p: parseFloat(formData.get('top_p')),
-                presence_penalty: parseFloat(formData.get('presence_penalty')),
-                frequency_penalty: parseFloat(formData.get('frequency_penalty')),
-                max_tokens: parseInt(formData.get('max_tokens'))
+                temperature: parseFloat(formData.get('ai_temperature')),
+                top_p: parseFloat(formData.get('ai_top_p')),
+                presence_penalty: parseFloat(formData.get('ai_presence_penalty')),
+                frequency_penalty: parseFloat(formData.get('ai_frequency_penalty')),
+                max_tokens: parseInt(formData.get('ai_max_tokens'))
             };
 
             // Remove unnecessary file input data
@@ -399,4 +377,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-}); // Close the DOMContentLoaded event listener
+});

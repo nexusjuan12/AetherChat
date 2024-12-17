@@ -581,6 +581,28 @@ def serve_static(path):
         print(f"Error serving {path}: {e}")
         return f"Error: Could not serve {path}", 404
 
+@app.route('/chat/<path:filename>')
+def serve_chat_files(filename):
+    try:
+        # Map extensions to MIME types
+        mime_types = {
+            'js': 'application/javascript',
+            'css': 'text/css',
+            'html': 'text/html'
+        }
+        
+        # Get file extension
+        ext = filename.split('.')[-1]
+        mime_type = mime_types.get(ext, 'text/plain')
+        
+        # Send file with correct MIME type
+        response = send_from_directory(os.path.join(STATIC_DIR, 'chat'), filename)
+        response.headers['Content-Type'] = mime_type
+        return response
+    except Exception as e:
+        print(f"Error serving chat file {filename}: {e}")
+        return f"Error: Could not serve {filename}", 404
+
         
 @app.route('/v1/tts', methods=['POST'])
 @login_required

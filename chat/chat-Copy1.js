@@ -3,8 +3,7 @@ let audioEnabled = true;
 let autoplayEnabled = true;
 let currentAudioPlayer = null;
 let currentAudioUrl = null;
-let isAudioPlaying = false;
-let audioQueue = [];
+
 
 // Configuration and state management
 let currentUser = null;
@@ -270,9 +269,6 @@ async function sendMessage(userMessage = null) {
         const message = userMessage || userInput.value.trim();
         if (!message) return;
 
-        // Stop current audio when sending new message
-        stopCurrentAudio();
-
         isProcessing = true;
         if (!userMessage) {
             addMessage("user", message);
@@ -300,6 +296,7 @@ async function sendMessage(userMessage = null) {
             body: JSON.stringify({
                 model: "koboldcpp",
                 messages: messages,
+                // Use session parameters instead of character parameters
                 temperature: sessionParameters.ai.temperature,
                 max_tokens: character.ai_parameters?.max_tokens || 150,
                 top_p: sessionParameters.ai.topP,
@@ -334,7 +331,7 @@ async function sendMessage(userMessage = null) {
             const ttsText = filterTextForTTS(botMessage);
             if (ttsText) {
                 messageQueue.push(ttsText);
-                if (!isAudioPlaying) {
+                if (messageQueue.length === 1) {
                     processNextInQueue();
                 }
             }
@@ -359,13 +356,8 @@ async function sendMessage(userMessage = null) {
 }
 
 async function processNextInQueue() {
-    if (messageQueue.length === 0) {
-        console.log("Message queue empty");
-        return;
-    }
-
-    if (isAudioPlaying) {
-        console.log("Audio currently playing, waiting...");
+    if (messageQueue.length === 0 || isAudioPlaying) {
+        console.log("Queue empty or audio playing");
         return;
     }
 
@@ -377,8 +369,8 @@ async function processNextInQueue() {
             text: text,
             edge_voice: character.ttsVoice,
             rvc_model: character.id,
-            tts_rate: sessionParameters.voice.ttsRate,
-            rvc_pitch: sessionParameters.voice.rvcPitch
+            tts_rate: character.tts_rate || 0,
+            rvc_pitch: character.rvc_pitch || 0
         };
 
         console.log("Sending TTS request:", requestBody);
@@ -403,56 +395,46 @@ async function processNextInQueue() {
 
     } catch (error) {
         console.error("TTS error:", error);
-        messageQueue.shift(); // Remove failed message from queue
-        isAudioPlaying = false;
-        if (messageQueue.length > 0) {
-            setTimeout(processNextInQueue, 100);
+    } finally {
+        messageQueue.shift();
+        if (messageQueue.length > 0 && !isAudioPlaying) {
+            setTimeout(() => processNextInQueue(), 100); // Small delay between messages
         }
     }
 }
+
+let isAudioPlaying = false;
 
 async function playAudio(audioUrl) {
     if (!audioEnabled) return;
 
     try {
-        // Stop any currently playing audio
+        if (currentAudioUrl === audioUrl) {
+            console.log("Audio already playing:", audioUrl);
+            return;
+        }
+
         if (currentAudioPlayer) {
             currentAudioPlayer.pause();
-            currentAudioPlayer.src = '';
             currentAudioPlayer = null;
         }
 
         isAudioPlaying = true;
         const audioPlayer = new Audio(audioUrl);
         currentAudioPlayer = audioPlayer;
+        currentAudioUrl = audioUrl;
 
-        // Set up event listeners
         audioPlayer.addEventListener('ended', () => {
             isAudioPlaying = false;
+            currentAudioUrl = null;
             currentAudioPlayer = null;
-            messageQueue.shift(); // Remove played message from queue
-            if (messageQueue.length > 0) {
-                setTimeout(processNextInQueue, 100);
-            }
         });
 
         audioPlayer.addEventListener('error', (e) => {
             console.error("Audio playback error:", e);
             isAudioPlaying = false;
             currentAudioPlayer = null;
-            messageQueue.shift(); // Remove failed message from queue
-            if (messageQueue.length > 0) {
-                setTimeout(processNextInQueue, 100);
-            }
-        });
-
-        // Add abort handler
-        audioPlayer.addEventListener('abort', () => {
-            isAudioPlaying = false;
-            currentAudioPlayer = null;
-            if (messageQueue.length > 0) {
-                setTimeout(processNextInQueue, 100);
-            }
+            currentAudioUrl = null;
         });
 
         await audioPlayer.play();
@@ -461,22 +443,10 @@ async function playAudio(audioUrl) {
         console.error("Error in playAudio:", error);
         isAudioPlaying = false;
         currentAudioPlayer = null;
-        messageQueue.shift(); // Remove failed message from queue
-        if (messageQueue.length > 0) {
-            setTimeout(processNextInQueue, 100);
-        }
+        currentAudioUrl = null;
     }
 }
 
-// Add a function to stop current audio
-function stopCurrentAudio() {
-    if (currentAudioPlayer) {
-        currentAudioPlayer.pause();
-        currentAudioPlayer.src = '';
-        currentAudioPlayer = null;
-    }
-    isAudioPlaying = false;
-}
 function showInitializationError(error) {
     const header = document.querySelector('header');
     if (header) {

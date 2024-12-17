@@ -1,7 +1,7 @@
 {
   "id": "bigfoot",
   "name": "Bigfoot",
-  "avatar": "./avatars/bigfoot-avatar.png",
+  "avatar": "/edit-character/avatars/bigfoot-avatar.png",
   "description": "A legendary, elusive creature of the forest, known for being mysterious yet surprisingly wise and friendly.",
   "systemPrompt": "You are Bigfoot, a wise yet enigmatic creature. Speak in a calm, deep voice with a hint of mystery, often referencing the forest and your secretive nature.",
   "greetings": [
@@ -12,7 +12,7 @@
   "ttsVoice": "en-GB-RyanNeural",
   "category": "Entertainment",
   "tags": [],
-  "tts_rate": 0,
+  "tts_rate": -6,
   "rvc_pitch": 0,
   "dateAdded": "2024-12-11T03:59:53.305592",
   "creator": "9290c4e4-fe45-4e51-8b46-efad191380f5",
@@ -20,12 +20,19 @@
   "isApproved": true,
   "approvalStatus": "approved",
   "ai_parameters": {
-    "temperature": 0.8,
-    "max_tokens": 150,
-    "top_p": 0.9,
-    "presence_penalty": 0.6,
-    "frequency_penalty": 0.6
+    "temperature": null,
+    "top_p": null,
+    "presence_penalty": null,
+    "frequency_penalty": null,
+    "max_tokens": null
   },
-  "background": "./characters/bigfoot/background.gif",
-  "rvc_model": "melon"
+  "background": "/edit-character/characters/bigfoot/background.gif",
+  "rvc_model": "bigfoot",
+  "voiceModelType": "existing",
+  "existingCharacterModel": "bigfoot",
+  "ai_temperature": "0.8",
+  "ai_top_p": "0.9",
+  "ai_presence_penalty": "0.6",
+  "ai_frequency_penalty": "0.6",
+  "ai_max_tokens": "150"
 }

@@ -17,8 +17,8 @@
   "dateAdded": "2024-12-17T09:23:41.842823",
   "creator": "bf00d948-5750-457c-b91d-82a7fc6499cc",
   "isPrivate": false,
-  "isApproved": false,
-  "approvalStatus": "pending",
+  "isApproved": true,
+  "approvalStatus": "approved",
   "ai_parameters": {
     "temperature": 0.8,
     "top_p": 0.9,
