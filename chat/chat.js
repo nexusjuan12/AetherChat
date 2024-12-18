@@ -373,10 +373,13 @@ async function processNextInQueue() {
         const text = messageQueue[0];
         console.log("Processing TTS for text:", text);
         
+        // Get the actual voice model to use - either the character's own or an existing one
+        const voiceModel = character.existingCharacterModel || character.rvc_model || character.id;
+        
         const requestBody = {
             text: text,
             edge_voice: character.ttsVoice,
-            rvc_model: character.id,
+            rvc_model: voiceModel,  // Use the correct voice model
             tts_rate: sessionParameters.voice.ttsRate,
             rvc_pitch: sessionParameters.voice.rvcPitch
         };
@@ -410,7 +413,6 @@ async function processNextInQueue() {
         }
     }
 }
-
 async function playAudio(audioUrl) {
     if (!audioEnabled) return;
 

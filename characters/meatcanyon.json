@@ -1,7 +1,7 @@
 {
   "id": "meatcanyon",
   "name": "Meat-Canyon-Bugs",
-  "avatar": "/edit-character/avatars/meatcanyon-avatar.png",
+  "avatar": "./avatars/meatcanyon-avatar.png",
   "description": "A grotesque and unsettling version of Bugs Bunny, twisted into a sinister caricature of his iconic self.",
   "isPrivate": false,
   "isApproved": true,
@@ -41,5 +41,6 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "creator": "None"
+  "creator": "None",
+  "background": "./characters/meatcanyon/background.mp4"
 }

@@ -1101,14 +1101,33 @@ def upload_background():
         return jsonify({'error': 'No file selected'}), 400
         
     if file and allowed_file(file.filename):
-        # Get character ID from form data - use as-is since it's already sanitized
+        # Get character ID from form data
         character_id = request.form.get('characterId')
         
         # Create character directory
         char_dir = os.path.join(CHARACTER_FOLDER, character_id)
         os.makedirs(char_dir, exist_ok=True)
         
-        # Save file with original extension
+        # Clean up existing background files
+        for ext in ['png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'wmv']:
+            old_file = os.path.join(char_dir, f'background.{ext}')
+            if os.path.exists(old_file):
+                try:
+                    os.remove(old_file)
+                    print(f"Removed old background: {old_file}")
+                except Exception as e:
+                    print(f"Error removing old background {old_file}: {e}")
+
+        # Clean up old thumbnail if it exists
+        old_thumb = os.path.join(char_dir, 'background_thumb.jpg')
+        if os.path.exists(old_thumb):
+            try:
+                os.remove(old_thumb)
+                print(f"Removed old thumbnail: {old_thumb}")
+            except Exception as e:
+                print(f"Error removing old thumbnail: {e}")
+        
+        # Save new file with original extension
         original_ext = file.filename.rsplit('.', 1)[1].lower()
         filename = f"background.{original_ext}"
         filepath = os.path.join(char_dir, filename)
@@ -1132,7 +1151,8 @@ def upload_background():
                     response_data['thumbnail'] = f'./characters/{character_id}/background_thumb.jpg'
             except Exception as e:
                 print(f"Error creating video thumbnail: {e}")
-        # Handle image fallback
+
+        # Handle image fallback for non-GIF images
         elif original_ext != 'gif':
             try:
                 from PIL import Image
@@ -1151,7 +1171,6 @@ def upload_background():
         return jsonify(response_data), 200
     
     return jsonify({'error': 'Invalid file type'}), 400
-
 
 @app.route('/check-character/<character_name>')
 @login_required

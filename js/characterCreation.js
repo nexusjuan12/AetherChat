@@ -219,90 +219,127 @@ class CharacterCreator {
     }
 }
 
-    async resizeImage(file, targetWidth = 256, targetHeight = 256, isBackground = false) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            const reader = new FileReader();
+    async resizeImage(file, targetWidth = 120, targetHeight = 120, isBackground = false) {
+    return new Promise((resolve) => {
+        // Handle video files for backgrounds
+        if (isBackground && file.type.startsWith('video/')) {
+            resolve(file); // Pass through video files without modification
+            return;
+        }
 
-            reader.onload = function(e) {
-                img.src = e.target.result;
-                img.onload = function() {
-                    // For backgrounds, preserve original dimensions and don't resize
-                    if (isBackground) {
-                        // If it's a GIF, just return the original file
-                        if (file.type === 'image/gif') {
-                            resolve(file);
-                            return;
-                        }
-                        
-                        const canvas = document.createElement('canvas');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        
-                        canvas.toBlob((blob) => {
-                            resolve(blob);
-                        }, file.type, 0.95);
-                        return;
-                    }
+        // Check if it's an avatar and reject video
+        if (!isBackground && file.type.startsWith('video/')) {
+            throw new Error('Avatars must be image files (PNG, JPG, GIF, or WEBP)');
+        }
 
-                    // For avatars, keep the existing square resize logic
-                    const canvas = document.createElement('canvas');
-                    canvas.width = targetWidth;
-                    canvas.height = targetHeight;
+        // For GIF backgrounds, pass through without modification
+        if (isBackground && file.type === 'image/gif') {
+            resolve(file);
+            return;
+        }
+
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                
+                if (isBackground) {
+                    // For background images, preserve original dimensions
+                    canvas.width = img.width;
+                    canvas.height = img.height;
                     const ctx = canvas.getContext('2d');
-
-                    // Fill with white background
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // Calculate scaling and position to maintain aspect ratio
-                    let scale = Math.min(targetWidth / img.width, targetHeight / img.height);
-                    let x = (targetWidth - img.width * scale) / 2;
-                    let y = (targetHeight - img.height * scale) / 2;
-
-                    // Draw image centered
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                    // Convert to blob
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    
                     canvas.toBlob((blob) => {
                         resolve(blob);
-                    }, 'image/png', 0.95);
-                };
+                    }, file.type, 0.95);
+                    return;
+                }
+
+                // For avatars, ensure square dimensions and proper sizing
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Fill with white background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+                // Calculate dimensions for square crop
+                const size = Math.min(img.width, img.height);
+                const x = (img.width - size) / 2;
+                const y = (img.height - size) / 2;
+
+                // Draw the square cropped and resized image
+                ctx.drawImage(
+                    img,
+                    x, y,                 // Start at center of source image
+                    size, size,           // Take square portion
+                    0, 0,                 // Place at top-left of canvas
+                    targetWidth,          // Scale to target width
+                    targetHeight          // Scale to target height
+                );
+
+                // Convert to blob with PNG format for avatars
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/png', 0.95);
             };
-            reader.readAsDataURL(file);
-        });
-    }
-
+        };
+        reader.readAsDataURL(file);
+    });
+}
+    
     async handleImagePreview(event, previewId) {
-        const file = event.target.files[0];
-        if (!file) return;
+    const file = event.target.files[0];
+    if (!file) return;
 
-        try {
-            const isBackground = previewId === 'backgroundPreview';
-            const resizedBlob = await this.resizeImage(file, 256, 256, isBackground);
-            const previewUrl = URL.createObjectURL(resizedBlob);
-            
-            const img = document.createElement('img');
-            img.src = previewUrl;
-            img.className = 'preview-image';
-            if (isBackground) {
-                img.style.width = '100%';
-                img.style.height = 'auto';
-            }
-            
-            const previewDiv = document.getElementById(previewId);
-            previewDiv.innerHTML = '';
-            previewDiv.appendChild(img);
+    try {
+        const isBackground = previewId === 'backgroundPreview';
+        const previewDiv = document.getElementById(previewId);
+        previewDiv.innerHTML = '';
 
-            // Store the blob for later upload
-            event.target.resizedBlob = resizedBlob;
-        } catch (error) {
-            console.error('Error handling image preview:', error);
+        // Handle video files for backgrounds
+        if (isBackground && file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = URL.createObjectURL(file);
+            video.className = 'preview-video';
+            video.style.width = '100%';
+            video.style.height = 'auto';
+            video.controls = true;
+            previewDiv.appendChild(video);
+            // Store the original file for upload
+            event.target.resizedBlob = file;
+            return;
         }
+
+        // Handle image files
+        const resizedBlob = await this.resizeImage(file, 256, 256, isBackground);
+        const previewUrl = URL.createObjectURL(resizedBlob);
+        
+        const img = document.createElement('img');
+        img.src = previewUrl;
+        img.className = 'preview-image';
+        if (isBackground) {
+            img.style.width = '100%';
+            img.style.height = 'auto';
+        }
+        
+        previewDiv.appendChild(img);
+        // Store the processed blob for upload
+        event.target.resizedBlob = resizedBlob;
+
+    } catch (error) {
+        console.error('Error handling media preview:', error);
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.textContent = `Error: ${error.message}`;
+        previewDiv.appendChild(errorMsg);
     }
-    // In characterCreation.js, modify the handleSubmit function:
+}
 
 async handleSubmit(event) {
     event.preventDefault();
@@ -396,27 +433,27 @@ async handleSubmit(event) {
         // Prepare character data
         const formData = new FormData(this.form);
         const data = {
-            id: characterName,
-            name: formData.get('name'),
-            description: formData.get('description'),
-            systemPrompt: formData.get('systemPrompt'),
-            ttsVoice: formData.get('ttsVoice'),
-            category: formData.get('category'),
-            is_private: formData.get('isPrivate') === 'on',
-            tts_rate: parseInt(formData.get('ttsRate')) || 0,
-            rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
-            avatar: avatarPath,
-            background: backgroundPath,
-            greetings: formData.get('greetings')?.trim().split('\n').filter(g => g.trim()) || ["Hello!"],
-            rvc_model: voiceModelType === 'existing' ? existingModel : 
-                      (modelUploadSuccess ? characterName : null),
-            settings: {
-                tts_rate: parseInt(formData.get('ttsRate')) || 0,
-                rvc_pitch: parseInt(formData.get('rvcPitch')) || 0,
-                rvc_model: voiceModelType === 'existing' ? existingModel :
-                          (modelUploadSuccess ? characterName : null)
-            }
-        };
+    id: characterName,
+    name: formData.get('name'),
+    description: formData.get('description'),
+    systemPrompt: formData.get('systemPrompt'),
+    ttsVoice: formData.get('ttsVoice'),
+    category: formData.get('category'),
+    is_private: formData.get('isPrivate') === 'on',
+    tts_rate: parseInt(formData.get('tts_rate')), // Changed from ttsRate
+    rvc_pitch: parseInt(formData.get('rvc_pitch')), // Changed from rvcPitch
+    avatar: avatarPath,
+    background: backgroundPath,
+    greetings: formData.get('greetings')?.trim().split('\n').filter(g => g.trim()) || ["Hello!"],
+    rvc_model: voiceModelType === 'existing' ? existingModel : 
+              (modelUploadSuccess ? characterName : null),
+    settings: {
+        tts_rate: parseInt(formData.get('tts_rate')), // Changed from ttsRate
+        rvc_pitch: parseInt(formData.get('rvc_pitch')), // Changed from rvcPitch
+        rvc_model: voiceModelType === 'existing' ? existingModel :
+                  (modelUploadSuccess ? characterName : null)
+    }
+};
 
         // Validate parameters
         const validatedData = this.validateParameters(data);

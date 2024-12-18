@@ -59,46 +59,203 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Handle file previews
-    const setupFileUpload = (inputId, previewId, progressBar) => {
+    // Media file upload function
+    async function uploadMediaFile(file, type, characterId) {
+        if (!file) return null;
+
+        const formData = new FormData();
+        formData.append(type, file);
+        formData.append('characterId', characterId);
+
+        const endpoint = type === 'avatar' ? '/upload/avatar' : '/upload/character-background';
+        
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to upload ${type}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            return type === 'avatar' ? result.avatarPath : result.backgroundPath;
+        } catch (error) {
+            console.error(`Error uploading ${type}:`, error);
+            throw error;
+        }
+    }
+
+    // Media file upload handler
+    const setupFileUpload = (inputId, previewId) => {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
+        const progressBar = input?.closest('.form-group')?.querySelector('.progress');
+        const progressText = progressBar?.parentElement?.querySelector('.progress-text');
         
         if (!input) return;
+
+        const updateProgress = (percent, text) => {
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+                if (progressText) {
+                    progressText.textContent = text || `${percent}%`;
+                }
+                progressBar.parentElement.style.display = 'block';
+                if (percent === 100) {
+                    setTimeout(() => {
+                        progressBar.parentElement.style.display = 'none';
+                    }, 1000);
+                }
+            }
+        };
 
         input.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Only handle media previews here
-            if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+            try {
+                updateProgress(20, 'Checking file...');
+                
+                const isBackground = inputId === 'background';
+                const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/x-ms-wmv'];
+
+                // Validate file types
+                if (!isBackground && !allowedImageTypes.includes(file.type)) {
+                    throw new Error('Avatars must be image files (PNG, JPG, GIF, or WEBP)');
+                }
+
+                if (isBackground && ![...allowedImageTypes, ...allowedVideoTypes].includes(file.type)) {
+                    throw new Error('Background must be an image or video file');
+                }
+
+                updateProgress(40, 'Processing file...');
                 const reader = new FileReader();
+                
                 reader.onload = (e) => {
-                    if (file.type.startsWith('video/')) {
+                    if (isBackground && file.type.startsWith('video/')) {
                         preview.innerHTML = `
-                            <video controls>
+                            <video controls style="width: 100%; height: auto;">
                                 <source src="${e.target.result}" type="${file.type}">
                                 Your browser does not support the video tag.
                             </video>`;
                     } else {
-                        preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        preview.innerHTML = `<img src="${e.target.result}" alt="Preview" 
+                            style="width: ${isBackground ? '100%' : '120px'}; 
+                            height: ${isBackground ? 'auto' : '120px'};">`;
                     }
+                    updateProgress(100, 'File ready');
                 };
+
                 reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('Error handling file:', error);
+                preview.innerHTML = `<div class="error-message">${error.message}</div>`;
+                updateProgress(0, 'Error');
+                setTimeout(() => {
+                    progressBar.parentElement.style.display = 'none';
+                }, 2000);
+                input.value = '';
             }
         });
     };
+    // Model upload handler
+    async function uploadModel(characterId) {
+        const modelFile = document.getElementById('modelFile').files[0];
+        const indexFile = document.getElementById('indexFile').files[0];
+        
+        const modelProgressBar = document.querySelector('#modelFile + .progress-bar .progress');
+        const indexProgressBar = document.querySelector('#indexFile + .progress-bar .progress');
+        const modelProgressText = modelProgressBar?.parentElement?.querySelector('.progress-text');
+        const indexProgressText = indexProgressBar?.parentElement?.querySelector('.progress-text');
 
-    // Set up file upload handlers
+        if (!modelFile || !indexFile) {
+            console.log('No model files selected, skipping upload');
+            return null;
+        }
+
+        const updateProgress = (progressBar, progressText, percent, message) => {
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+                if (progressText) {
+                    progressText.textContent = message || `${percent}%`;
+                }
+                progressBar.parentElement.style.display = 'block';
+                if (percent === 100) {
+                    setTimeout(() => {
+                        progressBar.parentElement.style.display = 'none';
+                    }, 1000);
+                }
+            }
+        };
+
+        try {
+            // Model file upload
+            updateProgress(modelProgressBar, modelProgressText, 0, 'Starting model upload...');
+            
+            const modelFormData = new FormData();
+            modelFormData.append('modelFile', modelFile);
+            modelFormData.append('characterId', characterId);
+
+            updateProgress(modelProgressBar, modelProgressText, 30, 'Uploading model file...');
+            const modelResponse = await fetch('/characters/upload-model', {
+                method: 'POST',
+                body: modelFormData,
+                credentials: 'include'
+            });
+
+            if (!modelResponse.ok) {
+                const errorText = await modelResponse.text();
+                throw new Error(`Model file upload failed: ${errorText}`);
+            }
+            updateProgress(modelProgressBar, modelProgressText, 100, 'Model uploaded');
+
+            // Index file upload
+            updateProgress(indexProgressBar, indexProgressText, 0, 'Starting index upload...');
+            
+            const indexFormData = new FormData();
+            indexFormData.append('indexFile', indexFile);
+            indexFormData.append('characterId', characterId);
+
+            updateProgress(indexProgressBar, indexProgressText, 30, 'Uploading index file...');
+            const indexResponse = await fetch('/characters/upload-model', {
+                method: 'POST',
+                body: indexFormData,
+                credentials: 'include'
+            });
+
+            if (!indexResponse.ok) {
+                const errorText = await indexResponse.text();
+                throw new Error(`Index file upload failed: ${errorText}`);
+            }
+            updateProgress(indexProgressBar, indexProgressText, 100, 'Index uploaded');
+
+            const result = await indexResponse.json();
+            console.log('Model upload complete:', result);
+            return result;
+
+        } catch (error) {
+            console.error('Model upload error:', error);
+            if (error.message.includes('model')) {
+                updateProgress(modelProgressBar, modelProgressText, 0, 'Upload failed');
+            } else {
+                updateProgress(indexProgressBar, indexProgressText, 0, 'Upload failed');
+            }
+            throw error;
+        }
+    }
+
     const setupFileUploads = () => {
-        setupFileUpload('avatar', 'avatarPreview', document.querySelector('#avatar + .progress-bar .progress'));
-        setupFileUpload('background', 'backgroundPreview', document.querySelector('#background + .progress-bar .progress'));
-        setupFileUpload('modelFile', null, document.querySelector('#modelFile + .progress-bar .progress'));
-        setupFileUpload('indexFile', null, document.querySelector('#indexFile + .progress-bar .progress'));
+        setupFileUpload('avatar', 'avatarPreview');
+        setupFileUpload('background', 'backgroundPreview');
     };
 
     setupFileUploads();
-    
     // Fetch and populate character data
     fetch(`/characters/${characterId}/data`, {
         credentials: 'include'
@@ -170,13 +327,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Media Previews - handle both full URLs and relative paths
         if (data.avatar) {
             const avatarPreview = document.getElementById('avatarPreview');
-            const avatarUrl = data.avatar.startsWith('http') ? data.avatar : data.avatar;
+            const avatarUrl = data.avatar.replace('/edit-character/', './');
             avatarPreview.innerHTML = `<img src="${avatarUrl}" alt="Character Avatar">`;
         }
         
         if (data.background) {
             const backgroundPreview = document.getElementById('backgroundPreview');
-            const backgroundUrl = data.background.startsWith('http') ? data.background : data.background;
+            const backgroundUrl = data.background.replace('/edit-character/', './');
             const isVideo = backgroundUrl.match(/\.(mp4|webm|wmv)$/i);
             
             if (isVideo) {
@@ -197,65 +354,41 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error loading character data:', error);
         alert('Failed to load character data: ' + error.message);
     });
-    // Helper function for model uploads
-    async function uploadModel(characterId) {
-        const modelFile = document.getElementById('modelFile').files[0];
-        const indexFile = document.getElementById('indexFile').files[0];
-
-        if (!modelFile || !indexFile) {
-            console.log('No model files selected, skipping upload');
-            return null;
-        }
-
-        try {
-            // Upload model file first
-            const modelFormData = new FormData();
-            modelFormData.append('modelFile', modelFile);
-            modelFormData.append('characterId', characterId);
-
-            const modelResponse = await fetch('/characters/upload-model', {
-                method: 'POST',
-                body: modelFormData,
-                credentials: 'include'
-            });
-
-            if (!modelResponse.ok) {
-                const errorText = await modelResponse.text();
-                throw new Error(`Model file upload failed: ${errorText}`);
-            }
-
-            // Upload index file next
-            const indexFormData = new FormData();
-            indexFormData.append('indexFile', indexFile);
-            indexFormData.append('characterId', characterId);
-
-            const indexResponse = await fetch('/characters/upload-model', {
-                method: 'POST',
-                body: indexFormData,
-                credentials: 'include'
-            });
-
-            if (!indexResponse.ok) {
-                const errorText = await indexResponse.text();
-                throw new Error(`Index file upload failed: ${errorText}`);
-            }
-
-            const result = await indexResponse.json();
-            console.log('Model upload complete:', result);
-            return result;
-
-        } catch (error) {
-            console.error('Model upload error:', error);
-            throw error;
-        }
-    }
-
     // Handle form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         try {
-            // Handle voice model updates first if needed
+            // Handle file uploads first
+            const avatarInput = document.getElementById('avatar');
+            const backgroundInput = document.getElementById('background');
+            
+            // Upload new files if selected
+            if (avatarInput.files[0]) {
+                try {
+                    const avatarPath = await uploadMediaFile(avatarInput.files[0], 'avatar', characterId);
+                    if (avatarPath) {
+                        avatarInput.dataset.uploadedPath = avatarPath;
+                    }
+                } catch (error) {
+                    console.error('Avatar upload failed:', error);
+                    throw new Error('Failed to upload avatar: ' + error.message);
+                }
+            }
+
+            if (backgroundInput.files[0]) {
+                try {
+                    const backgroundPath = await uploadMediaFile(backgroundInput.files[0], 'background', characterId);
+                    if (backgroundPath) {
+                        backgroundInput.dataset.uploadedPath = backgroundPath;
+                    }
+                } catch (error) {
+                    console.error('Background upload failed:', error);
+                    throw new Error('Failed to upload background: ' + error.message);
+                }
+            }
+
+            // Handle voice model updates if needed
             const voiceModelType = document.getElementById('voiceModelType').value;
             let modelUploadSuccess = false;
             
@@ -270,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     try {
-                        // Upload the model files
                         const modelResult = await uploadModel(characterId);
                         if (!modelResult) {
                             throw new Error('Model upload failed');
@@ -301,21 +433,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Preserve existing media paths if no new files uploaded
-            const avatarPreview = document.getElementById('avatarPreview');
-            const backgroundPreview = document.getElementById('backgroundPreview');
-            
-            if (!jsonData.avatar && avatarPreview) {
+            // Use uploaded paths or preserve existing paths for media
+            if (avatarInput.dataset.uploadedPath) {
+                jsonData.avatar = avatarInput.dataset.uploadedPath;
+            } else if (!jsonData.avatar) {
+                const avatarPreview = document.getElementById('avatarPreview');
                 const avatarImg = avatarPreview.querySelector('img');
                 if (avatarImg) {
-                    jsonData.avatar = avatarImg.src.replace(window.location.origin, '');
+                    jsonData.avatar = avatarImg.src
+                        .replace(window.location.origin, '')
+                        .replace('/edit-character/', './');
                 }
             }
             
-            if (!jsonData.background && backgroundPreview) {
+            if (backgroundInput.dataset.uploadedPath) {
+                jsonData.background = backgroundInput.dataset.uploadedPath;
+            } else if (!jsonData.background) {
+                const backgroundPreview = document.getElementById('backgroundPreview');
                 const backgroundContent = backgroundPreview.querySelector('img, video source');
                 if (backgroundContent) {
-                    jsonData.background = backgroundContent.src.replace(window.location.origin, '');
+                    jsonData.background = (backgroundContent.src || backgroundContent.getAttribute('src'))
+                        .replace(window.location.origin, '')
+                        .replace('/edit-character/', './');
                 }
             }
 
