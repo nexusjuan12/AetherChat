@@ -1,19 +1,27 @@
+import { loadCharacters } from './script.js';
+
 // Auth state management
 let currentUser = null;
 
 // DOM Elements
 const authModal = document.getElementById('auth-modal');
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
+const loginButton = document.getElementById('login-button');
+const registerButton = document.getElementById('register-button');
 const logoutButton = document.getElementById('logout-button');
+const switchToRegisterButton = document.querySelector('.switch-to-register');
+const switchToLoginButton = document.querySelector('.switch-to-login');
 const loginError = document.getElementById('login-error');
 const registerError = document.getElementById('register-error');
+const closeAuthModalButton = document.getElementById('close-auth-modal');
 
 // Check authentication status
 async function checkAuth() {
     try {
         const response = await fetch('/auth/user', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
         });
         
         if (response.ok) {
@@ -21,10 +29,11 @@ async function checkAuth() {
             currentUser = data.user;
             updateAuthUI();
             return true;
+        } else {
+            currentUser = null;
+            updateAuthUI();
+            return false;
         }
-        currentUser = null;
-        updateAuthUI();
-        return false;
     } catch (error) {
         console.error('Auth check failed:', error);
         currentUser = null;
@@ -39,38 +48,31 @@ function updateAuthUI() {
     const loggedInView = document.getElementById('logged-in-view');
     const usernameDisplay = document.getElementById('username-display');
     const creditsDisplay = document.getElementById('credits-display');
-    
-    if (!loggedOutView || !loggedInView) return;
+    const createCharacterBtn = document.getElementById('create-character');
 
     if (currentUser) {
         loggedOutView.style.display = 'none';
         loggedInView.style.display = 'block';
-        if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
-        if (creditsDisplay) creditsDisplay.textContent = `Credits: ${currentUser.credits}`;
-        
-        // Enable create character button if it exists
-        const createCharacterBtn = document.getElementById('create-character');
-        if (createCharacterBtn) createCharacterBtn.disabled = false;
+        usernameDisplay.textContent = currentUser.username;
+        creditsDisplay.textContent = `Credits: ${currentUser.credits}`;
+        createCharacterBtn.disabled = false;
     } else {
         loggedOutView.style.display = 'block';
         loggedInView.style.display = 'none';
-        
-        // Disable create character button if it exists
-        const createCharacterBtn = document.getElementById('create-character');
-        if (createCharacterBtn) createCharacterBtn.disabled = true;
+        createCharacterBtn.disabled = true;
     }
 }
 
 // Modal controls
 function openAuthModal(type = 'login') {
-    if (!authModal) return;
     authModal.showModal();
     switchAuthForm(type);
 }
 
 function closeAuthModal() {
-    if (!authModal) return;
     authModal.close();
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
     loginForm?.reset();
     registerForm?.reset();
     if (loginError) loginError.textContent = '';
@@ -78,9 +80,17 @@ function closeAuthModal() {
 }
 
 function switchAuthForm(type) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
     if (!loginForm || !registerForm) return;
-    loginForm.style.display = type === 'login' ? 'block' : 'none';
-    registerForm.style.display = type === 'register' ? 'block' : 'none';
+
+    if (type === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+    }
 }
 
 // Handle login
@@ -89,15 +99,17 @@ async function handleLogin(e) {
     if (!loginError) return;
     loginError.textContent = '';
     
-    const username = document.getElementById('login-username')?.value;
+    const email = document.getElementById('login-email')?.value;
     const password = document.getElementById('login-password')?.value;
     
     try {
         const response = await fetch('/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, password })
         });
         
         const data = await response.json();
@@ -106,10 +118,7 @@ async function handleLogin(e) {
             currentUser = data.user;
             updateAuthUI();
             closeAuthModal();
-            // Reload characters if the function exists
-            if (typeof loadCharacters === 'function') {
-                await loadCharacters();
-            }
+            await loadCharacters();
         } else {
             loginError.textContent = data.error || 'Login failed';
         }
@@ -126,14 +135,17 @@ async function handleRegister(e) {
     registerError.textContent = '';
     
     const username = document.getElementById('register-username')?.value;
+    const email = document.getElementById('register-email')?.value;
     const password = document.getElementById('register-password')?.value;
     
     try {
         const response = await fetch('/auth/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password })
         });
         
         const data = await response.json();
@@ -142,10 +154,7 @@ async function handleRegister(e) {
             currentUser = data.user;
             updateAuthUI();
             closeAuthModal();
-            // Reload characters if the function exists
-            if (typeof loadCharacters === 'function') {
-                await loadCharacters();
-            }
+            await loadCharacters();
         } else {
             registerError.textContent = data.error || 'Registration failed';
         }
@@ -165,14 +174,7 @@ async function handleLogout() {
         if (response.ok) {
             currentUser = null;
             updateAuthUI();
-            // Reload characters if the function exists
-            if (typeof loadCharacters === 'function') {
-                await loadCharacters();
-            }
-            // Redirect to home page if we're on a protected page
-            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-                window.location.href = '/';
-            }
+            await loadCharacters();
         }
     } catch (error) {
         console.error('Logout error:', error);
@@ -184,10 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     
     logoutButton?.addEventListener('click', handleLogout);
-    document.getElementById('close-auth-modal')?.addEventListener('click', closeAuthModal);
+    closeAuthModalButton?.addEventListener('click', closeAuthModal);
     
-    loginForm?.addEventListener('submit', handleLogin);
-    registerForm?.addEventListener('submit', handleRegister);
+    document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+    document.getElementById('register-form')?.addEventListener('submit', handleRegister);
     
     document.querySelector('.switch-to-register')?.addEventListener('click', () => switchAuthForm('register'));
     document.querySelector('.switch-to-login')?.addEventListener('click', () => switchAuthForm('login'));

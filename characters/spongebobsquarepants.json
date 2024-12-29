@@ -19,8 +19,8 @@
   "dateAdded": "2024-12-18T09:55:27.520859",
   "creator": "bf00d948-5750-457c-b91d-82a7fc6499cc",
   "isPrivate": false,
-  "isApproved": false,
-  "approvalStatus": "pending",
+  "isApproved": true,
+  "approvalStatus": "approved",
   "ai_parameters": {
     "temperature": null,
     "top_p": null,

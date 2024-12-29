@@ -4,24 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="./styles.css">
-    <title>AetherChat - AI Character Chat</title>
+    <title>Character Chat</title>
 </head>
 <body>
     <button class="menu-toggle" aria-label="Toggle Navigation Menu">☰</button>
 
     <nav class="nav-panel">
         <div class="logo-container">
-            <img src="./logo.jpg" alt="AetherChat" class="logo-image">
+            <img src="./logo.jpg" alt="Character Chat" class="logo-image">
         </div>
         
         <div class="nav-content">
             <div class="top-controls">
                 <div id="auth-section">
                     <div id="logged-out-view">
-                        <button class="nav-button" id="login-button" onclick="window.location.href='/login'">
+                        <button class="nav-button" onclick="openAuthModal('login')">
                             Login
                         </button>
-                        <button class="nav-button" id="register-button" onclick="window.location.href='/register'">
+                        <button class="nav-button" onclick="openAuthModal('register')">
                             Sign Up
                         </button>
                     </div>
@@ -65,14 +65,15 @@
         <div id="character-grid" class="character-grid"></div>
     </main>
 
+    <!-- Auth Modal -->
     <dialog id="auth-modal" class="modal">
         <div class="modal-content">
             <!-- Login Form -->
             <form id="login-form" class="auth-form">
                 <h2>Login</h2>
                 <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="Email" required>
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Username" required>
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
@@ -93,10 +94,6 @@
                     <input type="text" id="register-username" placeholder="Username" required>
                 </div>
                 <div class="form-group">
-                    <label for="register-email">Email</label>
-                    <input type="email" id="register-email" placeholder="Email" required>
-                </div>
-                <div class="form-group">
                     <label for="register-password">Password</label>
                     <input type="password" id="register-password" placeholder="Password" required>
                 </div>
@@ -111,18 +108,15 @@
     </dialog>
 
     <script type="module" src="./auth.js"></script>
-    <script type="module" src="./characters.js"></script>
     <script type="module" src="./script.js"></script>
     <script>
         // Tab switching functionality
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
+                document.querySelectorAll('.filter-tab').forEach(t => 
+                    t.classList.remove('active'));
                 tab.classList.add('active');
                 
-                // Show/hide appropriate content
                 const tabName = tab.dataset.tab;
                 document.getElementById('category-filters').style.display = 
                     tabName === 'categories' ? 'flex' : 'none';
@@ -130,6 +124,23 @@
                     tabName === 'tags' ? 'flex' : 'none';
             });
         });
+
+        // Expose modal opening function globally
+        window.openAuthModal = function(type) {
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.showModal();
+                const loginForm = document.getElementById('login-form');
+                const registerForm = document.getElementById('register-form');
+                if (type === 'login') {
+                    loginForm.style.display = 'block';
+                    registerForm.style.display = 'none';
+                } else {
+                    loginForm.style.display = 'none';
+                    registerForm.style.display = 'block';
+                }
+            }
+        };
     </script>
 </body>
 </html>
