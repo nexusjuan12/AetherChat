@@ -1,5 +1,34 @@
 import { currentUser, checkAuth, openAuthModal } from '../auth.js';
 
+function initAuthModal() {
+    window.openAuthModal = function(type = 'login') {
+        const authModal = document.getElementById('auth-modal');
+        if (!authModal) return;
+        authModal.showModal();
+        switchAuthForm(type);
+    };
+
+    function switchAuthForm(type) {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        if (!loginForm || !registerForm) return;
+        loginForm.style.display = type === 'login' ? 'block' : 'none';
+        registerForm.style.display = type === 'register' ? 'block' : 'none';
+    }
+
+    // Set up modal listeners
+    const closeModalBtn = document.getElementById('close-auth-modal');
+    closeModalBtn?.addEventListener('click', () => {
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) authModal.close();
+    });
+
+    document.querySelector('.switch-to-register')?.addEventListener('click', () => 
+        switchAuthForm('register'));
+    document.querySelector('.switch-to-login')?.addEventListener('click', () => 
+        switchAuthForm('login'));
+}
+
 // Audio state
 let audioEnabled = true;
 let autoplayEnabled = true;
@@ -575,6 +604,7 @@ async function initializeUI() {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+        initAuthModal();
     try {
         initializeUI();
         

@@ -21,13 +21,16 @@ source ~/.bashrc
 # Create conda environment
 conda create -n aetherchat python=3.10 -y
 
-# Activate conda environment (important: use full path to ensure proper activation)
+# Activate conda environment
 source /root/miniconda3/bin/activate aetherchat
 
 # Verify we're in the right environment
 echo "Python location: $(which python)"
 echo "Python version: $(python --version)"
 echo "Current conda env: $CONDA_DEFAULT_ENV"
+
+# Install pip 24.0 first
+pip install pip==24.0
 
 # Create directory structure
 mkdir -p /root/models
@@ -39,20 +42,22 @@ mkdir -p /root/db
 
 # Download KoboldCPP
 cd /root/Kobold
-wget https://github.com/LostRuins/koboldcpp/releases/download/v1.79.1/koboldcpp-linux-x64-cuda1210
-chmod +x koboldcpp-linux-x64-cuda1210
+wget -O koboldcpp https://github.com/LostRuins/koboldcpp/releases/download/v1.79.1/koboldcpp-linux-x64-cuda1210
+chmod +x koboldcpp
 mkdir models
 cd models
 wget https://huggingface.co/DavidAU/L3.1-Dark-Planet-SpinFire-Uncensored-8B-GGUF/resolve/main/L3.1-Dark-Planet-SpinFire-Uncensored-8B-D_AU-Q4_k_m.gguf
 cd /root
 
 # Clone repository and setup files
-git clone https://github.com/nexusjuan12/AetherChat.git /root/main
+https://github.com/nexusjuan12/AetherChat.git /root/main
 cp main/env_backup_root /root/.env
 cp -r main/templates /root/
 cp main/webserver.py /root/
 cp main/queue_system.py /root/
 cp -r main/db /root/
+cp main/rmvpe.pt /root/
+cp main/hubert_base.pt /root/
 chmod 644 /root/db/users.db
 chown root:root /root/db/users.db
 
@@ -89,3 +94,8 @@ echo "Python location: $(which python)"
 echo "Pip location: $(which pip)"
 echo "Python version: $(python --version)"
 echo "Current conda env: $CONDA_DEFAULT_ENV"
+
+# Display activation instructions
+echo -e "\nTo activate the conda environment, run:"
+echo "source ~/.bashrc"
+echo "conda activate aetherchat"
