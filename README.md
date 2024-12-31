@@ -189,10 +189,11 @@ I've setup a demo of the finished project after deployment use test/test for cre
 
 ## License
 
-[Insert License Information]
+## License
+This project is licensed under the [Creative Commons BY-NC](LICENSE).
 
-- not for commercial use unless approved
-- If you use my code in your project please leave an attribute
+This version is provided as-is for personal and non-commercial use. The final commercial version will include additional features and licensing options.
+
 
 ## Acknowledgments
 - Atm4x for his great work https://github.com/Atm4x/tts-with-rvc
