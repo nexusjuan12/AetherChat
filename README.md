@@ -36,7 +36,7 @@ AetherChat is an open-source character AI chat platform that combines text gener
 
 ## Quick Start
 
-I've setup a demo of the finished project after deployment use test/test for credentials. http://http://202.103.208.211:30802/
+I've setup a demo of the finished project after deployment use test/test for credentials. http://202.103.208.211:30802/
 
 ### Automated Installation
 
