@@ -50,7 +50,7 @@ wget https://huggingface.co/DavidAU/L3.1-Dark-Planet-SpinFire-Uncensored-8B-GGUF
 cd /root
 
 # Clone repository and setup files
-https://github.com/nexusjuan12/AetherChat.git /root/main
+git clone https://github.com/nexusjuan12/AetherChat.git /root/main
 cp main/env_backup_root /root/.env
 cp -r main/templates /root/
 cp main/webserver.py /root/
