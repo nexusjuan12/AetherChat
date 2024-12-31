@@ -88,6 +88,8 @@ local_dir = "/root/"
 snapshot_download(repo_id, local_dir=local_dir, repo_type="model")
 EOF
 
+cp models/rmvpe.pt /root/
+cp models/hubert_base.pt /root/
 # Print final environment info
 echo "Installation complete. Final environment check:"
 echo "Python location: $(which python)"
