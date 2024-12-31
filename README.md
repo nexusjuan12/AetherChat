@@ -2,6 +2,9 @@
 
 AetherChat is an open-source character AI chat platform that combines text generation using a local OpenAI style API, with voice synthesis to create interactive character conversations. Users can create custom characters with unique voices, appearance, and personalities. 
 
+
+I've setup a demo of the finished project after deployment use test/test for credentials. http://202.103.208.211:30802/
+
 ## Features
 
 - **Character Creation**:
@@ -36,8 +39,6 @@ AetherChat is an open-source character AI chat platform that combines text gener
 
 ## Quick Start
 
-I've setup a demo of the finished project after deployment use test/test for credentials. http://202.103.208.211:30802/
-
 ### Automated Installation
 
 1. Download `setup.sh` and `requirements.txt` to your installation directory
@@ -64,7 +65,7 @@ I've setup a demo of the finished project after deployment use test/test for cre
    python webserver.py
    ```
 7. Access the application in your web browser at localhost port 8081 `http://127.0.0.1:8081`
-   admin credentials are admin/admin
+   admin credentials are admin/admin admin dashboard can be found in the side panel in the my-library screen.
 
 ### Manual Installation
 
