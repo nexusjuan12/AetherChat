@@ -67,7 +67,7 @@ I've setup a demo of the finished project after deployment use test/test for cre
 7. Access the application in your web browser at localhost port 8081 `http://127.0.0.1:8081`
    admin credentials are admin/admin admin dashboard can be found in the side panel in the my-library screen.
 
-### Manual Installation
+### Manual Installation 
 
 1. **System Dependencies**
    ```bash
@@ -109,7 +109,7 @@ I've setup a demo of the finished project after deployment use test/test for cre
 
 6. **Clone Repository and Setup Files**
    ```bash
-   git clone https://github.com/[username]/AetherChat.git /root/main
+   git clone https://github.com/nexusjuan12/AetherChat.git /root/main
    cp main/env_backup_root /root/.env
    cp -r main/templates /root/
    cp main/webserver.py /root/
@@ -130,6 +130,7 @@ I've setup a demo of the finished project after deployment use test/test for cre
    python -m pip install git+https://github.com/Atm4x/rvc-tts-pipeline-fix.git@dev#egg=rvc_tts_pipe
    
    # Install remaining requirements
+   cd /root/main
    pip install -r requirements.txt
    ```
 
@@ -139,6 +140,7 @@ I've setup a demo of the finished project after deployment use test/test for cre
    python3 -c "from huggingface_hub import snapshot_download; snapshot_download('nexusjuan/Aetherchat', local_dir='/root/', repo_type='model')"
    ```
 
+   
 ## Usage
 
 1. **Start KoboldCPP**
