@@ -69,7 +69,7 @@ python -m pip install -e git+https://github.com/Atm4x/rvc-lib.git#egg=rvclib
 python -m pip install git+https://github.com/Atm4x/rvc-tts-pipeline-fix.git@dev#egg=rvc_tts_pipe
 
 # Install remaining requirements in the conda environment
-pip install -r requirements.txt
+pip install -r /root/main/requirements.txt
 
 # Install huggingface_hub for model downloads
 pip install huggingface_hub
