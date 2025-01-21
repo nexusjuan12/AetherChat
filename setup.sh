@@ -56,8 +56,6 @@ cp -r main/templates /root/
 cp main/webserver.py /root/
 cp main/queue_system.py /root/
 cp -r main/db /root/
-cp main/rmvpe.pt /root/
-cp main/hubert_base.pt /root/
 chmod 644 /root/db/users.db
 chown root:root /root/db/users.db
 
