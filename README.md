@@ -3,8 +3,6 @@
 AetherChat is an open-source character AI chat platform that combines text generation using a local OpenAI style API, with voice synthesis to create interactive character conversations. Users can create custom characters with unique voices, appearance, and personalities. 
 
 
-I've setup a demo of the finished project use test/test for credentials. http://111.59.36.106:30802 
-
 ## Features
 
 - **Character Creation**:
