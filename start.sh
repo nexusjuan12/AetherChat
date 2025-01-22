@@ -1,8 +1,11 @@
 #!/bin/bash
 
 # Activate the Conda environment
-source /opt/conda/etc/profile.d/conda.sh
+source /root/miniconda3/etc/profile.d/conda.sh
 conda activate aetherchat
+
+# Start AetherChat by running this script
+./start.sh &
 
 # Execute the webserver
 python /root/webserver.py &
