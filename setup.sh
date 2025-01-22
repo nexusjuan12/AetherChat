@@ -88,8 +88,15 @@ EOF
 
 cp models/rmvpe.pt /root/
 cp models/hubert_base.pt /root/
+
+# Copy start.sh to the root directory and make it executable
 cp /root/main/start.sh /root/
-chmod+x start.sh
+chmod +x /root/start.sh
+
+# Add instruction to start AetherChat
+echo -e "\nTo start AetherChat, run the following command:"
+echo "./start.sh"
+
 # Print final environment info
 echo "Installation complete. Final environment check:"
 echo "Python location: $(which python)"
