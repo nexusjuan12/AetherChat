@@ -88,6 +88,8 @@ EOF
 
 cp models/rmvpe.pt /root/
 cp models/hubert_base.pt /root/
+cp /root/main/start.sh /root/
+chmod+x start.sh
 # Print final environment info
 echo "Installation complete. Final environment check:"
 echo "Python location: $(which python)"
