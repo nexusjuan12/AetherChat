@@ -50,21 +50,13 @@ Here is a video guide [https://www.youtube.com/watch?v=NDW7xa-9zv8]
    ```bash
    ./setup.sh
    ```
-4. Start KoboldCPP:
+4. Run the start script edit your Kobold model path if desired:
    ```bash
-   cd /root/Kobold
-   ./koboldcpp /root/Kobold/models/L3.1-Dark-Planet-SpinFire-Uncensored-8B-D_AU-Q4_k_m.gguf --port 5000 --host 0.0.0.0 --usecublas
+   cd /root/
+   ./start.sh
    ```
-5. In a new terminal, activate the conda environment:
-   ```bash
-   source /root/miniconda3/bin/activate aetherchat
-   ```
-6. Start the web server:
-   ```bash
-   cd /root
-   python webserver.py
-   ```
-7. Access the application in your web browser at localhost port 8081 `http://127.0.0.1:8081`
+
+5. Access the application in your web browser at localhost port 8081 `http://127.0.0.1:8081`
    admin credentials are admin/admin admin dashboard can be found in the side panel in the my-library screen.
 
 ### Manual Installation 
@@ -143,23 +135,15 @@ Here is a video guide [https://www.youtube.com/watch?v=NDW7xa-9zv8]
    
 ## Usage
 
-1. **Start KoboldCPP**
+1. **Run the start script modify Kobold model path if desired**
    ```bash
-   cd /root/Kobold
-   ./koboldcpp models/L3.1-Dark-Planet-SpinFire-Uncensored-8B-D_AU-Q4_k_m.gguf --port 5000 --host 0.0.0.0 --usecublas
+   cd /root/
+   ./start.sh
    ```
 
-2. **Start Web Server**
-   In a new terminal:
-   ```bash
-   source /root/miniconda3/bin/activate aetherchat
-   cd /root
-   python webserver.py
-   ```
+2. Access the application at `http://127.0.0.1:8081`
 
-3. Access the application at `http://127.0.0.1:8081`
-
-4. From the landing page you can login using the admin credentials admin/admin
+3. From the landing page you can login using the admin credentials admin/admin
 
 ## Character Creation
 
