@@ -472,3 +472,52 @@ main {
     margin-left: 4px;
 }
 
+.story-sessions {
+    margin-top: 2rem;
+    padding: 1rem;
+}
+
+.story-sessions h2 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.story-sessions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.story-session-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid rgba(0, 180, 255, 0.2);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.story-session-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 180, 255, 0.2);
+}
+
+.story-session-title {
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.story-session-characters {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.story-character-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}

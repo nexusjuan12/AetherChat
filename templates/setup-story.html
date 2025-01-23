@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Story - AetherChat</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../css/story-styles.css">
+</head>
+<body>
+    <div class="story-setup-layout">
+        <!-- Navigation Panel -->
+        <nav class="nav-panel">
+            <div class="logo-container">
+                <img src="../logo.jpg" alt="AetherChat" class="logo-image">
+            </div>
+            <div class="nav-section">
+                <div id="auth-section">
+                    <div id="logged-out-view">
+                        <button class="nav-button" onclick="openAuthModal('login')">
+                            Login
+                        </button>
+                        <button class="nav-button" onclick="openAuthModal('register')">
+                            Sign Up
+                        </button>
+                    </div>
+                    <div id="logged-in-view" style="display: none">
+                        <div class="user-info">
+                            <span id="username-display"></span>
+                            <span id="credits-display"></span>
+                        </div>
+                        <button class="nav-button" id="logout-button">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Setup Area -->
+        <main class="setup-main">
+            <div class="setup-container">
+                <h1>Create Story Session</h1>
+                
+                <!-- Story Details -->
+                <section class="setup-section">
+                    <h2>Story Details</h2>
+                    <div class="form-group">
+                        <input type="text" id="story-title" placeholder="Story Title" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="story-scenario" placeholder="Describe the scenario..." required></textarea>
+                    </div>
+                </section>
+
+                <!-- Character Selection -->
+                <section class="setup-section">
+                    <h2>Select Characters</h2>
+                    <div class="character-selection">
+                        <div class="character-list" id="character-list">
+                            <!-- Characters will be loaded here -->
+                        </div>
+                        <div class="selected-characters">
+                            <div class="panel-grid">
+                                <div class="setup-panel" data-position="0">
+                                    <div class="panel-placeholder">Drop Character Here</div>
+                                </div>
+                                <div class="setup-panel" data-position="1">
+                                    <div class="panel-placeholder">Drop Character Here</div>
+                                </div>
+                                <div class="setup-panel" data-position="2">
+                                    <div class="panel-placeholder">Drop Character Here</div>
+                                </div>
+                                <div class="setup-panel" data-position="3">
+                                    <div class="panel-placeholder">Drop Character Here</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Create Button -->
+                <div class="setup-actions">
+                    <button id="create-story" class="primary-button">Create Story</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Auth Modal -->
+    <dialog id="auth-modal" class="modal">
+        <div class="modal-content">
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                </div>
+                <div id="login-error" class="error-message"></div>
+                <div class="form-actions">
+                    <button type="submit">Login</button>
+                    <button type="button" class="switch-to-register">Need an account?</button>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form" style="display: none;">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" placeholder="Password" required>
+                </div>
+                <div id="register-error" class="error-message"></div>
+                <div class="form-actions">
+                    <button type="submit">Register</button>
+                    <button type="button" class="switch-to-login">Already have an account?</button>
+                </div>
+            </form>
+        </div>
+        <button class="modal-close" id="close-auth-modal" aria-label="Close">&times;</button>
+    </dialog>
+
+    <!-- Scripts -->
+    <script type="module" src="../auth.js"></script>
+    <script type="module" src="../js/setup-story.js"></script>
+</body>
+</html>

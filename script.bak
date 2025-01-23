@@ -1,8 +1,7 @@
-import { currentUser, checkAuth, openAuthModal } from './auth.js';
+import { currentUser, checkAuth } from './auth.js';
 
 // State management
 let characters = [];
-let storySessions = [];
 let activeFilters = {
     categories: new Set(),
     tags: new Set(),
@@ -66,52 +65,6 @@ async function loadCharacters() {
         characters = [];
         updateCharacterDisplay();
     }
-}
-
-async function loadStorySessions() {
-    try {
-        const response = await fetch('/story/sessions', {
-            credentials: 'include'
-        });
-        
-        if (!response.ok) throw new Error('Failed to load story sessions');
-        
-        storySessions = await response.json();
-        updateStorySessionsDisplay();
-        
-    } catch (error) {
-        console.error('Error loading story sessions:', error);
-        storySessions = [];
-        updateStorySessionsDisplay();
-    }
-}
-
-function updateStorySessionsDisplay() {
-    const sessionGrid = document.getElementById('story-sessions-grid');
-    if (!sessionGrid) return;
-
-    if (storySessions.length === 0) {
-        sessionGrid.innerHTML = `
-            <div class="no-sessions">
-                No active story sessions. Create one to get started!
-            </div>
-        `;
-        return;
-    }
-
-    sessionGrid.innerHTML = storySessions.map(session => `
-        <div class="story-session-card" onclick="window.location.href='/story/${session.id}'">
-            <div class="story-session-title">${session.title}</div>
-            <div class="story-session-desc">${session.scenario.slice(0, 100)}${session.scenario.length > 100 ? '...' : ''}</div>
-            <div class="story-session-characters">
-                ${session.characters.map(char => `
-                    <img src="${char.avatar}" alt="${char.name}" 
-                         class="story-character-avatar" title="${char.name}"
-                         onerror="this.src='./avatars/default-user.png'">
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
 }
 
 // Initialize filters
@@ -304,10 +257,7 @@ function createCharacterCard(char) {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
-    await Promise.all([
-        loadCharacters(),
-        loadStorySessions()
-    ]);
+    loadCharacters();
 
     const searchInput = document.getElementById('search');
     if (searchInput) {
@@ -321,7 +271,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Export functions that might be needed by other modules
 export {
     loadCharacters,
-    loadStorySessions,
-    updateCharacterDisplay,
-    updateStorySessionsDisplay
+    updateCharacterDisplay
 };

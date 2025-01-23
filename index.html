@@ -47,6 +47,9 @@
                 <a href="/my-library" class="nav-button" id="my-library">
                     My Library
                 </a>
+                <a href="/setup-story" class="nav-button" id="setup-story">
+                    Create Story
+                </a>
             </div>
 
             <div class="filter-tabs">
@@ -63,6 +66,12 @@
 
     <main>
         <div id="character-grid" class="character-grid"></div>
+        
+        <!-- New Story Sessions Section -->
+        <div class="story-sessions">
+            <h2>Active Stories</h2>
+            <div id="story-sessions-grid" class="story-sessions-grid"></div>
+        </div>
     </main>
 
     <!-- Auth Modal -->
@@ -107,6 +116,7 @@
         <button class="modal-close" id="close-auth-modal" aria-label="Close">&times;</button>
     </dialog>
 
+    <!-- Scripts -->
     <script type="module" src="./auth.js"></script>
     <script type="module" src="./script.js"></script>
     <script>
