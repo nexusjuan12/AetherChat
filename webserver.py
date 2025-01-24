@@ -27,6 +27,7 @@ import stripe
 from sqlalchemy import and_
 import time
 from queue_system import request_queue, setup_queue_handlers
+from model_cache import model_cache
 
 # Load environment variables
 load_dotenv('/root/.env')
@@ -47,7 +48,10 @@ CORS(app,
     }
 )
 
-
+model_cache._base_model_path = "/root/models"
+model_cache._input_dir = "/root/input/"
+model_cache._output_dir = "/root/output/"
+model_cache._cache_timeout = 1800  # 30 minutes timeout
 
 # App Configuration
 app.config.update(
@@ -297,40 +301,25 @@ def kobold_handler(data):
         raise Exception(f"Kobold API error: {str(e)}")
 
 def tts_handler(data):
-    """Handle TTS generation requests"""
     try:
-        print("TTS handler received data:", data)  # Debug log
+        print("TTS handler received data:", data)
         text = data.get("text")
         character_id = data.get("rvc_model")
         edge_voice = data.get("edge_voice")
         tts_rate = data.get("tts_rate", 0)
         rvc_pitch = data.get("rvc_pitch", 0)
 
-        model_path = f"/root/models/{character_id}/{character_id}.pth"
-        index_path = f"/root/models/{character_id}/{character_id}.index"
-
-        # Verify files exist
-        if not os.path.exists(model_path):
-            raise Exception(f"Model file not found: {model_path}")
-        if not os.path.exists(index_path):
-            raise Exception(f"Index file not found: {index_path}")
-
+        # Get TTS instance from cache
+        tts = model_cache.get_model(character_id)
+        
         unique_id = str(uuid.uuid4())
         output_filename = f"response_{unique_id}.wav"
         output_path = os.path.join(OUTPUT_DIRECTORY, output_filename)
 
-        print(f"Initializing TTS with model: {model_path}")  # Debug log
-        tts = TTS_RVC(
-            rvc_path="src/rvclib",
-            model_path=model_path,
-            input_directory="/root/input/",
-            index_path=index_path
-        )
-        
-        print(f"Setting voice: {edge_voice}")  # Debug log
-        tts.set_voice(edge_voice)
-        
-        print("Generating audio...")  # Debug log
+        # Set voice and generate audio
+        if edge_voice:
+            tts.set_voice(edge_voice)
+            
         tts(
             text=text,
             pitch=rvc_pitch,
@@ -341,21 +330,14 @@ def tts_handler(data):
         if not os.path.exists(output_path):
             raise Exception("Failed to generate audio file")
 
-        print(f"Audio generated successfully: {output_path}")  # Debug log
         return {"audio_url": f"/audio/{output_filename}"}
-        
+
     except Exception as e:
-        print(f"TTS handler error: {str(e)}")  # Error log
-        import traceback
+        print(f"TTS handler error: {str(e)}")
         traceback.print_exc()
         raise Exception(f"TTS error: {str(e)}")
 
 def prepare_story_context(character, messages, scenario, other_characters):
-    """
-    Enhanced context preparation for story interactions.
-    Includes character relationships, story progression, and memory management.
-    """
-    # Base system prompt with scenario and character info
     base_context = {
         'role': 'system',
         'content': f"""You are {character.name}. {character.system_prompt}
@@ -363,23 +345,20 @@ def prepare_story_context(character, messages, scenario, other_characters):
 Current Story Setting:
 {scenario}
 
+Current Speaker: {character.name}
+Player Character: {story.settings.get('userName', 'User')}
+Player's Role: {story.settings.get('userPersona', 'A participant in the story')}
+
 Other Characters Present:
 {format_character_list(other_characters)}
 
-Your Background and Relationships:
-Character Background: {character.description}
-Character Traits: {extract_character_traits(character)}
-
-Key Context Rules:
-- Stay true to your character's personality and background
-- React to and engage with other characters naturally
-- Remember previous interactions from this scene
-- Your responses should move the story forward while maintaining consistency"""
+Story Context Rules:
+- You are ONLY speaking when it's natural for {character.name} to respond
+- Never speak for other characters or the player character
+- Remember previous interactions and maintain story consistency"""
     }
 
-    # Create a sliding window of relevant context
-    recent_context = get_relevant_messages(messages, max_tokens=2000)
-    
+    recent_context = get_relevant_messages(messages, max_tokens=8000)
     return [base_context] + recent_context
 
 def extract_character_traits(character):
@@ -425,8 +404,38 @@ class StorySetup:
         self.relationships = {}
         self.scene_settings = {}
         
-PLACEHOLDER_IMAGE = "./assets/placeholders/panel-placeholder.jpg"
+PLACEHOLDER_IMAGE = "./assets/placeholders/placeholder.jpg"
 PLACEHOLDER_NAME = "Empty Panel"
+
+def parse_character_responses(narrative, valid_characters):
+    responses = []
+    lines = narrative.split('\n')
+    current_char = None
+    current_content = []
+
+    for line in lines:
+        if ':' not in line:
+            if current_char and current_content:
+                current_content.append(line)
+            continue
+
+        char_name, content = line.split(':', 1)
+        char_name = char_name.strip()
+
+        if char_name in [c[0]['name'] for c in valid_characters]:
+            if current_char and current_content:
+                responses.append((current_char, ' '.join(current_content)))
+            current_char = char_name
+            current_content = [content.strip()]
+            continue
+
+        if current_char and current_content:
+            current_content.append(line)
+
+    if current_char and current_content:
+        responses.append((current_char, ' '.join(current_content)))
+
+    return responses
 
 @app.route('/story/setup', methods=['POST'])
 @login_required
@@ -482,27 +491,20 @@ def create_story_setup():
 @app.route('/v1/story/completions', methods=['POST'])
 @login_required
 def story_completions():
-    print("Starting story completions request")  # Debug log
     try:
         data = request.json
         session_id = data.get('session_id')
         user_message = data.get('message', '')
-        print(f"Processing message for session {session_id}: {user_message}")  # Debug log
         
-        # Get story session
         story = StorySession.query.get_or_404(session_id)
-        print(f"Found story session: {story.title}")  # Debug log
-        
-        # Get non-placeholder characters in their positions
         story_chars = StoryCharacter.query.filter_by(
             session_id=session_id,
             is_placeholder=False
         ).order_by(StoryCharacter.position).all()
         
         if not story_chars:
-            return jsonify({'error': 'No active characters found in story'}), 400
-        
-        # Calculate credits
+            return jsonify({'error': 'No active characters'}), 400
+
         CREDITS_PER_CHARACTER = 10
         total_credits = CREDITS_PER_CHARACTER * len(story_chars)
         
@@ -513,7 +515,6 @@ def story_completions():
                 'credits_available': current_user.credits
             }), 402
 
-        # Create transaction record
         transaction = CreditTransaction(
             user_id=current_user.id,
             amount=-total_credits,
@@ -523,84 +524,83 @@ def story_completions():
         db.session.add(transaction)
 
         try:
-            # Get responses from all characters
-            responses = []
+            print("\nLoading character data...")
             valid_characters = []
-            
-            # Load character data from JSON files
             for story_char in story_chars:
                 char_file_path = os.path.join(CHARACTER_FOLDER, f"{story_char.character_id}.json")
                 if os.path.exists(char_file_path):
-                    try:
-                        with open(char_file_path, 'r', encoding='utf-8') as f:
-                            char_data = json.load(f)
-                            valid_characters.append((char_data, story_char))
-                    except Exception as e:
-                        print(f"Error reading character file {char_file_path}: {e}")
-                else:
-                    print(f"Character file not found: {char_file_path}")
-            
-            if not valid_characters:
-                raise ValueError("No valid characters found in story")
-            
-            # Now process responses for valid characters
-            for char_data, story_char in valid_characters:
-                # Get other characters for context
-                other_chars = [c for c, _ in valid_characters if c['id'] != char_data['id']]
-                
-                # Prepare system prompt that includes character context
-                system_prompt = f"""You are {char_data['name']}. {char_data.get('systemPrompt', '')}
+                    with open(char_file_path, 'r', encoding='utf-8') as f:
+                        char_data = json.load(f)
+                        valid_characters.append((char_data, story_char))
+                        print(f"Loaded character: {char_data['name']}")
 
-Current Story Setting:
+            if not valid_characters:
+                raise ValueError("No valid characters found")
+
+            master_prompt = f"""You are the master storyteller managing this interactive scene. Current setting:
 {story.scenario}
 
-Other Characters Present:
-{' '.join([f"- {c['name']}: {c.get('description', '')[:100]}..." for c in other_chars])}"""
+Characters present:
+{' '.join([f"- {c[0]['name']}: {c[0].get('system_prompt', '')[:150]}..." for c in valid_characters])}
 
-                # Prepare messages including previous context
-                messages = [{'role': 'system', 'content': system_prompt}]
-                if data.get('messages'):
-                    messages.extend(data['messages'])
-                messages.append({'role': 'user', 'content': user_message})
+User's character: {story.settings.get('userName', 'User')}
+User's persona: {story.settings.get('userPersona', 'A participant in the story')}
 
-                # Get character response
-                char_response = kobold_handler({
-                    'model': "koboldcpp",
-                    'messages': messages,
-                    'temperature': 0.7,
-                    'max_tokens': 150
-                })
+Previous context:
+{' '.join([msg['content'] for msg in data.get('messages', [])])}
 
-                if not char_response or 'choices' not in char_response:
-                    print(f"Invalid response from kobold handler: {char_response}")
-                    raise ValueError(f"Failed to get valid response for character {char_data['name']}")
+Latest user input: {user_message}
 
-                response_content = char_response['choices'][0]['message']['content']
-                
-                responses.append({
-                    'character_id': char_data['id'],
-                    'name': char_data['name'],
-                    'content': response_content,
-                    'avatar': char_data['avatar'],
-                    'position': story_char.position,
-                    'ttsVoice': char_data.get('ttsVoice'),
-                    'rvc_model': char_data.get('rvc_model'),
-                    'tts_rate': char_data.get('tts_rate', 0),
-                    'rvc_pitch': char_data.get('rvc_pitch', 0)
-                })
-                print(f"Added response for character {char_data['name']} at position {story_char.position}")
+Generate the next story beat as a sequence of character dialogues and actions. 
+Keep each character's response separate and distinct.
+Do NOT include other characters' dialogue within a character's response.
+Format output as:
+CHARACTER_NAME: action/dialogue"""
 
-            # Sort responses by position
-            responses.sort(key=lambda x: x['position'])
-            print(f"Total responses: {len(responses)}")
-
-            db.session.commit()  # Commit transaction
-            return jsonify({
-                'responses': responses
+            master_response = kobold_handler({
+                'model': "koboldcpp",
+                'messages': [{'role': 'system', 'content': master_prompt}],
+                'temperature': 0.7,
+                'max_tokens': 300
             })
 
+            if not master_response or 'choices' not in master_response:
+                raise ValueError("Invalid response from master storyteller")
+
+            narrative = master_response['choices'][0]['message']['content']
+            print("\nParsing narrative responses:")
+            print("Raw narrative:", narrative)
+
+            parsed_responses = parse_character_responses(narrative, valid_characters)
+            responses = []
+
+            for char_name, content in parsed_responses:
+                matching_char = next(
+                    (char for char, _ in valid_characters if char['name'].lower() == char_name.lower()),
+                    None
+                )
+                if matching_char:
+                    char_position = next(
+                        sc.position for _, sc in valid_characters 
+                        if sc.character_id == matching_char['id']
+                    )
+                    responses.append({
+                        'character_id': matching_char['id'],
+                        'name': matching_char['name'],
+                        'content': content,
+                        'avatar': matching_char['avatar'],
+                        'position': char_position,
+                        'ttsVoice': matching_char.get('ttsVoice'),
+                        'rvc_model': matching_char.get('rvc_model'),
+                        'tts_rate': matching_char.get('tts_rate', 0),
+                        'rvc_pitch': matching_char.get('rvc_pitch', 0)
+                    })
+
+            print("\nFinal responses:", json.dumps(responses, indent=2))
+            db.session.commit()
+            return jsonify({'responses': responses})
+
         except Exception as e:
-            # If error occurs during response generation, refund credits
             current_user.add_credits(total_credits)
             db.session.delete(transaction)
             db.session.commit()

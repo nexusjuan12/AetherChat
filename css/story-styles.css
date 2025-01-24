@@ -253,3 +253,16 @@
     border-radius: 4px;
     margin-top: 1rem;
     text-align: center;
+
+/* User Character Section */
+#user-name {
+    margin-bottom: 1rem;
+}
+
+#user-persona {
+    min-height: 100px;
+}
+
+.setup-section + .setup-section {
+    margin-top: 2rem;
+}

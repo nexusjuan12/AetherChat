@@ -9,6 +9,7 @@
 </head>
 <body>
     <div class="story-setup-layout">
+        <!-- Navigation Panel -->
         <nav class="nav-panel">
             <div class="logo-container">
                 <img src="../logo.jpg" alt="AetherChat" class="logo-image">
@@ -16,24 +17,32 @@
             <div class="nav-section">
                 <div id="auth-section">
                     <div id="logged-out-view">
-                        <button class="nav-button" onclick="openAuthModal('login')">Login</button>
-                        <button class="nav-button" onclick="openAuthModal('register')">Sign Up</button>
+                        <button class="nav-button" onclick="openAuthModal('login')">
+                            Login
+                        </button>
+                        <button class="nav-button" onclick="openAuthModal('register')">
+                            Sign Up
+                        </button>
                     </div>
                     <div id="logged-in-view" style="display: none">
                         <div class="user-info">
                             <span id="username-display"></span>
                             <span id="credits-display"></span>
                         </div>
-                        <button class="nav-button" id="logout-button">Logout</button>
+                        <button class="nav-button" id="logout-button">
+                            Logout
+                        </button>
                     </div>
                 </div>
             </div>
         </nav>
 
+        <!-- Main Setup Area -->
         <main class="setup-main">
             <div class="setup-container">
                 <h1>Create Story Session</h1>
                 
+                <!-- Story Details -->
                 <section class="setup-section">
                     <h2>Story Details</h2>
                     <div class="form-group">
@@ -44,16 +53,7 @@
                     </div>
                 </section>
 
-                <section class="setup-section">
-                    <h2>Your Character</h2>
-                    <div class="form-group">
-                        <input type="text" id="user-name" placeholder="Your Character's Name" required>
-                    </div>
-                    <div class="form-group">
-                        <textarea id="user-persona" placeholder="Describe your character's personality and role in the story..." required></textarea>
-                    </div>
-                </section>
-
+                <!-- Character Selection -->
                 <section class="setup-section">
                     <h2>Select Characters</h2>
                     <div class="character-selection">
@@ -79,6 +79,7 @@
                     </div>
                 </section>
 
+                <!-- Create Button -->
                 <div class="setup-actions">
                     <button id="create-story" class="primary-button">Create Story</button>
                 </div>
@@ -86,8 +87,10 @@
         </main>
     </div>
 
+    <!-- Auth Modal -->
     <dialog id="auth-modal" class="modal">
         <div class="modal-content">
+            <!-- Login Form -->
             <form id="login-form" class="auth-form">
                 <h2>Login</h2>
                 <div class="form-group">
@@ -105,6 +108,7 @@
                 </div>
             </form>
 
+            <!-- Register Form -->
             <form id="register-form" class="auth-form" style="display: none;">
                 <h2>Create Account</h2>
                 <div class="form-group">
@@ -125,6 +129,7 @@
         <button class="modal-close" id="close-auth-modal" aria-label="Close">&times;</button>
     </dialog>
 
+    <!-- Scripts -->
     <script type="module" src="../auth.js"></script>
     <script type="module" src="../js/setup-story.js"></script>
 </body>

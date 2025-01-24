@@ -1,7 +1,7 @@
 import { currentUser, checkAuth, openAuthModal } from '../auth.js';
 
 let characters = [], messages = [], isProcessing = false, audioEnabled = true, 
-    currentAudioPlayer = null, messageQueue = [];
+    currentAudioPlayer = null;
 const sessionId = window.location.pathname.split('/').pop();
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -23,23 +23,15 @@ async function loadSession() {
         const data = await response.json();
         characters = data.characters;
 
-        console.log('Raw server response:', data);
-        console.log('Characters array:', characters.map(c => ({
-            id: c.id,
-            name: c.name,
-            position: c.position
-        })));
-
-        const panelsGrid = document.getElementById('panels-grid');
-        if (!panelsGrid) return;
-
-        // Ensure we have all characters before building panels
         const charactersByPosition = new Array(4).fill(null);
         characters.forEach(char => {
             if (char.position >= 0 && char.position < 4) {
                 charactersByPosition[char.position] = char;
             }
         });
+
+        const panelsGrid = document.getElementById('panels-grid');
+        if (!panelsGrid) return;
 
         panelsGrid.innerHTML = charactersByPosition.map((char, index) => {
             const character = char || {
@@ -69,44 +61,24 @@ async function loadSession() {
 
 function addMessage(message) {
     messages.push(message);
+    const container = message.type === 'user' ? 
+        document.getElementById('user-chat-messages') : 
+        document.getElementById(`chat-messages-${message.position}`);
+
+    if (!container) return;
+
+    const messageHTML = `
+        <div class="message-container ${message.type}">
+            <div class="message-bubble">${message.content}</div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', messageHTML);
+    container.scrollTop = container.scrollHeight;
 
     if (message.type === 'user') {
-        const userChat = document.getElementById('user-chat-messages');
-        if (!userChat) return;
-
-        const messageHTML = `
-            <div class="message-container user">
-                <div class="message-bubble">${message.content}</div>
-            </div>
-        `;
-        userChat.insertAdjacentHTML('beforeend', messageHTML);
-        userChat.scrollTop = userChat.scrollHeight;
-        
-        const msgs = userChat.querySelectorAll('.message-container');
+        const msgs = container.querySelectorAll('.message-container');
         if (msgs.length > 10) msgs[0].remove();
-        return;
-    }
-
-    if (message.type === 'character') {
-        console.log('Processing character message:', {
-            position: message.position,
-            character_id: message.character_id,
-            content_preview: message.content?.substring(0, 50)
-        });
-
-        const messagesContainer = document.getElementById(`chat-messages-${message.position}`);
-        if (!messagesContainer) {
-            console.error('No container found for position:', message.position);
-            return;
-        }
-
-        const messageHTML = `
-            <div class="message-container character">
-                <div class="message-bubble">${message.content}</div>
-            </div>
-        `;
-        messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 }
 
@@ -159,35 +131,25 @@ async function sendMessage() {
         });
 
         if (!response.ok) {
-            throw new Error(response.status === 402 ? 'Insufficient credits' : 'Failed to get character responses');
+            throw new Error(response.status === 402 ? 'Insufficient credits' : 'Failed to get responses');
         }
 
         const data = await response.json();
+        
         for (const charResponse of data.responses) {
-            if (!charResponse.is_placeholder) {
-                addMessage({
-                    type: 'character',
-                    character_id: charResponse.character_id,
-                    content: charResponse.content,
-                    position: charResponse.position,
-                    name: charResponse.name
-                });
+            addMessage({
+                type: 'character',
+                character_id: charResponse.character_id,
+                content: charResponse.content,
+                position: charResponse.position,
+                name: charResponse.name
+            });
 
-                if (audioEnabled) {
-                    messageQueue.push({
-                        text: charResponse.content,
-                        voice: charResponse.ttsVoice,
-                        model: charResponse.rvc_model,
-                        rate: charResponse.tts_rate,
-                        pitch: charResponse.rvc_pitch,
-                        character_id: charResponse.character_id
-                    });
-                }
+            if (audioEnabled) {
+                await playAudio(charResponse);
             }
-        }
-
-        if (audioEnabled && messageQueue.length > 0) {
-            await processAudioQueue();
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
     } catch (error) {
@@ -203,45 +165,37 @@ async function sendMessage() {
     }
 }
 
-async function processAudioQueue() {
-    while (messageQueue.length > 0) {
-        const message = messageQueue[0];
+async function playAudio(response) {
+    try {
+        if (currentAudioPlayer) {
+            currentAudioPlayer.pause();
+            currentAudioPlayer = null;
+        }
+
+        const ttsResponse = await fetch('/v1/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                text: response.content.replace(/\*[^*]*\*/g, '').trim(),
+                edge_voice: response.ttsVoice,
+                rvc_model: response.rvc_model || response.character_id,
+                tts_rate: response.tts_rate || 0,
+                rvc_pitch: response.rvc_pitch || 0
+            })
+        });
+
+        if (!ttsResponse.ok) throw new Error('TTS generation failed');
+        const audioData = await ttsResponse.json();
         
-        try {
-            if (currentAudioPlayer) {
-                currentAudioPlayer.pause();
-                currentAudioPlayer = null;
-            }
-
-            const ttsResponse = await fetch('/v1/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: message.text.replace(/\*[^*]*\*/g, '').trim(),
-                    edge_voice: message.voice,
-                    rvc_model: message.model || message.character_id,
-                    tts_rate: message.rate || 0,
-                    rvc_pitch: message.pitch || 0
-                })
-            });
-
-            if (!ttsResponse.ok) throw new Error('TTS generation failed');
-
-            const audioData = await ttsResponse.json();
+        await new Promise((resolve, reject) => {
             const audio = new Audio(audioData.audio_url);
             currentAudioPlayer = audio;
-            
-            await new Promise((resolve, reject) => {
-                audio.onended = resolve;
-                audio.onerror = reject;
-                audio.play().catch(reject);
-            });
-
-        } catch (error) {
-            console.error('Audio generation error:', error);
-        }
-        
-        messageQueue.shift();
+            audio.onended = resolve;
+            audio.onerror = reject;
+            audio.play().catch(reject);
+        });
+    } catch (error) {
+        console.error('Audio playback error:', error);
     }
 }
 

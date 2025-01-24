@@ -4,7 +4,6 @@ import { currentUser, checkAuth, openAuthModal } from '../auth.js';
 let characters = [];
 let selectedCharacters = new Map(); // position -> character data
 
-// Initialize setup interface
 document.addEventListener('DOMContentLoaded', async () => {
     if (!await checkAuth()) {
         openAuthModal('login');
@@ -26,7 +25,6 @@ async function loadCharacters() {
         
         const data = await response.json();
         
-        // Combine public and private characters
         characters = [
             ...(data.public || []),
             ...(data.private || [])
@@ -85,7 +83,6 @@ function setupDragAndDrop() {
             const characterId = e.dataTransfer.getData('text/plain');
             const position = panel.dataset.position;
 
-            // Check if panel is already occupied
             if (selectedCharacters.has(position)) {
                 return;
             }
@@ -130,6 +127,8 @@ function removeCharacter(event, position) {
 function validateAndCreateStory() {
     const title = document.getElementById('story-title')?.value?.trim();
     const scenario = document.getElementById('story-scenario')?.value?.trim();
+    const userName = document.getElementById('user-name')?.value?.trim();
+    const userPersona = document.getElementById('user-persona')?.value?.trim();
     
     if (!title) {
         showError('Please enter a story title');
@@ -140,6 +139,16 @@ function validateAndCreateStory() {
         showError('Please enter a scenario');
         return;
     }
+
+    if (!userName) {
+        showError('Please enter your character name');
+        return;
+    }
+
+    if (!userPersona) {
+        showError('Please describe your character');
+        return;
+    }
     
     const activeCharacters = Array.from(selectedCharacters.values()).filter(Boolean);
     if (activeCharacters.length < 2) {
@@ -147,12 +156,11 @@ function validateAndCreateStory() {
         return;
     }
 
-    createStory(title, scenario);
+    createStory(title, scenario, userName, userPersona);
 }
 
-async function createStory(title, scenario) {
+async function createStory(title, scenario, userName, userPersona) {
     try {
-        // Create character array with placeholders for empty panels
         const characterData = Array.from({ length: 4 }, (_, i) => ({
             id: selectedCharacters.get(i.toString()) || null,
             position: i,
@@ -168,6 +176,8 @@ async function createStory(title, scenario) {
             body: JSON.stringify({
                 title,
                 scenario,
+                userName,
+                userPersona,
                 characters: characterData
             })
         });
@@ -190,10 +200,8 @@ function showError(message) {
     errorDiv.className = 'error-message';
     errorDiv.textContent = message;
     
-    // Remove any existing error messages
     document.querySelectorAll('.error-message').forEach(el => el.remove());
     
-    // Insert error message after the create button
     const createButton = document.getElementById('create-story');
     if (createButton) {
         createButton.parentNode.insertBefore(errorDiv, createButton.nextSibling);
@@ -201,5 +209,4 @@ function showError(message) {
     }
 }
 
-// Make removeCharacter available globally for the onclick handler
 window.removeCharacter = removeCharacter;
