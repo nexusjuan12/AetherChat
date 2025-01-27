@@ -26,7 +26,7 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "background": "/edit-character/characters/earlycuyler/background.gif",
+  "background": "./characters/earlycuyler/background.gif",
   "rvc_model": "earlycuyler",
   "voiceModelType": "existing",
   "existingCharacterModel": "earlycuyler",

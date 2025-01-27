@@ -26,7 +26,7 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "background": "/edit-character/characters/makimachainsawman/background.gif",
+  "background": "./characters/makimachainsawman/background.gif",
   "rvc_model": "makimachainsawman",
   "voiceModelType": "existing",
   "existingCharacterModel": "makimachainsawman",

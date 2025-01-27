@@ -9,6 +9,7 @@
   "ttsVoice": "en-US-ChristopherNeural",
   "category": "Tech Expert",
   "sex": "Male",
+  "background": "./characters/power3/background.mp4",
   "nsfw": false,
   "orientation": "None",
   "dateAdded": "2024-11-28T00:00:00Z",

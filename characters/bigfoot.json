@@ -26,7 +26,7 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "background": "/edit-character/characters/bigfoot/background.gif",
+  "background": "./characters/bigfoot/background.gif",
   "rvc_model": "bigfoot",
   "voiceModelType": "existing",
   "existingCharacterModel": "bigfoot",

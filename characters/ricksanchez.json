@@ -26,7 +26,7 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "background": "/edit-character/characters/ricksanchez/background.gif",
+  "background": "./characters/ricksanchez/background.gif",
   "rvc_model": "ricksanchez",
   "voiceModelType": "existing",
   "existingCharacterModel": "ricksanchez",

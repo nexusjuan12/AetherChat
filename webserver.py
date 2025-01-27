@@ -2154,29 +2154,63 @@ def get_story_session(session_id):
                     'id': None,
                     'position': sc.position,
                     'is_placeholder': True,
-                    'name': sc.placeholder_name or "Empty Panel"
+                    'name': sc.placeholder_name or "Empty Panel",
+                    'avatar': './avatars/default-user.png',  # Use absolute path
+                    'background': './assets/default-bg.jpg'  # Use absolute path
                 })
             else:
-                char = Character.query.get(sc.character_id)
-                if char:
-                    characters.append({
-                        'id': char.id,
-                        'position': sc.position,
-                        'name': char.name,
-                        'avatar': char.avatar_path,
-                        'background': char.background_path,
-                        'is_placeholder': False,
-                        'ttsVoice': char.tts_voice,
-                        'rvc_model': char.settings.get('rvc_model') if char.settings else None,
-                        'tts_rate': char.settings.get('tts_rate', 0) if char.settings else 0,
-                        'rvc_pitch': char.settings.get('rvc_pitch', 0) if char.settings else 0
-                    })
+                try:
+                    # Load character data from JSON file for complete information
+                    char_file_path = os.path.join(CHARACTER_FOLDER, f"{sc.character_id}.json")
+                    if os.path.exists(char_file_path):
+                        with open(char_file_path, 'r', encoding='utf-8') as f:
+                            char_data = json.load(f)
+                            
+                        # Ensure paths start with ./
+                        avatar_path = char_data.get('avatar', './avatars/default-user.png')
+                        if not avatar_path.startswith('./'):
+                            avatar_path = f"./{avatar_path}"
+                            
+                        background_path = char_data.get('background')
+                        if background_path and not background_path.startswith('./'):
+                            background_path = f"./{background_path}"
+                            
+                        characters.append({
+                            'id': sc.character_id,
+                            'position': sc.position,
+                            'name': char_data.get('name', 'Unknown Character'),
+                            'avatar': avatar_path,
+                            'background': background_path or './assets/default-bg.jpg',
+                            'is_placeholder': False,
+                            'ttsVoice': char_data.get('ttsVoice'),
+                            'rvc_model': char_data.get('rvc_model'),
+                            'tts_rate': char_data.get('tts_rate', 0),
+                            'rvc_pitch': char_data.get('rvc_pitch', 0)
+                        })
+                except Exception as e:
+                    print(f"Error loading character {sc.character_id}: {str(e)}")
+                    # Fallback to database record
+                    char = Character.query.get(sc.character_id)
+                    if char:
+                        characters.append({
+                            'id': char.id,
+                            'position': sc.position,
+                            'name': char.name,
+                            'avatar': './avatars/default-user.png',
+                            'background': './assets/default-bg.jpg',
+                            'is_placeholder': False,
+                            'ttsVoice': char.tts_voice,
+                            'rvc_model': char.settings.get('rvc_model') if char.settings else None,
+                            'tts_rate': char.settings.get('tts_rate', 0) if char.settings else 0,
+                            'rvc_pitch': char.settings.get('rvc_pitch', 0) if char.settings else 0
+                        })
         
         return jsonify({
             'id': story.id,
             'title': story.title,
             'scenario': story.scenario,
-            'characters': characters
+            'characters': characters,
+            'settings': story.settings
         })
         
     except Exception as e:

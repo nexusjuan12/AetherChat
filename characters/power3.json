@@ -24,7 +24,7 @@
     "frequency_penalty": 0.6,
     "max_tokens": 150
   },
-  "background": "/edit-character/characters/power3/background.jpeg",
+  "background": "./characters/power3/background.jpeg",
   "rvc_model": "power3",
   "voiceModelType": "existing",
   "existingCharacterModel": "power3",

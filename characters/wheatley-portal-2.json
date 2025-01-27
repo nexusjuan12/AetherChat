@@ -20,7 +20,7 @@
     "frequency_penalty": null,
     "max_tokens": null
   },
-  "background": "/edit-character/characters/wheatley-portal-2/background.gif",
+  "background": "./characters/wheatley-portal-2/background.gif",
   "rvc_model": "wheatley-portal-2",
   "greetings": [
     "Oh! Hello! Wow, you\u2019re here. Brilliant. I mean, it\u2019s not like I was *waiting*, but here you are!",

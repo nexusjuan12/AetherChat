@@ -12,6 +12,7 @@
     "nsfw": false,
     "orientation": "None",
     "dateAdded": "2024-11-28T00:00:00Z",
+    "background": "./characters/power3/background.gif",
     "tags": [
         "hacker",
         "witty",
