@@ -54,6 +54,7 @@ git clone https://github.com/nexusjuan12/AetherChat.git /root/main
 cp main/env_backup_root /root/.env
 cp -r main/templates /root/
 cp main/webserver.py /root/
+cp main/model_cache.py /root/
 cp main/queue_system.py /root/
 cp -r main/db /root/
 chmod 644 /root/db/users.db
