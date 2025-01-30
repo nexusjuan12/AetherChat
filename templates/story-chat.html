@@ -9,29 +9,98 @@
 </head>
 <body>
     <div class="story-chat-layout">
+        <!-- Story Header -->
         <div class="story-header">
-            <h1 id="story-title"></h1>
-            <p id="story-scenario"></p>
+            <div class="title-section">
+                <h1 id="story-title"></h1>
+                <p id="story-scenario"></p>
+            </div>
         </div>
 
+        <!-- Storybook Gallery - Hidden by default, shown when storybook mode is active -->
+        <div id="storybook-gallery" class="storybook-gallery">
+            <div class="gallery-thumbnails"></div>
+            <div id="image-modal" class="image-modal">
+                <span class="close-modal">&times;</span>
+                <img class="modal-content" id="modal-image">
+            </div>
+        </div>
+
+        <!-- Chat Panels Grid -->
         <div id="panels-grid" class="chat-panels-grid">
             <!-- Character panels dynamically inserted here -->
         </div>
 
+        <!-- User Chat Area -->
         <div class="user-chat-area">
             <div id="user-chat-messages" class="user-chat-messages"></div>
         </div>
 
+        <!-- Chat Controls and Input -->
+        <div class="chat-controls">
+            <div class="endless-mode-controls">
+                <button id="endless-mode-toggle" class="control-button">
+                    <span class="button-icon">🔄</span>
+                </button>
+                <button id="endless-mode-settings" class="control-button">
+                    <span class="button-icon">⚙️</span>
+                </button>
+            </div>
+            <div class="controls-group">
+                <button id="storybook-toggle" class="control-button" title="Toggle Storybook Mode">
+                    <span class="button-icon">📚</span>
+                </button>
+                <button class="audio-toggle control-button" title="Toggle Audio">
+                    <span class="button-icon">🔊</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Endless Mode Settings Panel -->
+        <div id="endless-mode-settings-panel" class="settings-panel">
+            <h3>Endless Mode Settings</h3>
+            <div class="setting-group">
+                <label>Delay Between Responses (seconds)</label>
+                <input type="range" id="endless-delay" min="1" max="10" step="0.5" value="5">
+                <span id="endless-delay-value">5s</span>
+            </div>
+            <div class="setting-group">
+                <label>Max Conversation Turns</label>
+                <input type="range" id="endless-max-turns" min="10" max="100" step="5" value="50">
+                <span id="endless-max-turns-value">50 turns</span>
+            </div>
+            <div class="setting-group">
+                <label>Temperature</label>
+                <input type="range" id="endless-temperature" min="0.1" max="1.0" step="0.1" value="0.8">
+                <span id="endless-temperature-value">0.8</span>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
         <div class="chat-input">
-            <button class="audio-toggle" title="Toggle Audio">🔊</button>
             <div class="input-wrapper">
                 <input type="text" id="user-input" placeholder="Type your message...">
-                <div class="message-cost">Text: 10 credits • Voice: 15 credits</div>
+                <div class="message-cost">10 credits per message</div>
             </div>
             <button id="send-button" class="send-button">Send</button>
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generating response...</div>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="error-toast" class="error-toast">
+        <div class="error-content">
+            <span class="error-message"></span>
+            <button class="close-error">&times;</button>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
     <dialog id="auth-modal" class="modal">
         <div class="modal-content">
             <form id="login-form" class="auth-form">
@@ -48,23 +117,6 @@
                 <div class="form-actions">
                     <button type="submit">Login</button>
                     <button type="button" class="switch-to-register">Need an account?</button>
-                </div>
-            </form>
-
-            <form id="register-form" class="auth-form" style="display: none;">
-                <h2>Create Account</h2>
-                <div class="form-group">
-                    <label for="register-username">Username</label>
-                    <input type="text" id="register-username" placeholder="Username" required>
-                </div>
-                <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" placeholder="Password" required>
-                </div>
-                <div id="register-error" class="error-message"></div>
-                <div class="form-actions">
-                    <button type="submit">Register</button>
-                    <button type="button" class="switch-to-login">Already have an account?</button>
                 </div>
             </form>
         </div>

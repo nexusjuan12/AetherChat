@@ -28,6 +28,10 @@ from sqlalchemy import and_
 import time
 from queue_system import request_queue, setup_queue_handlers
 from model_cache import model_cache
+import base64
+import lzma
+import json
+from functools import wraps
 
 # Load environment variables
 load_dotenv('/root/.env')
@@ -97,6 +101,7 @@ OUTPUT_DIRECTORY = "/root/output/"
 UPLOAD_FOLDER = '/root/main/avatars'
 CHARACTER_FOLDER = '/root/main/characters'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'wmv'}
+KOBOLD_API = os.getenv('KOBOLD_API', 'http://127.0.0.1:5000')
 
 
 os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
@@ -300,6 +305,39 @@ def kobold_handler(data):
     except Exception as e:
         raise Exception(f"Kobold API error: {str(e)}")
 
+def check_kobold_available():
+    """Check if KoboldCPP API is available"""
+    try:
+        response = requests.get(f'{KOBOLD_API}/api/v1/model')
+        return response.ok
+    except:
+        return False
+
+def handle_kobold_error(response):
+    """Handle error responses from KoboldCPP"""
+    try:
+        error_data = response.json()
+        return jsonify({
+            'error': 'KoboldCPP API error',
+            'details': error_data.get('detail', str(response.status_code))
+        }), response.status_code
+    except:
+        return jsonify({
+            'error': 'KoboldCPP API error',
+            'details': str(response.status_code)
+        }), response.status_code
+
+def require_kobold(f):
+    """Decorator to check if KoboldCPP is available"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not check_kobold_available():
+            return jsonify({
+                'error': 'KoboldCPP API is not available'
+            }), 503
+        return f(*args, **kwargs)
+    return decorated_function
+
 def tts_handler(data):
     try:
         print("TTS handler received data:", data)
@@ -436,6 +474,8 @@ def parse_character_responses(narrative, valid_characters):
         responses.append((current_char, ' '.join(current_content)))
 
     return responses
+
+
 
 @app.route('/story/setup', methods=['POST'])
 @login_required
@@ -2216,6 +2256,200 @@ def get_story_session(session_id):
     except Exception as e:
         print(f"Error getting story session: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/v1/story/user-message', methods=['POST'])
+@login_required
+def generate_user_message():
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        messages = data.get('messages', [])
+        temperature = data.get('temperature', 0.8)
+        
+        story = StorySession.query.get_or_404(session_id)
+        if story.creator_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Create context from story settings and previous messages
+        context = f"""
+Story Setting: {story.scenario}
+
+User's Character: {story.settings.get('userName', 'User')}
+User's Role: {story.settings.get('userPersona', 'A participant in the story')}
+
+Previous messages:
+{' '.join([msg['content'] for msg in messages[-5:]])}  # Last 5 messages for context
+
+Generate a natural response from the user's perspective that advances the story.
+The response should:
+1. Be relevant to the ongoing conversation
+2. Consider the user's character and role
+3. Help move the story forward
+4. Be between 1-3 sentences
+5. Not be repetitive or generic
+
+Generate only the user's message without any additional explanation or context."""
+
+        # Generate user message using Kobold
+        response = kobold_handler({
+            'model': "koboldcpp",
+            'messages': [{'role': 'system', 'content': context}],
+            'temperature': temperature,
+            'max_tokens': 100,
+            'stop': ["\n", "Character:", "User:"]
+        })
+
+        if not response or 'choices' not in response:
+            return jsonify({'error': 'Failed to generate message'}), 500
+
+        message = response['choices'][0]['message']['content'].strip()
+        
+        # Cost 5 credits for message generation
+        if not current_user.deduct_credits_atomic(5):
+            return jsonify({
+                'error': 'Insufficient credits',
+                'credits_required': 5,
+                'credits_available': current_user.credits
+            }), 402
+
+        # Record transaction
+        transaction = CreditTransaction(
+            user_id=current_user.id,
+            amount=-5,
+            transaction_type='endless_mode_message',
+            description=f'Generated user message in endless mode'
+        )
+        db.session.add(transaction)
+        db.session.commit()
+
+        return jsonify({'message': message})
+
+    except Exception as e:
+        print(f"Error generating user message: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/generate/image', methods=['POST'])
+@login_required
+@require_kobold
+def generate_image():
+    try:
+        response = requests.post(
+            f'{KOBOLD_API}/sdapi/v1/txt2img',
+            json=request.json,
+            timeout=60
+        )
+        
+        if not response.ok:
+            return handle_kobold_error(response)
+
+        return jsonify(response.json())
+
+    except requests.Timeout:
+        return jsonify({
+            'error': 'Image generation timed out'
+        }), 504
+        
+    except Exception as e:
+        print(f"Error in image generation: {str(e)}")
+        return jsonify({
+            'error': 'Failed to generate image',
+            'details': str(e)
+        }), 500
+
+@app.route('/api/extra/multiplayer/getstory', methods=['POST'])
+@login_required
+def get_multiplayer_story():
+    try:
+        response = requests.post(f'{KOBOLD_API}/api/extra/multiplayer/getstory')
+        if not response.ok:
+            return handle_kobold_error(response)
+        # Just pass through the raw response text
+        return response.text, response.status_code, {'Content-Type': response.headers.get('Content-Type', 'text/plain')}
+    except Exception as e:
+        print(f"Error getting story: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/extra/multiplayer/setstory', methods=['POST'])
+@login_required
+@require_kobold
+def set_multiplayer_story():
+    try:
+        response = requests.post(
+            f'{KOBOLD_API}/api/extra/multiplayer/setstory',
+            json=request.json
+        )
+        if not response.ok:
+            return handle_kobold_error(response)
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        print(f"Error setting story: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+@app.route('/api/v1/story/state', methods=['GET'])
+@login_required
+def get_story_state():
+    try:
+        response = requests.get(f'{KOBOLD_API}/api/extra/multiplayer/getstory')
+        if response.ok:
+            story_data = response.json()
+            if 'data' in story_data:
+                decompressed_data = decompress_story_data(story_data['data'])
+                return jsonify(decompressed_data)
+        return jsonify({'error': 'Failed to get story state'}), response.status_code
+    except Exception as e:
+        print(f"Error getting story state: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/story/update', methods=['POST'])
+@login_required
+def update_story():
+    try:
+        story_data = request.json
+        compressed_data = compress_story_data(story_data)
+        
+        payload = {
+            "full_update": True,
+            "sender": f"USER_{current_user.id}",
+            "data_format": "kcpp_lzma_b64",
+            "data": compressed_data
+        }
+
+        response = requests.post(
+            f'{KOBOLD_API}/api/extra/multiplayer/setstory',
+            json=payload
+        )
+
+        if not response.ok:
+            return jsonify({'error': 'Failed to update story'}), response.status_code
+
+        return jsonify(response.json())
+
+    except Exception as e:
+        print(f"Error updating story: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/generate', methods=['POST'])
+@login_required
+@require_kobold
+def generate_text():
+    try:
+        response = requests.post(
+            f'{KOBOLD_API}/api/v1/generate',
+            json=request.json,
+            timeout=30
+        )
+        
+        if not response.ok:
+            return handle_kobold_error(response)
+
+        return jsonify(response.json())
+    except Exception as e:
+        print(f"Error in text generation: {str(e)}")
+        return jsonify({
+            'error': 'Failed to generate text',
+            'details': str(e)
+        }), 500
+    
 
 # Initialize database
 with app.app_context():
