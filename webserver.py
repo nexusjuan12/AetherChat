@@ -446,11 +446,19 @@ PLACEHOLDER_IMAGE = "./assets/placeholders/placeholder.jpg"
 PLACEHOLDER_NAME = "Empty Panel"
 
 def parse_character_responses(narrative, valid_characters):
+    """
+    Parse character responses with improved handling for length and completeness.
+    
+    Args:
+        narrative (str): Raw narrative text
+        valid_characters (list): List of tuples containing (character_data, story_character)
+    """
     responses = []
     lines = narrative.split('\n')
     current_char = None
     current_content = []
-
+    max_response_length = 150  # Characters, not tokens
+    
     for line in lines:
         if ':' not in line:
             if current_char and current_content:
@@ -460,22 +468,130 @@ def parse_character_responses(narrative, valid_characters):
         char_name, content = line.split(':', 1)
         char_name = char_name.strip()
 
+        # Check if this is a valid character
         if char_name in [c[0]['name'] for c in valid_characters]:
+            # Process previous character's response if exists
             if current_char and current_content:
-                responses.append((current_char, ' '.join(current_content)))
+                response_text = ' '.join(current_content).strip()
+                
+                # Truncate if too long while preserving complete sentences
+                if len(response_text) > max_response_length:
+                    sentences = response_text.split('.')
+                    truncated = ''
+                    for sent in sentences:
+                        if len(truncated) + len(sent) <= max_response_length:
+                            truncated += sent + '.'
+                        else:
+                            break
+                    response_text = truncated.strip()
+                
+                # Ensure asterisk expressions are properly closed
+                if response_text.count('*') % 2 == 1:
+                    response_text = response_text.replace('*', '')
+                
+                responses.append((current_char, response_text))
+            
             current_char = char_name
             current_content = [content.strip()]
             continue
 
-        if current_char and current_content:
-            current_content.append(line)
-
+    # Process the last character's response
     if current_char and current_content:
-        responses.append((current_char, ' '.join(current_content)))
+        response_text = ' '.join(current_content).strip()
+        if len(response_text) > max_response_length:
+            sentences = response_text.split('.')
+            truncated = ''
+            for sent in sentences:
+                if len(truncated) + len(sent) <= max_response_length:
+                    truncated += sent + '.'
+                else:
+                    break
+            response_text = truncated.strip()
+            
+        if response_text.count('*') % 2 == 1:
+            response_text = response_text.replace('*', '')
+            
+        responses.append((current_char, response_text))
 
     return responses
 
 
+def generate_character_prompt(story, characters):
+    """
+    Generate a more focused prompt for character interactions.
+    """
+    character_list = "\n".join([
+        f"- {char[0]['name']}: {char[0].get('description', '')[:100]}..."
+        for char in characters
+    ])
+    
+    return f"""You are managing an interactive scene. Setting:
+{story.scenario}
+
+Characters present:
+{character_list}
+
+Guidelines:
+- Keep responses short and focused (1-2 sentences maximum)
+- Include either an action OR dialogue, not both
+- Avoid repetitive expressions and mannerisms
+- Stay in character but be concise
+- Never speak for other characters
+
+Format each response as:
+CHARACTER_NAME: action/dialogue"""
+
+def process_story_responses(story, valid_characters, user_message, temperature=0.7):
+    """
+    Process story responses with improved controls.
+    """
+    try:
+        master_prompt = generate_character_prompt(story, valid_characters)
+        
+        master_response = kobold_handler({
+            'model': "koboldcpp",
+            'messages': [{'role': 'system', 'content': master_prompt}],
+            'temperature': temperature,
+            'max_tokens': 150,  # Reduced from 300
+            'frequency_penalty': 0.7,  # Increased to reduce repetition
+            'presence_penalty': 0.7,
+            'stop_sequences': ["\n\n", "###"]
+        })
+
+        if not master_response or 'choices' not in master_response:
+            raise ValueError("Invalid response from master storyteller")
+
+        narrative = master_response['choices'][0]['message']['content']
+        parsed_responses = parse_character_responses(narrative, valid_characters)
+        
+        responses = []
+        for char_name, content in parsed_responses:
+            matching_char = next(
+                (char for char, _ in valid_characters if char['name'].lower() == char_name.lower()),
+                None
+            )
+            if matching_char:
+                char_position = next(
+                    sc.position for _, sc in valid_characters 
+                    if sc.character_id == matching_char['id']
+                )
+                responses.append({
+                    'character_id': matching_char['id'],
+                    'name': matching_char['name'],
+                    'content': content,
+                    'avatar': matching_char['avatar'],
+                    'position': char_position,
+                    'ttsVoice': matching_char.get('ttsVoice'),
+                    'rvc_model': matching_char.get('rvc_model'),
+                    'tts_rate': matching_char.get('tts_rate', 0),
+                    'rvc_pitch': matching_char.get('rvc_pitch', 0)
+                })
+
+        return responses
+
+    except Exception as e:
+        print(f"Error processing story responses: {str(e)}")
+        raise
 
 @app.route('/story/setup', methods=['POST'])
 @login_required
@@ -535,8 +651,14 @@ def story_completions():
         data = request.json
         session_id = data.get('session_id')
         user_message = data.get('message', '')
+        temperature = data.get('temperature', 0.7)
         
+        # Get story session and validate
         story = StorySession.query.get_or_404(session_id)
+        if story.creator_id != current_user.id:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Get active characters
         story_chars = StoryCharacter.query.filter_by(
             session_id=session_id,
             is_placeholder=False
@@ -545,9 +667,11 @@ def story_completions():
         if not story_chars:
             return jsonify({'error': 'No active characters'}), 400
 
+        # Calculate credits needed
         CREDITS_PER_CHARACTER = 10
         total_credits = CREDITS_PER_CHARACTER * len(story_chars)
         
+        # Check credits
         if not current_user.deduct_credits_atomic(total_credits):
             return jsonify({
                 'error': 'Insufficient credits',
@@ -555,6 +679,7 @@ def story_completions():
                 'credits_available': current_user.credits
             }), 402
 
+        # Create credit transaction
         transaction = CreditTransaction(
             user_id=current_user.id,
             amount=-total_credits,
@@ -564,6 +689,7 @@ def story_completions():
         db.session.add(transaction)
 
         try:
+            # Load character data
             print("\nLoading character data...")
             valid_characters = []
             for story_char in story_chars:
@@ -577,70 +703,20 @@ def story_completions():
             if not valid_characters:
                 raise ValueError("No valid characters found")
 
-            master_prompt = f"""You are the master storyteller managing this interactive scene. Current setting:
-{story.scenario}
+            # Process responses using new function
+            responses = process_story_responses(
+                story=story,
+                valid_characters=valid_characters,
+                user_message=user_message,
+                temperature=temperature
+            )
 
-Characters present:
-{' '.join([f"- {c[0]['name']}: {c[0].get('system_prompt', '')[:150]}..." for c in valid_characters])}
-
-User's character: {story.settings.get('userName', 'User')}
-User's persona: {story.settings.get('userPersona', 'A participant in the story')}
-
-Previous context:
-{' '.join([msg['content'] for msg in data.get('messages', [])])}
-
-Latest user input: {user_message}
-
-Generate the next story beat as a sequence of character dialogues and actions. 
-Keep each character's response separate and distinct.
-Do NOT include other characters' dialogue within a character's response.
-Format output as:
-CHARACTER_NAME: action/dialogue"""
-
-            master_response = kobold_handler({
-                'model': "koboldcpp",
-                'messages': [{'role': 'system', 'content': master_prompt}],
-                'temperature': 0.7,
-                'max_tokens': 300
-            })
-
-            if not master_response or 'choices' not in master_response:
-                raise ValueError("Invalid response from master storyteller")
-
-            narrative = master_response['choices'][0]['message']['content']
-            print("\nParsing narrative responses:")
-            print("Raw narrative:", narrative)
-
-            parsed_responses = parse_character_responses(narrative, valid_characters)
-            responses = []
-
-            for char_name, content in parsed_responses:
-                matching_char = next(
-                    (char for char, _ in valid_characters if char['name'].lower() == char_name.lower()),
-                    None
-                )
-                if matching_char:
-                    char_position = next(
-                        sc.position for _, sc in valid_characters 
-                        if sc.character_id == matching_char['id']
-                    )
-                    responses.append({
-                        'character_id': matching_char['id'],
-                        'name': matching_char['name'],
-                        'content': content,
-                        'avatar': matching_char['avatar'],
-                        'position': char_position,
-                        'ttsVoice': matching_char.get('ttsVoice'),
-                        'rvc_model': matching_char.get('rvc_model'),
-                        'tts_rate': matching_char.get('tts_rate', 0),
-                        'rvc_pitch': matching_char.get('rvc_pitch', 0)
-                    })
-
-            print("\nFinal responses:", json.dumps(responses, indent=2))
+            # Commit transaction and return responses
             db.session.commit()
             return jsonify({'responses': responses})
 
         except Exception as e:
+            # Refund credits on error
             current_user.add_credits(total_credits)
             db.session.delete(transaction)
             db.session.commit()

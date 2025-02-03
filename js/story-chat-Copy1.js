@@ -5,133 +5,18 @@ import { generateCharacterImage, updatePanelBackground, animateTransition } from
 let characters = [], messages = [], isProcessing = false, audioEnabled = true;
 let currentAudioPlayer = null;
 let storySessionId = null;
-let storybookModeActive = false;
-let characterQueue = [];
-let lastSpeakerId = null;
+let storybookModeActive = false; // Add this line for storybook mode state
 const sessionId = window.location.pathname.split('/').pop();
-let story = null; 
 
 // Endless mode state
+let endlessModeActive = false;
 let endlessModeSettings = {
     delay: 5,
     maxTurns: 50,
     temperature: 0.8
 };
-let endlessModeActive = false;
 let currentTurn = 0;
 let endlessModeTimeout = null;
-
-class StoryState {
-    constructor(scenario, characters) {
-        this.scenario = scenario;
-        this.characters = characters;
-        this.currentPhase = 0;
-        this.completedEvents = new Set();
-        this.characterMoods = new Map();
-        this.lastSpeakers = new Set();
-        this.themes = this.analyzeScenario(scenario);
-    }
-
-    analyzeScenario(scenario) {
-        const keywords = scenario.toLowerCase().split(/\W+/);
-        const themes = new Set();
-        
-        const eventTypes = {
-            celebration: ['birthday', 'party', 'celebration', 'anniversary', 'wedding'],
-            adventure: ['quest', 'journey', 'adventure', 'mission', 'explore'],
-            conflict: ['fight', 'battle', 'argument', 'conflict', 'challenge'],
-            mystery: ['mystery', 'investigation', 'secret', 'puzzle', 'clue'],
-            social: ['meeting', 'gathering', 'conversation', 'hangout', 'date']
-        };
-
-        Object.entries(eventTypes).forEach(([type, words]) => {
-            if (words.some(word => keywords.includes(word))) {
-                themes.add(type);
-            }
-        });
-
-        if (themes.size === 0) themes.add('social');
-        return themes;
-    }
-
-    getRelevantPrompts() {
-        const prompts = [];
-        
-        this.themes.forEach(theme => {
-            switch(theme) {
-                case 'celebration':
-                    prompts.push(
-                        "How do the characters make the celebration more festive?",
-                        "What unexpected gift or surprise appears?",
-                        "How do the characters share in the joy of the moment?"
-                    );
-                    break;
-                case 'adventure':
-                    prompts.push(
-                        "What new challenge appears on their journey?",
-                        "How do the characters handle an unexpected obstacle?",
-                        "What discovery do they make along the way?"
-                    );
-                    break;
-                case 'conflict':
-                    prompts.push(
-                        "How do the characters try to resolve their differences?",
-                        "What raises the stakes in this situation?",
-                        "How do alliances shift in this moment?"
-                    );
-                    break;
-                case 'mystery':
-                    prompts.push(
-                        "What new clue comes to light?",
-                        "How do the characters react to a revelation?",
-                        "What makes the mystery deepen?"
-                    );
-                    break;
-                case 'social':
-                    prompts.push(
-                        "How do the characters bond in this moment?",
-                        "What reveals a new side of someone's personality?",
-                        "What brings the characters closer together or creates tension?"
-                    );
-                    break;
-            }
-        });
-
-        prompts.push(
-            "What unexpected event changes the dynamic?",
-            "How do the characters' personalities clash or complement each other?",
-            "What reveals something surprising about one of the characters?"
-        );
-
-        return prompts;
-    }
-
-    getStoryContext() {
-        return {
-            scenario: this.scenario,
-            themes: Array.from(this.themes),
-            phase: this.currentPhase,
-            recentEvents: Array.from(this.completedEvents).slice(-3)
-        };
-    }
-
-    updatePhase(message) {
-        const content = message.content.toLowerCase();
-        
-        // Track significant events
-        if (content.includes('arrive') || content.includes('begin') || content.includes('start')) {
-            this.completedEvents.add('introduction');
-        }
-        
-        // Update phase based on event progression
-        if (this.completedEvents.size > this.currentPhase * 3) {
-            this.currentPhase++;
-        }
-    }
-}
-
-// Update the global state
-let storyState = null;
 
 function adjustLayoutSizes() {
     const gallery = document.querySelector('.storybook-gallery');
@@ -316,6 +201,56 @@ Create a visual description focusing on ${character.name} as the main subject, i
         return `portrait of ${character.name}, ${message.slice(0, 100)}, cinematic lighting, high quality, masterpiece`;
     }
 }
+// Session loading and UI setup
+async function loadSession() {
+    try {
+        const response = await fetch(`/story/sessions/${sessionId}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Failed to load session');
+
+        const data = await response.json();
+        characters = data.characters;
+
+        const charactersByPosition = new Array(4).fill(null);
+        characters.forEach(char => {
+            if (char.position >= 0 && char.position < 4) {
+                charactersByPosition[char.position] = char;
+            }
+        });
+
+        const panelsGrid = document.getElementById('panels-grid');
+        if (!panelsGrid) return;
+
+        // Add these lines to ensure proper layout
+        panelsGrid.style.marginLeft = 'var(--nav-width)';
+        panelsGrid.style.width = 'calc(100% - var(--nav-width))';
+
+        panelsGrid.innerHTML = charactersByPosition.map((char, index) => {
+            const character = char || {
+                id: `empty-${index}`,
+                name: 'Loading...',
+                avatar: 'default-bg.jpg',
+                position: index
+            };
+
+            return `
+                <div class="chat-panel" data-position="${index}" data-character-id="${character.id}">
+                    <div class="panel-background" style="background-image: url('../${character.background || 'default-bg.jpg'}')"></div>
+                    <div class="panel-header">
+                        <img src="../${character.avatar}" alt="${character.name}" class="panel-avatar" 
+                             onerror="this.src='../avatars/default-user.png'">
+                        <span class="panel-name">${character.name}</span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages-${index}"></div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading session:', error);
+    }
+}
 
 // Message handling
 function addMessage(message) {
@@ -343,7 +278,50 @@ function addMessage(message) {
     localStorage.setItem(`story_${sessionId}_messages`, JSON.stringify(messages));
 }
 
+async function processMessage(message, temperature = 0.7) {
+    try {
+        await updateKoboldContext();
+        
+        // Initial response round
+        const responses = await generateCharacterResponses(message, temperature);
+        if (!responses.length) {
+            throw new Error('No valid responses generated');
+        }
 
+        // Process initial responses
+        for (const response of responses) {
+            await processCharacterResponse(response);
+        }
+
+        // Generate follow-up interactions (1-2 rounds)
+        const followUpRounds = Math.floor(Math.random() * 2) + 1; // 1 or 2 rounds
+        let lastSpeakers = new Set(responses.map(r => r.character_id));
+        let availableCharacters = characters.filter(c => !lastSpeakers.has(c.id));
+
+        for (let i = 0; i < followUpRounds; i++) {
+            if (!availableCharacters.length) break;
+
+            // Choose next speakers based on context
+            const nextSpeakers = chooseNextSpeakers(responses[responses.length - 1], availableCharacters);
+            if (!nextSpeakers.length) break;
+
+            // Generate and process follow-up responses
+            const followUpResponses = await generateFollowUpResponses(nextSpeakers, responses, temperature);
+            for (const response of followUpResponses) {
+                await processCharacterResponse(response);
+                lastSpeakers.add(response.character_id);
+            }
+
+            // Update available characters
+            availableCharacters = characters.filter(c => !lastSpeakers.has(c.id));
+        }
+
+        return responses;
+    } catch (error) {
+        console.error('Error in processMessage:', error);
+        throw error;
+    }
+}
 
 async function generateCharacterResponses(message, temperature) {
     const response = await fetch('/v1/story/completions', {
@@ -633,68 +611,14 @@ function updateCreditsDisplay() {
     }
 }
 
-// Update setupEndlessMode function
-async function loadSession() {
-    try {
-        const response = await fetch(`/story/sessions/${sessionId}`, {
-            credentials: 'include'
-        });
-        if (!response.ok) throw new Error('Failed to load session');
-
-        const data = await response.json();
-        characters = data.characters;
-        story = {
-            scenario: data.scenario,
-            title: data.title,
-            settings: data.settings
-        };
-
-        const charactersByPosition = new Array(4).fill(null);
-        characters.forEach(char => {
-            if (char.position >= 0 && char.position < 4) {
-                charactersByPosition[char.position] = char;
-            }
-        });
-
-        const panelsGrid = document.getElementById('panels-grid');
-        if (!panelsGrid) return;
-
-        // Add these lines to ensure proper layout
-        panelsGrid.style.marginLeft = 'var(--nav-width)';
-        panelsGrid.style.width = 'calc(100% - var(--nav-width))';
-
-        panelsGrid.innerHTML = charactersByPosition.map((char, index) => {
-            const character = char || {
-                id: `empty-${index}`,
-                name: 'Loading...',
-                avatar: 'default-bg.jpg',
-                position: index
-            };
-
-            return `
-                <div class="chat-panel" data-position="${index}" data-character-id="${character.id}">
-                    <div class="panel-background" style="background-image: url('../${character.background || 'default-bg.jpg'}')"></div>
-                    <div class="panel-header">
-                        <img src="../${character.avatar}" alt="${character.name}" class="panel-avatar" 
-                             onerror="this.src='../avatars/default-user.png'">
-                        <span class="panel-name">${character.name}</span>
-                    </div>
-                    <div class="chat-messages" id="chat-messages-${index}"></div>
-                </div>
-            `;
-        }).join('');
-
-        // Initialize storyState after loading story data
-        if (!storyState && story) {
-            storyState = new StoryState(story.scenario, characters);
-        }
-
-    } catch (error) {
-        console.error('Error loading session:', error);
-    }
+function setupEndlessMode() {
+    // Remove the HTML injection since controls already exist
+    setupEndlessModeListeners();
 }
 
-function setupEndlessMode() {
+
+
+function setupEndlessModeListeners() {
     const toggleBtn = document.getElementById('endless-mode-toggle');
     const settingsBtn = document.getElementById('endless-mode-settings');
     const settingsPanel = document.getElementById('endless-mode-settings-panel');
@@ -703,23 +627,7 @@ function setupEndlessMode() {
     const maxTurnsInput = document.getElementById('endless-max-turns');
     const temperatureInput = document.getElementById('endless-temperature');
     
-    // Initialize story state if not already done and story is loaded
-    if (!storyState && story) {
-        storyState = new StoryState(story.scenario, characters);
-    }
-    
-    toggleBtn.addEventListener('click', async () => {
-        // Ensure story is loaded before allowing endless mode
-        if (!story) {
-            console.error('Story data not loaded yet');
-            return;
-        }
-
-        // Initialize storyState if needed
-        if (!storyState) {
-            storyState = new StoryState(story.scenario, characters);
-        }
-
+    toggleBtn.addEventListener('click', () => {
         endlessModeActive = !endlessModeActive;
         toggleBtn.classList.toggle('active');
         toggleBtn.querySelector('.button-icon').textContent = endlessModeActive ? '⏹️' : '🔄';
@@ -772,111 +680,6 @@ function setupEndlessMode() {
     });
 }
 
-
-
-// Update processMessage function
-async function processMessage(message, temperature = 0.7) {
-    try {
-        if (!storyState) {
-            storyState = new StoryState(story.scenario, characters);
-        }
-
-        const storyContext = storyState.getStoryContext();
-        await updateKoboldContext();
-        
-        const responses = await generateCharacterResponses(message, temperature, {
-            scenario: storyContext.scenario,
-            themes: storyContext.themes,
-            recentEvents: storyContext.recentEvents,
-            phase: storyContext.phase
-        });
-
-        if (!responses.length) {
-            throw new Error('No valid responses generated');
-        }
-
-        // Process responses
-        for (const response of responses) {
-            await processCharacterResponse(response);
-        }
-
-        // Update story state
-        storyState.updatePhase({ type: 'responses', content: responses.map(r => r.content).join(' ') });
-
-        // Generate follow-up interactions
-        const followUpRounds = Math.floor(Math.random() * 2) + 1;
-        let lastSpeakers = new Set(responses.map(r => r.character_id));
-        let availableCharacters = characters.filter(c => !lastSpeakers.has(c.id));
-
-        for (let i = 0; i < followUpRounds; i++) {
-            if (!availableCharacters.length) break;
-
-            const nextSpeakers = chooseNextSpeakers(responses[responses.length - 1], availableCharacters);
-            if (!nextSpeakers.length) break;
-
-            const followUpResponses = await generateFollowUpResponses(nextSpeakers, responses, temperature);
-            for (const response of followUpResponses) {
-                await processCharacterResponse(response);
-                lastSpeakers.add(response.character_id);
-            }
-
-            // Update story state with follow-up responses
-            storyState.updatePhase({ 
-                type: 'follow-up', 
-                content: followUpResponses.map(r => r.content).join(' ') 
-            });
-
-            availableCharacters = characters.filter(c => !lastSpeakers.has(c.id));
-        }
-
-        return responses;
-    } catch (error) {
-        console.error('Error in processMessage:', error);
-        throw error;
-    }
-}
-
-// Update startEndlessMode function
-async function startEndlessMode() {
-    if (!endlessModeActive || currentTurn >= endlessModeSettings.maxTurns) {
-        stopEndlessMode();
-        return;
-    }
-
-    try {
-        const prompts = storyState.getRelevantPrompts();
-        const prompt = prompts[Math.floor(Math.random() * prompts.length)];
-        const userMessage = await generateUserMessage(prompt);
-        
-        if (!userMessage) {
-            console.error('Failed to generate user message');
-            stopEndlessMode();
-            return;
-        }
-
-        addMessage({ 
-            type: 'user', 
-            content: userMessage,
-            id: `user-msg-${currentTurn}`
-        });
-
-        storyState.updatePhase({ type: 'user', content: userMessage });
-        await processMessage(userMessage, endlessModeSettings.temperature);
-        
-        currentTurn++;
-        
-        if (endlessModeActive) {
-            endlessModeTimeout = setTimeout(
-                startEndlessMode, 
-                endlessModeSettings.delay * 1000
-            );
-        }
-    } catch (error) {
-        console.error('Error in endless mode:', error);
-        stopEndlessMode();
-    }
-}
-
 async function generateUserMessage() {
     try {
         const response = await fetch('/v1/story/user-message', {
@@ -902,6 +705,42 @@ async function generateUserMessage() {
     }
 }
 
+async function startEndlessMode() {
+    if (!endlessModeActive || currentTurn >= endlessModeSettings.maxTurns) {
+        stopEndlessMode();
+        return;
+    }
+
+    try {
+        const userMessage = await generateUserMessage();
+        if (!userMessage) {
+            console.error('Failed to generate user message');
+            stopEndlessMode();
+            return;
+        }
+
+        addMessage({ 
+            type: 'user', 
+            content: userMessage,
+            id: `user-msg-${currentTurn}`
+        });
+
+        await processMessage(userMessage, endlessModeSettings.temperature);
+        
+        currentTurn++;
+        
+        if (endlessModeActive) {
+            endlessModeTimeout = setTimeout(
+                startEndlessMode, 
+                endlessModeSettings.delay * 1000
+            );
+        }
+
+    } catch (error) {
+        console.error('Error in endless mode:', error);
+        stopEndlessMode();
+    }
+}
 
 function stopEndlessMode() {
     endlessModeActive = false;
