@@ -49,7 +49,7 @@ cd models
 wget --content-disposition https://huggingface.co/mradermacher/DevQuasar-R1-Uncensored-Llama-8B-i1-GGUF/resolve/main/DevQuasar-R1-Uncensored-Llama-8B.i1-Q4_K_M.gguf
 cd ..
 mkdir sd
-wget --content-disposition https://civitai.com/api/download/models/299716?type=Model&format=SafeTensor&size=full&fp=fp16
+wget -O sdxlYamersRealisticNSFW_v5TX.safetensors https://huggingface.co/misri/sdxlYamersRealisticNSFW_v5TX/resolve/main/sdxlYamersRealisticNSFW_v5TX.safetensors
 cd /root
 
 # Clone repository and setup files
