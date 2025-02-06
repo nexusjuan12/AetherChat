@@ -46,7 +46,10 @@ wget -O koboldcpp https://github.com/LostRuins/koboldcpp/releases/download/v1.79
 chmod +x koboldcpp
 mkdir models
 cd models
-wget https://huggingface.co/DavidAU/L3.1-Dark-Planet-SpinFire-Uncensored-8B-GGUF/resolve/main/L3.1-Dark-Planet-SpinFire-Uncensored-8B-D_AU-Q4_k_m.gguf
+wget --content-disposition https://huggingface.co/mradermacher/DevQuasar-R1-Uncensored-Llama-8B-i1-GGUF/resolve/main/DevQuasar-R1-Uncensored-Llama-8B.i1-Q4_K_M.gguf
+cd ..
+mkdir sd
+wget --content-disposition "https://civitai.com/api/download/models/299716?type=Model&format=SafeTensor&size=full&fp=fp16
 cd /root
 
 # Clone repository and setup files
