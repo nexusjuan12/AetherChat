@@ -5,16 +5,20 @@ import uuid
 from threading import Lock, Timer
 import weakref
 from tts_with_rvc import TTS_RVC
+import config
 
 class RVCModelCache:
     _instance = None
-    
+
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, cache_timeout=1800, base_model_path="/root/models", input_dir="/root/input/", output_dir="/root/output/"):
+    def __init__(self, cache_timeout=1800, base_model_path=None, input_dir=None, output_dir=None):
+        base_model_path = base_model_path or config.MODELS_DIR
+        input_dir = input_dir or (config.INPUT_DIR + os.sep)
+        output_dir = output_dir or (config.OUTPUT_DIR + os.sep)
         # Only initialize if this is the first time
         if not hasattr(self, '_initialized'):
             self._cache = {}

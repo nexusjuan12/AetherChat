@@ -3,6 +3,7 @@ import py7zr
 import rarfile
 import tempfile
 import os
+import re
 import shutil
 from werkzeug.utils import secure_filename
 from flask import render_template, redirect, url_for, make_response
@@ -32,19 +33,25 @@ import base64
 import lzma
 import json
 from functools import wraps
+import config
 
 # Load environment variables
-load_dotenv('/root/.env')
+load_dotenv(config.ENV_FILE)
 
 app = Flask(__name__,
-    template_folder='/root/templates',
-    static_folder='/root/main'
+    template_folder=config.TEMPLATES_DIR,
+    static_folder=config.BASE_DIR
 )
-CORS(app, 
+CORS(app,
     supports_credentials=True,
     resources={
         r"/*": {
-            "origins": ["*"],  # Allow all origins for local deployment
+            # Was "*" (allow-all) combined with supports_credentials=True -
+            # browsers reject that combination for credentialed requests,
+            # and if they didn't, it would let any website ride a logged-in
+            # user's session cookie. Set CORS_ORIGINS (comma-separated) for
+            # your home-network deployment instead.
+            "origins": config.CORS_ORIGINS,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "supports_credentials": True
@@ -52,21 +59,29 @@ CORS(app,
     }
 )
 
-model_cache._base_model_path = "/root/models"
-model_cache._input_dir = "/root/input/"
-model_cache._output_dir = "/root/output/"
+model_cache._base_model_path = config.MODELS_DIR
+model_cache._input_dir = config.INPUT_DIR + os.sep
+model_cache._output_dir = config.OUTPUT_DIR + os.sep
 model_cache._cache_timeout = 1800  # 30 minutes timeout
 
 # App Configuration
+if not os.getenv('SECRET_KEY'):
+    raise RuntimeError(
+        'SECRET_KEY is not set. Refusing to start with a default/well-known '
+        'key, since that would let anyone forge session cookies. Set '
+        'SECRET_KEY in your .env or environment.'
+    )
+
 app.config.update(
-    SQLALCHEMY_DATABASE_URI='sqlite:////root/db/users.db',
+    SQLALCHEMY_DATABASE_URI=f'sqlite:///{config.DB_PATH}',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    SECRET_KEY=os.getenv('SECRET_KEY', 'dev-key-change-this'),
-    STATIC_FOLDER='/root/main',
+    SECRET_KEY=os.getenv('SECRET_KEY'),
+    STATIC_FOLDER=config.BASE_DIR,
     SESSION_COOKIE_SECURE=False,  # Changed for local deployment
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
     PERMANENT_SESSION_LIFETIME=timedelta(days=31),
+    SESSION_COOKIE_DOMAIN=config.SESSION_COOKIE_DOMAIN,
     SESSION_COOKIE_PATH='/',
     MAX_CONTENT_LENGTH=1024 * 1024 * 1024,
 )
@@ -96,14 +111,15 @@ def unauthorized():
     return redirect(url_for('serve_index'))
 
 # Directory configurations
-STATIC_DIR = "/root/main"
-OUTPUT_DIRECTORY = "/root/output/"
-UPLOAD_FOLDER = '/root/main/avatars'
-CHARACTER_FOLDER = '/root/main/characters'
+STATIC_DIR = config.BASE_DIR
+OUTPUT_DIRECTORY = config.OUTPUT_DIR + os.sep
+UPLOAD_FOLDER = config.UPLOAD_FOLDER
+CHARACTER_FOLDER = config.CHARACTER_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'wmv'}
 KOBOLD_API = os.getenv('KOBOLD_API', 'http://127.0.0.1:5000')
 
 
+os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
 os.makedirs(OUTPUT_DIRECTORY, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CHARACTER_FOLDER, exist_ok=True)
@@ -291,8 +307,36 @@ class CharacterApprovalQueue(db.Model):
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS 
-        
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Character ids are used to build filesystem paths for avatar/background/
+# model uploads, so they need to be restricted to a safe charset up front -
+# no '/', no '..', no separators of any kind.
+CHARACTER_ID_PATTERN = re.compile(r'^[A-Za-z0-9_-]{1,100}$')
+
+def resolve_character_id_for_upload(char_id):
+    """
+    Validate a character id used to build a filesystem path for an
+    avatar/background/model upload.
+
+    Character creation uploads avatar/background/model files *before* the
+    Character row exists, so a char_id with no matching row yet is
+    legitimate and allowed through. A char_id that already belongs to a
+    *different* user's character is rejected - that's the case that let any
+    logged-in user overwrite another user's files.
+
+    Returns (char_id, None) if the upload may proceed, or
+    (None, (response, status_code)) if it must be rejected.
+    """
+    if not char_id or not CHARACTER_ID_PATTERN.match(char_id):
+        return None, (jsonify({'error': 'Invalid character ID'}), 400)
+
+    existing = Character.query.get(char_id)
+    if existing and str(existing.creator_id) != str(current_user.id) and not current_user.is_admin:
+        return None, (jsonify({'error': 'You do not have permission to modify this character'}), 403)
+
+    return char_id, None
+
 def kobold_handler(data):
     """Handle Kobold API requests"""
     try:
@@ -1333,13 +1377,20 @@ def upload_avatar():
         return jsonify({'error': 'No file selected'}), 400
         
     if file and allowed_file(file.filename):
-        # Get character ID instead of name for consistency
-        character_id = file.filename.split('-')[0]
+        # The frontend sends characterId as a form field. Previously this
+        # was ignored in favor of parsing it out of the *filename* itself
+        # (file.filename.split('-')[0]) with no sanitization at all, which
+        # let a crafted filename like "../../etc/x-avatar.png" write outside
+        # UPLOAD_FOLDER entirely.
+        character_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
+        if error:
+            return error
+
         filename = f"{character_id}-avatar.png"  # Use character ID consistently
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         return jsonify({'avatarPath': f'./avatars/{filename}'}), 200
-    
+
     return jsonify({'error': 'Invalid file type'}), 400
 
 
@@ -1348,15 +1399,20 @@ def upload_avatar():
 def upload_background():
     if 'background' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-        
+
     file = request.files['background']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-        
+
     if file and allowed_file(file.filename):
-        # Get character ID from form data
-        character_id = request.form.get('characterId')
-        
+        # Get character ID from form data. Previously used with no
+        # validation at all - any authenticated user could pass another
+        # user's characterId (broken access control) or a value containing
+        # ".." (path traversal) to write into an arbitrary directory.
+        character_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
+        if error:
+            return error
+
         # Create character directory
         char_dir = os.path.join(CHARACTER_FOLDER, character_id)
         os.makedirs(char_dir, exist_ok=True)
@@ -1445,12 +1501,19 @@ def check_character(character_name):
 @login_required
 def upload_model():
     try:
-        char_id = request.form.get('characterId')
-        if not char_id:
-            return jsonify({'error': 'Character ID is required'}), 400
+        # Character creation uploads the model *before* the Character row
+        # exists, so char_id may legitimately have no matching row yet.
+        # What must be rejected is a char_id that is either unsafe for
+        # path-building or already belongs to someone else's character -
+        # previously neither was checked at all, so any authenticated user
+        # could pass an arbitrary string (including "../..") and write into,
+        # or escape, another character's model dir.
+        char_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
+        if error:
+            return error
 
         # Create model directory
-        model_dir = os.path.join('/root/models', char_id)
+        model_dir = os.path.join(config.MODELS_DIR, char_id)
         os.makedirs(model_dir, exist_ok=True)
 
         # Handle model file upload
@@ -1458,33 +1521,34 @@ def upload_model():
             model_file = request.files['modelFile']
             if not model_file.filename.endswith('.pth'):
                 return jsonify({'error': 'Invalid model file type. Must be .pth'}), 400
-                
+
             model_path = os.path.join(model_dir, f"{char_id}.pth")
             model_file.save(model_path)
             return jsonify({'message': 'Model file uploaded successfully'})
-            
+
         # Handle index file upload
         elif 'indexFile' in request.files:
             index_file = request.files['indexFile']
             if not index_file.filename.endswith('.index'):
                 return jsonify({'error': 'Invalid index file type. Must be .index'}), 400
-                
+
             index_path = os.path.join(model_dir, f"{char_id}.index")
             index_file.save(index_path)
-            
+
             # Check if model file exists
             model_path = os.path.join(model_dir, f"{char_id}.pth")
             if not os.path.exists(model_path):
                 return jsonify({'error': 'Model file not found'}), 400
-                
-            # Update character settings
+
+            # Update character settings, if the character record exists yet
+            # (it won't during the initial character-creation upload flow).
             character = Character.query.get(char_id)
-            if character and character.creator_id == current_user.id:
+            if character:
                 if not character.settings:
                     character.settings = {}
                 character.settings['rvc_model'] = char_id
                 db.session.commit()
-                
+
             return jsonify({
                 'message': 'Model upload completed successfully',
                 'character_id': char_id
@@ -1539,7 +1603,7 @@ def get_available_voices():
             "en-US-SteffanNeural"
         ]
         
-        models_dir = '/root/models'
+        models_dir = config.MODELS_DIR
         rvc_models = []
         
         for model_name in os.listdir(models_dir):
@@ -1882,8 +1946,8 @@ def admin_dashboard():
 def delete_character(character_id):
     try:
         # Define base paths
-        BASE_PATH = '/root/main'
-        MODELS_PATH = '/root/models'
+        BASE_PATH = config.BASE_DIR
+        MODELS_PATH = config.MODELS_DIR
         
         # Define all paths that need to be checked and cleaned
         paths_to_clean = {
@@ -2148,13 +2212,20 @@ def upload_large_model():
 
         model_file = request.files['modelFile']
         index_file = request.files['indexFile']
-        char_id = request.form.get('characterId')
 
-        if not char_id:
-            return jsonify({'error': 'Character ID is required'}), 400
+        if not model_file.filename.endswith('.pth'):
+            return jsonify({'error': 'Invalid model file type. Must be .pth'}), 400
+        if not index_file.filename.endswith('.index'):
+            return jsonify({'error': 'Invalid index file type. Must be .index'}), 400
+
+        # Same validation as /characters/upload-model: reject an unsafe
+        # char_id, or one that already belongs to someone else's character.
+        char_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
+        if error:
+            return error
 
         # Create model directory
-        model_dir = os.path.join('/root/models', char_id)
+        model_dir = os.path.join(config.MODELS_DIR, char_id)
         os.makedirs(model_dir, exist_ok=True)
 
         try:

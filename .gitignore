@@ -1,0 +1,23 @@
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+env_backup*
+
+# Local data / generated artifacts
+db/*.db
+models/
+input/
+output/
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor/OS cruft and stray backup copies
+*.bak
+*-Copy1.*
+.DS_Store

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# NOTE: the app code (webserver.py, config.py, etc.) is now path-portable
+# via config.py's env vars (APP_BASE_DIR, MODELS_DIR, DB_PATH, ...), but this
+# script still assumes the old /root layout. Left as-is for now; revisit
+# together with the webserver.py module split before actually deploying.
+
 # Install system dependencies
 sudo apt update
 sudo apt install -y build-essential gcc g++ make cmake python3 python3-pip python3-venv ffmpeg libsndfile1 portaudio19-dev python3-dev unrar p7zip-full libgl1-mesa-glx libasound2-dev

@@ -33,8 +33,10 @@ cd ..
 // *Download AetherChat
 
 git clone https://github.com/nexusjuan12/youraiwaifv2.git
-nexusjuan12
-***REMOVED-GITHUB-PAT***
+# NOTE: a GitHub username + Personal Access Token used to be pasted here as
+# plaintext credentials for this clone. Removed - revoke that token if you
+# haven't already, and use an SSH key or `gh auth login` instead of a PAT
+# embedded in a URL/notes file.
 # Follow instructions here https://github.com/Atm4x/tts-with-rvcAutoPlay
 
 python -m pip install git+https://github.com/Atm4x/tts-with-rvc.git#egg=tts_with_rvc
