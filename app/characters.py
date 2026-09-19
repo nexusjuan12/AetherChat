@@ -715,11 +715,13 @@ def update_character(character_id):
                 character.settings = {}
             if data.get('tts_rate') is not None: character.settings['tts_rate'] = data['tts_rate']
             if data.get('ai_parameters'): character.settings['ai_parameters'] = data['ai_parameters']
-            if data.get('voice_profile_id'):
-                voice_profile = db.session.get(VoiceProfile, data['voice_profile_id'])
-                if not voice_profile or not voice_profile.is_usable_by(current_user):
-                    return jsonify({'error': 'Selected voice profile is unavailable'}), 403
-                character.voice_profile_id = voice_profile.id
+            if 'voice_profile_id' in data:
+                voice_profile_id = data.get('voice_profile_id') or None
+                if voice_profile_id:
+                    voice_profile = db.session.get(VoiceProfile, voice_profile_id)
+                    if not voice_profile or not voice_profile.is_usable_by(current_user):
+                        return jsonify({'error': 'Selected voice profile is unavailable'}), 403
+                character.voice_profile_id = voice_profile_id
             
             db.session.commit()
             

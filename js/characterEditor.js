@@ -59,6 +59,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadVoiceProfiles(selectedId = '') {
+        const profileSelect = document.getElementById('voiceProfile');
+        if (!profileSelect) return;
+
+        try {
+            const response = await fetch('/api/voice-profiles', { credentials: 'include' });
+            if (!response.ok) throw new Error('Failed to fetch voice profiles');
+            const profiles = await response.json();
+            profileSelect.innerHTML = '<option value="">Use the default voice</option>';
+            profiles.forEach(profile => {
+                const option = document.createElement('option');
+                option.value = profile.id;
+                option.textContent = profile.display_name;
+                profileSelect.appendChild(option);
+            });
+            profileSelect.value = selectedId || '';
+        } catch (error) {
+            console.error('Error loading voice profiles:', error);
+        }
+    }
+
     // Media file upload function
     async function uploadMediaFile(file, type, characterId) {
         if (!file) return null;
@@ -281,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // System Prompt and TTS Voice
         document.getElementById('systemPrompt').value = data.system_prompt || data.systemPrompt || '';
         document.getElementById('ttsVoice').value = data.tts_voice || data.ttsVoice || '';
+        loadVoiceProfiles(data.voice_profile_id || '');
 
         // Voice Settings
         document.getElementById('tts_rate').value = data.tts_rate || 0;
@@ -469,6 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Voice settings
+            jsonData.voice_profile_id = formData.get('voice_profile_id') || '';
             jsonData.tts_rate = parseInt(formData.get('tts_rate')) || 0;
             jsonData.rvc_pitch = parseInt(formData.get('rvc_pitch')) || 0;
 
