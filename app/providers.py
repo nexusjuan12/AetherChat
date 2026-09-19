@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import mimetypes
 import os
 import time
 import uuid
@@ -75,9 +76,10 @@ class SpeechClient:
             headers['authorization'] = f'Bearer {config.TTS_API_KEY}'
         try:
             with sample_path.open('rb') as sample:
+                content_type = mimetypes.guess_type(sample_path.name)[0] or 'application/octet-stream'
                 response = requests.post(
                     f'{config.TTS_API_BASE}/v1/voices', headers=headers,
-                    files={'sample': (sample_path.name, sample, 'audio/wav')},
+                    files={'sample': (sample_path.name, sample, content_type)},
                     data={'reference_text': reference_text, 'display_name': display_name},
                     timeout=(10, 300),
                 )
@@ -90,6 +92,21 @@ class SpeechClient:
         if not profile_id:
             raise ProviderError('Speech provider returned an invalid voice profile')
         return str(profile_id)
+
+    def delete_voice_profile(self, provider_profile_id: str) -> None:
+        """Remove a provider-side voice profile after the owner deletes it."""
+        headers = {}
+        if config.TTS_API_KEY:
+            headers['authorization'] = f'Bearer {config.TTS_API_KEY}'
+        try:
+            response = requests.delete(
+                f'{config.TTS_API_BASE}/v1/voices/{provider_profile_id}',
+                headers=headers, timeout=(5, 30),
+            )
+        except requests.RequestException as error:
+            raise ProviderError('Speech provider is unavailable') from error
+        if response.status_code not in {204, 404}:
+            raise ProviderError('Speech provider could not remove this voice profile')
 
     def synthesize(self, text: str, voice_profile_id: str | None) -> bytes:
         headers = {'content-type': 'application/json'}

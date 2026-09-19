@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 
 import requests
-from flask import Blueprint, abort, jsonify, request, send_file
+from flask import Blueprint, abort, jsonify, render_template, request, send_file
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
@@ -18,7 +18,7 @@ from queue_system import request_queue
 
 bp = Blueprint('media', __name__)
 KOBOLD_API = os.getenv('KOBOLD_API', '').rstrip('/')
-ALLOWED_VOICE_EXTENSIONS = {'wav', 'mp3', 'm4a', 'ogg', 'flac'}
+ALLOWED_VOICE_EXTENSIONS = {'wav', 'mp3', 'ogg', 'flac'}
 
 
 def kobold_handler(_user_id: str, data: dict) -> dict:
@@ -99,6 +99,12 @@ def voice_profiles():
     return jsonify([profile.to_dict() for profile in profiles if profile.is_usable_by(current_user)])
 
 
+@bp.route('/voice-profiles')
+@login_required
+def voice_profiles_page():
+    return render_template('voice-profiles.html')
+
+
 @bp.route('/api/voice-profiles', methods=['POST'])
 @login_required
 def create_voice_profile():
@@ -150,12 +156,26 @@ def approve_voice_profile(profile_id):
     return jsonify(profile.to_dict())
 
 
+@bp.route('/api/admin/voice-profiles/pending')
+@login_required
+def pending_voice_profiles():
+    if not current_user.is_admin:
+        abort(403)
+    profiles = VoiceProfile.query.filter_by(visibility='public', approval_status='pending').order_by(VoiceProfile.created_at).all()
+    return jsonify([profile.to_dict() for profile in profiles])
+
+
 @bp.route('/api/voice-profiles/<profile_id>', methods=['DELETE'])
 @login_required
 def disable_voice_profile(profile_id):
     profile = db.session.get(VoiceProfile, profile_id)
     if not profile or (profile.owner_id != current_user.id and not current_user.is_admin):
         abort(404)
+    if profile.provider_profile_id:
+        try:
+            SpeechClient().delete_voice_profile(profile.provider_profile_id)
+        except ProviderError as error:
+            return jsonify({'error': str(error)}), 503
     profile.disabled_at = db.func.now()
     db.session.commit()
     return '', 204

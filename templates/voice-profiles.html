@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice Profiles - AetherChat</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="auth-container" style="max-width: 760px">
+    <p><a href="/">Back to characters</a></p>
+    <h1>Voice Profiles</h1>
+    <p>Upload only a voice sample you own or have explicit permission to use. Private profiles are available only to you. Public profiles require administrator approval.</p>
+    <form id="voice-profile-form" class="auth-form">
+      <label>Profile Name <input id="display-name" maxlength="100" required></label>
+      <label>Voice Sample <input id="sample" type="file" accept="audio/wav,audio/mpeg,audio/ogg,audio/flac,.wav,.mp3,.ogg,.flac" required></label>
+      <label>Transcript <textarea id="reference-text" required></textarea></label>
+      <label>Visibility
+        <select id="visibility"><option value="private">Private</option><option value="public">Public, pending review</option></select>
+      </label>
+      <label><input id="consent" type="checkbox" required> I have the right to create this voice profile.</label>
+      <p id="status" role="status"></p>
+      <button class="nav-button" type="submit">Create Voice Profile</button>
+    </form>
+    <section>
+      <h2>Available Profiles</h2>
+      <div id="profile-list">Loading…</div>
+    </section>
+  </main>
+  <script type="module">
+    import { apiFetch, checkAuth } from '/auth.js';
+    const status = document.getElementById('status');
+    const list = document.getElementById('profile-list');
+
+    async function loadProfiles() {
+      const response = await apiFetch('/api/voice-profiles');
+      if (!response.ok) { list.textContent = 'Unable to load voice profiles.'; return; }
+      const profiles = await response.json();
+      list.replaceChildren(...profiles.map(profile => {
+        const row = document.createElement('p');
+        row.textContent = `${profile.display_name} · ${profile.visibility} · ${profile.approval_status}`;
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.textContent = 'Delete'; remove.className = 'nav-button';
+        remove.addEventListener('click', async () => {
+          if (!confirm(`Delete ${profile.display_name}?`)) return;
+          const response = await apiFetch(`/api/voice-profiles/${encodeURIComponent(profile.id)}`, {method: 'DELETE'});
+          if (!response.ok) status.textContent = (await response.json()).error || 'Unable to delete profile.';
+          await loadProfiles();
+        });
+        row.append(' ', remove);
+        return row;
+      }));
+      if (!profiles.length) list.textContent = 'No voice profiles are available yet.';
+    }
+
+    document.getElementById('voice-profile-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = new FormData();
+      form.append('display_name', document.getElementById('display-name').value);
+      form.append('sample', document.getElementById('sample').files[0]);
+      form.append('reference_text', document.getElementById('reference-text').value);
+      form.append('visibility', document.getElementById('visibility').value);
+      form.append('consent', document.getElementById('consent').checked ? 'true' : 'false');
+      status.textContent = 'Preparing voice profile…';
+      const response = await apiFetch('/api/voice-profiles', {method: 'POST', body: form});
+      const data = await response.json();
+      if (!response.ok) { status.textContent = data.error || 'Unable to create voice profile.'; return; }
+      event.currentTarget.reset();
+      status.textContent = data.visibility === 'public' ? 'Submitted for administrator approval.' : 'Voice profile created.';
+      await loadProfiles();
+    });
+
+    if (!await checkAuth()) location.assign('/login');
+    else loadProfiles();
+  </script>
+</body>
+</html>

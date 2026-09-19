@@ -25,13 +25,17 @@
       <h2>Accounts</h2>
       <div id="users">Loading…</div>
     </section>
+    <section>
+      <h2>Pending Public Voice Profiles</h2>
+      <div id="pending-voices">Loading…</div>
+    </section>
   </main>
   <script type="module">
     import { apiFetch, checkAuth } from '/auth.js';
     const users = document.getElementById('users');
     async function load() {
       if (!await checkAuth()) { location.assign('/login'); return; }
-      const [userResponse, featureResponse] = await Promise.all([apiFetch('/api/admin/users'), apiFetch('/api/admin/features')]);
+      const [userResponse, featureResponse, voiceResponse] = await Promise.all([apiFetch('/api/admin/users'), apiFetch('/api/admin/features'), apiFetch('/api/admin/voice-profiles/pending')]);
       const accountRows = await userResponse.json();
       const features = await featureResponse.json();
       document.getElementById('video').checked = features.video;
@@ -41,6 +45,21 @@
         line.textContent = `${user.username} · ${user.auth_provider} · ${user.is_active ? 'active' : 'disabled'}${user.is_admin ? ' · admin' : ''}`;
         return line;
       }));
+      const voiceRows = await voiceResponse.json();
+      const pending = document.getElementById('pending-voices');
+      pending.replaceChildren(...voiceRows.map(profile => {
+        const row = document.createElement('p');
+        row.textContent = `${profile.display_name} · submitted ${profile.created_at}`;
+        const approve = document.createElement('button');
+        approve.className = 'nav-button'; approve.textContent = 'Approve';
+        approve.addEventListener('click', async () => {
+          await apiFetch(`/api/voice-profiles/${encodeURIComponent(profile.id)}/approve`, {method: 'POST'});
+          load();
+        });
+        row.append(' ', approve);
+        return row;
+      }));
+      if (!voiceRows.length) pending.textContent = 'No public profiles awaiting review.';
     }
     document.getElementById('create-invite').addEventListener('click', async () => {
       const response = await apiFetch('/api/admin/invites', {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({expires_in_hours: Number(document.getElementById('invite-hours').value)})});
