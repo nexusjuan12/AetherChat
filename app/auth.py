@@ -38,7 +38,13 @@ def _allow_login_attempt() -> bool:
 
 def _authentik_groups() -> set[str]:
     raw = request.headers.get('X-Authentik-Groups', '')
-    return {group.strip().lower() for group in raw.split(',') if group.strip()}
+    # Authentik's proxy mapping uses a pipe-delimited group header by default.
+    # Accept common delimiters so this remains compatible with a custom mapping.
+    return {
+        group.strip().lower()
+        for group in re.split(r'[,;|]', raw)
+        if group.strip()
+    }
 
 
 def _authentik_user() -> User | None:
