@@ -246,6 +246,7 @@ function createCharacterCard(char) {
     const isPrivate = char.isPrivate || false;
     const isPending = char.approvalStatus === 'pending';
     const isCreator = currentUser && char.creator === currentUser.id;
+    const canEdit = currentUser && (currentUser.is_admin || isCreator);
 
     // Status badge logic
     let statusBadge = '';
@@ -274,8 +275,15 @@ function createCharacterCard(char) {
                 ${tagsHtml}
                 ${statusBadge}
             </div>
+            ${canEdit ? `<button type="button" class="character-edit-button">Edit</button>` : ''}
         </div>
     `;
+
+    const editButton = card.querySelector('.character-edit-button');
+    editButton?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        window.location.href = `/edit-character/${encodeURIComponent(char.id)}`;
+    });
 
     card.addEventListener('click', () => {
         // Access rules:

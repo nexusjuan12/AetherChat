@@ -177,6 +177,21 @@ main {
     border-color: var(--primary-variant);
 }
 
+.character-edit-button {
+    margin-top: 0.85rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid rgba(0, 180, 255, 0.35);
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--on-surface);
+    cursor: pointer;
+}
+
+.character-edit-button:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
 .character-image {
     width: 100%;
     height: 200px;
