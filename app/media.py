@@ -1,375 +1,173 @@
-"""
-TTS, chat completion, image generation, and text generation call sites
-(the last two forward directly to koboldcpp's SD/kobold-native API), plus
-the audio file serving route and the RVC/edge-tts voice listing endpoint.
-Moved out of the original monolithic webserver.py.
-"""
+"""Text, speech, voice-profile, and legacy image-provider routes."""
+from __future__ import annotations
+
 import os
-import time
 import uuid
-import traceback
-from functools import wraps
+from pathlib import Path
 
 import requests
-from flask import (
-    Blueprint, request, jsonify, make_response, send_file,
-)
-from flask_login import login_required, current_user
+from flask import Blueprint, abort, jsonify, request, send_file
+from flask_login import current_user, login_required
+from werkzeug.utils import secure_filename
 
 import config
 from .extensions import db
-from .models import CreditTransaction
+from .models import VoiceProfile
+from .providers import LlmClient, ProviderError, SpeechClient, write_owned_audio
 from queue_system import request_queue
-from model_cache import model_cache
 
 bp = Blueprint('media', __name__)
+KOBOLD_API = os.getenv('KOBOLD_API', '').rstrip('/')
+ALLOWED_VOICE_EXTENSIONS = {'wav', 'mp3', 'm4a', 'ogg', 'flac'}
 
-OUTPUT_DIRECTORY = config.OUTPUT_DIR + os.sep
-KOBOLD_API = os.getenv('KOBOLD_API', 'http://127.0.0.1:5000')
+
+def kobold_handler(_user_id: str, data: dict) -> dict:
+    return LlmClient().complete(data)
 
 
-def kobold_handler(data):
-    """Handle Kobold API requests"""
+def _voice_profile_for_request(data: dict) -> str | None:
+    profile_id = data.get('voice_profile_id')
+    if not profile_id:
+        return None
+    profile = db.session.get(VoiceProfile, profile_id)
+    if not profile or not profile.is_usable_by(current_user) or not profile.provider_profile_id:
+        raise ProviderError('Selected voice profile is unavailable')
+    return profile.provider_profile_id
+
+
+def tts_handler(user_id: str, data: dict) -> dict:
+    text = str(data.get('text', '')).strip()
+    if not text or len(text) > 4000:
+        raise ProviderError('Speech text must be between 1 and 4000 characters')
+    # The owning request has already been authenticated. Profile access is
+    # rechecked by the route before this background job is queued.
+    audio = SpeechClient().synthesize(text, data.get('provider_voice_profile_id'))
+    filename, _path = write_owned_audio(user_id, audio)
+    return {'audio_url': f'/audio/{filename}'}
+
+
+def _submit_job(kind: str, data: dict):
+    if kind == 'tts':
+        data['provider_voice_profile_id'] = _voice_profile_for_request(data)
     try:
-        # Your existing Kobold API call
-        kobold_response = requests.post(
-            f'{KOBOLD_API}/v1/chat/completions',
-            json=data
-        )
-        return kobold_response.json()
-    except Exception as e:
-        raise Exception(f"Kobold API error: {str(e)}")
+        request_id = request_queue.add_request(current_user.id, kind, data)
+    except ValueError:
+        return jsonify({'error': 'Service is not configured'}), 503
+    return jsonify({'status': 'queued', 'request_id': request_id}), 202
 
-def check_kobold_available():
-    """Check if KoboldCPP API is available"""
-    try:
-        response = requests.get(f'{KOBOLD_API}/api/v1/model')
-        return response.ok
-    except:
-        return False
-
-def handle_kobold_error(response):
-    """Handle error responses from KoboldCPP"""
-    try:
-        error_data = response.json()
-        return jsonify({
-            'error': 'KoboldCPP API error',
-            'details': error_data.get('detail', str(response.status_code))
-        }), response.status_code
-    except:
-        return jsonify({
-            'error': 'KoboldCPP API error',
-            'details': str(response.status_code)
-        }), response.status_code
-
-def require_kobold(f):
-    """Decorator to check if KoboldCPP is available"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not check_kobold_available():
-            return jsonify({
-                'error': 'KoboldCPP API is not available'
-            }), 503
-        return f(*args, **kwargs)
-    return decorated_function
-
-def tts_handler(data):
-    try:
-        print("TTS handler received data:", data)
-        text = data.get("text")
-        character_id = data.get("rvc_model")
-        edge_voice = data.get("edge_voice")
-        tts_rate = data.get("tts_rate", 0)
-        rvc_pitch = data.get("rvc_pitch", 0)
-
-        # Get TTS instance from cache
-        tts = model_cache.get_model(character_id)
-        
-        unique_id = str(uuid.uuid4())
-        output_filename = f"response_{unique_id}.wav"
-        output_path = os.path.join(OUTPUT_DIRECTORY, output_filename)
-
-        # Set voice and generate audio
-        if edge_voice:
-            tts.set_voice(edge_voice)
-            
-        tts(
-            text=text,
-            pitch=rvc_pitch,
-            tts_rate=tts_rate,
-            output_filename=output_path
-        )
-
-        if not os.path.exists(output_path):
-            raise Exception("Failed to generate audio file")
-
-        return {"audio_url": f"/audio/{output_filename}"}
-
-    except Exception as e:
-        print(f"TTS handler error: {str(e)}")
-        traceback.print_exc()
-        raise Exception(f"TTS error: {str(e)}")
-
-@bp.route('/v1/tts', methods=['POST'])
-@login_required
-def tts():
-    if request.method == 'OPTIONS':
-        return handle_options()
-
-    try:
-        CREDITS_PER_TTS = 5
-        
-        # Check if user has enough credits
-        if not current_user.deduct_credits_atomic(CREDITS_PER_TTS):
-            return jsonify({
-                'error': 'Insufficient credits',
-                'credits_required': CREDITS_PER_TTS,
-                'credits_available': current_user.credits
-            }), 402
-
-        # Create transaction record
-        transaction = CreditTransaction(
-            user_id=current_user.id,
-            amount=-CREDITS_PER_TTS,
-            transaction_type='tts',
-            description='Text-to-speech conversion'
-        )
-        db.session.add(transaction)
-
-        # Add request to queue
-        data = request.json
-        request_id = request_queue.add_request(current_user.id, 'tts', data)
-        
-        # Check initial status
-        status = request_queue.get_status(request_id)
-        
-        if status['status'] == 'queued' and status['position'] > 3:
-            return jsonify({
-                'status': 'queued',
-                'position': status['position'],
-                'request_id': request_id
-            })
-        
-        # Poll for completion if position is low
-        max_attempts = 30
-        for _ in range(max_attempts):
-            status = request_queue.get_status(request_id)
-            if status['status'] == 'complete':
-                db.session.commit()
-                return jsonify(status['result'])
-            elif status['status'] == 'error':
-                current_user.add_credits(CREDITS_PER_TTS)
-                db.session.delete(transaction)
-                db.session.commit()
-                return jsonify({'error': status['result']['error']}), 500
-            time.sleep(1)
-        
-        # Timeout - refund credits
-        current_user.add_credits(CREDITS_PER_TTS)
-        db.session.delete(transaction)
-        db.session.commit()
-        return jsonify({'error': 'Request timeout'}), 408
-
-    except Exception as e:
-        if 'transaction' in locals():
-            current_user.add_credits(CREDITS_PER_TTS)
-            db.session.delete(transaction)
-            db.session.commit()
-        return jsonify({'error': str(e)}), 500
-
-@bp.route('/v1/chat/status/<request_id>')
-@login_required
-def check_chat_status(request_id):
-    status = request_queue.get_status(request_id)
-    if not status:
-        return jsonify({'error': 'Request not found'}), 404
-    return jsonify(status)
 
 @bp.route('/v1/chat/completions', methods=['POST'])
 @login_required
 def chat_completions():
-    if request.method == 'OPTIONS':
-        return handle_options()
+    return _submit_job('chat', request.get_json(silent=True) or {})
 
-    try:
-        CREDITS_PER_MESSAGE = 10
-        
-        # Check if user has enough credits
-        if not current_user.deduct_credits_atomic(CREDITS_PER_MESSAGE):
-            return jsonify({
-                'error': 'Insufficient credits',
-                'credits_required': CREDITS_PER_MESSAGE,
-                'credits_available': current_user.credits
-            }), 402
 
-        # Create transaction record
-        transaction = CreditTransaction(
-            user_id=current_user.id,
-            amount=-CREDITS_PER_MESSAGE,
-            transaction_type='message',
-            description='Chat completion message'
-        )
-        db.session.add(transaction)
-
-        # Add request to queue
-        data = request.json
-        request_id = request_queue.add_request(current_user.id, 'chat', data)
-        
-        # Check initial status
-        status = request_queue.get_status(request_id)
-        
-        if status['status'] == 'queued' and status['position'] > 3:
-            # Return queued status if position is high
-            return jsonify({
-                'status': 'queued',
-                'position': status['position'],
-                'request_id': request_id
-            })
-        
-        # Poll for completion if position is low
-        max_attempts = 30  # 30 second timeout
-        for _ in range(max_attempts):
-            status = request_queue.get_status(request_id)
-            if status['status'] == 'complete':
-                db.session.commit()  # Commit the transaction
-                return jsonify(status['result'])
-            elif status['status'] == 'error':
-                # Refund credits on error
-                current_user.add_credits(CREDITS_PER_MESSAGE)
-                db.session.delete(transaction)
-                db.session.commit()
-                return jsonify({'error': status['result']['error']}), 500
-            time.sleep(1)
-        
-        # Timeout - refund credits
-        current_user.add_credits(CREDITS_PER_MESSAGE)
-        db.session.delete(transaction)
-        db.session.commit()
-        return jsonify({'error': 'Request timeout'}), 408
-        
-    except Exception as e:
-        if 'transaction' in locals():
-            current_user.add_credits(CREDITS_PER_MESSAGE)
-            db.session.delete(transaction)
-            db.session.commit()
-        return jsonify({'error': str(e)}), 500
-
-@bp.route('/audio/<filename>', methods=['GET'])
-def get_audio(filename):
-    file_path = os.path.join(OUTPUT_DIRECTORY, filename)
-    print(f"Requested audio file: {file_path}")
-    if os.path.exists(file_path):
-        print(f"Serving audio file: {file_path}")
-        response = send_file(file_path, mimetype="audio/wav")
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
-    print(f"Audio file not found: {file_path}")
-    return jsonify({"error": "File not found"}), 404
-
-@bp.route('/api/available-voices', methods=['GET'])
+@bp.route('/v1/tts', methods=['POST'])
 @login_required
-def get_available_voices():
-    try:
-        edge_voices = [
-            "en-GB-LibbyNeural",
-            "en-GB-MaisieNeural",
-            "en-GB-RyanNeural",
-            "en-GB-SoniaNeural",
-            "en-GB-ThomasNeural",
-            "en-US-AvaMultilingualNeural",
-            "en-US-AndrewMultilingualNeural",
-            "en-US-EmmaMultilingualNeural",
-            "en-US-BrianMultilingualNeural",
-            "en-US-AvaNeural",
-            "en-US-AndrewNeural",
-            "en-US-EmmaNeural",
-            "en-US-BrianNeural",
-            "en-US-AnaNeural",
-            "en-US-AriaNeural",
-            "en-US-ChristopherNeural",
-            "en-US-EricNeural",
-            "en-US-GuyNeural",
-            "en-US-JennyNeural",
-            "en-US-MichelleNeural",
-            "en-US-RogerNeural",
-            "en-US-SteffanNeural"
-        ]
-        
-        models_dir = config.MODELS_DIR
-        rvc_models = []
-        
-        for model_name in os.listdir(models_dir):
-            model_dir = os.path.join(models_dir, model_name)
-            if os.path.isdir(model_dir):
-                if os.path.exists(os.path.join(model_dir, f"{model_name}.pth")) and \
-                   os.path.exists(os.path.join(model_dir, f"{model_name}.index")):
-                    rvc_models.append(model_name)
-                    
-        return jsonify({
-            'edge_voices': edge_voices,
-            'rvc_models': rvc_models
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+def tts():
+    return _submit_job('tts', request.get_json(silent=True) or {})
 
-def handle_options():
-    response = make_response()
-    response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin', '*'))
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Content-Length')
-    response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Max-Age', '3600')
-    return response
+
+@bp.route('/v1/jobs/<request_id>')
+@login_required
+def job_status(request_id):
+    status = request_queue.get_status(request_id, current_user.id)
+    if not status:
+        return jsonify({'error': 'Request not found'}), 404
+    return jsonify(status)
+
+
+@bp.route('/audio/<filename>')
+@login_required
+def get_audio(filename):
+    filename = os.path.basename(filename)
+    if not filename.startswith(f'{current_user.id}-'):
+        abort(404)
+    path = Path(config.OUTPUT_DIR) / filename
+    if not path.is_file():
+        abort(404)
+    return send_file(path, mimetype='audio/wav', conditional=True)
+
+
+@bp.route('/api/voice-profiles')
+@login_required
+def voice_profiles():
+    profiles = VoiceProfile.query.filter(
+        (VoiceProfile.owner_id == current_user.id) |
+        ((VoiceProfile.visibility == 'public') & (VoiceProfile.approval_status == 'approved'))
+    ).order_by(VoiceProfile.display_name).all()
+    return jsonify([profile.to_dict() for profile in profiles if profile.is_usable_by(current_user)])
+
+
+@bp.route('/api/voice-profiles', methods=['POST'])
+@login_required
+def create_voice_profile():
+    sample = request.files.get('sample')
+    display_name = str(request.form.get('display_name', '')).strip()
+    reference_text = str(request.form.get('reference_text', '')).strip()
+    visibility = str(request.form.get('visibility', 'private')).strip().lower()
+    consent = request.form.get('consent') == 'true'
+    if not sample or not display_name or not reference_text or not consent:
+        return jsonify({'error': 'Sample, name, transcript, and consent are required'}), 400
+    if visibility not in {'private', 'public'}:
+        return jsonify({'error': 'Invalid visibility'}), 400
+    suffix = Path(secure_filename(sample.filename)).suffix.lower().lstrip('.')
+    if suffix not in ALLOWED_VOICE_EXTENSIONS:
+        return jsonify({'error': 'Unsupported voice sample format'}), 400
+    profile = VoiceProfile(
+        id=str(uuid.uuid4()), owner_id=current_user.id, display_name=display_name, sample_path='',
+        reference_text=reference_text, visibility=visibility,
+        approval_status='pending' if visibility == 'public' else 'approved',
+    )
+    path = Path(config.VOICE_SAMPLE_DIR) / f'{profile.id}.{suffix}'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    sample.save(path)
+    if path.stat().st_size > 25 * 1024 * 1024:
+        path.unlink(missing_ok=True)
+        return jsonify({'error': 'Voice sample exceeds 25 MB'}), 413
+    profile.sample_path = path.name
+    try:
+        profile.provider_profile_id = SpeechClient().prepare_voice_profile(path, reference_text, display_name)
+    except ProviderError as error:
+        path.unlink(missing_ok=True)
+        return jsonify({'error': str(error)}), 503
+    db.session.add(profile)
+    db.session.commit()
+    return jsonify(profile.to_dict()), 201
+
+
+@bp.route('/api/voice-profiles/<profile_id>/approve', methods=['POST'])
+@login_required
+def approve_voice_profile(profile_id):
+    if not current_user.is_admin:
+        abort(403)
+    profile = db.session.get(VoiceProfile, profile_id)
+    if not profile or profile.visibility != 'public':
+        abort(404)
+    profile.approval_status = 'approved'
+    profile.reviewed_by = current_user.id
+    db.session.commit()
+    return jsonify(profile.to_dict())
+
+
+@bp.route('/api/voice-profiles/<profile_id>', methods=['DELETE'])
+@login_required
+def disable_voice_profile(profile_id):
+    profile = db.session.get(VoiceProfile, profile_id)
+    if not profile or (profile.owner_id != current_user.id and not current_user.is_admin):
+        abort(404)
+    profile.disabled_at = db.func.now()
+    db.session.commit()
+    return '', 204
+
 
 @bp.route('/api/v1/generate/image', methods=['POST'])
 @login_required
-@require_kobold
 def generate_image():
+    if not KOBOLD_API:
+        return jsonify({'error': 'Legacy image provider is not configured'}), 503
     try:
-        response = requests.post(
-            f'{KOBOLD_API}/sdapi/v1/txt2img',
-            json=request.json,
-            timeout=60
-        )
-        
-        if not response.ok:
-            return handle_kobold_error(response)
-
-        return jsonify(response.json())
-
-    except requests.Timeout:
-        return jsonify({
-            'error': 'Image generation timed out'
-        }), 504
-        
-    except Exception as e:
-        print(f"Error in image generation: {str(e)}")
-        return jsonify({
-            'error': 'Failed to generate image',
-            'details': str(e)
-        }), 500
-
-@bp.route('/api/v1/generate', methods=['POST'])
-@login_required
-@require_kobold
-def generate_text():
-    try:
-        response = requests.post(
-            f'{KOBOLD_API}/api/v1/generate',
-            json=request.json,
-            timeout=30
-        )
-        
-        if not response.ok:
-            return handle_kobold_error(response)
-
-        return jsonify(response.json())
-    except Exception as e:
-        print(f"Error in text generation: {str(e)}")
-        return jsonify({
-            'error': 'Failed to generate text',
-            'details': str(e)
-        }), 500
+        response = requests.post(f'{KOBOLD_API}/sdapi/v1/txt2img', json=request.get_json(), timeout=120)
+        return (response.content, response.status_code, {'Content-Type': response.headers.get('Content-Type', 'application/json')})
+    except requests.RequestException:
+        return jsonify({'error': 'Legacy image provider is unavailable'}), 503

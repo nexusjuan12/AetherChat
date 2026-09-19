@@ -1,5 +1,24 @@
 // Auth state management
 let currentUser = null;
+let csrfToken = null;
+
+async function refreshCsrfToken() {
+    const response = await fetch('/auth/csrf', { credentials: 'include' });
+    if (response.ok) {
+        csrfToken = (await response.json()).csrf_token;
+    }
+    return csrfToken;
+}
+
+async function apiFetch(url, options = {}) {
+    const method = (options.method || 'GET').toUpperCase();
+    const headers = new Headers(options.headers || {});
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+        if (!csrfToken) await refreshCsrfToken();
+        if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
+    }
+    return fetch(url, { ...options, headers, credentials: 'include' });
+}
 
 // DOM Elements
 const authModal = document.getElementById('auth-modal');
@@ -19,6 +38,7 @@ async function checkAuth() {
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
+            await refreshCsrfToken();
             updateAuthUI();
             return true;
         }
@@ -46,7 +66,7 @@ function updateAuthUI() {
         loggedOutView.style.display = 'none';
         loggedInView.style.display = 'block';
         if (usernameDisplay) usernameDisplay.textContent = currentUser.username;
-        if (creditsDisplay) creditsDisplay.textContent = `Credits: ${currentUser.credits}`;
+        if (creditsDisplay) creditsDisplay.textContent = '';
         
         // Enable create character button if it exists
         const createCharacterBtn = document.getElementById('create-character');
@@ -109,6 +129,7 @@ async function handleLogin(e) {
         
         if (response.ok) {
             currentUser = data.user;
+            csrfToken = data.csrf_token || null;
             updateAuthUI();
             closeAuthModal();
             // Reload characters if the function exists
@@ -132,19 +153,22 @@ async function handleRegister(e) {
     
     const username = document.getElementById('register-username')?.value;
     const password = document.getElementById('register-password')?.value;
+    const email = document.getElementById('register-email')?.value;
+    const invite = document.getElementById('register-invite')?.value;
     
     try {
         const response = await fetch('/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password, invite })
         });
         
         const data = await response.json();
         
         if (response.ok) {
             currentUser = data.user;
+            csrfToken = data.csrf_token || null;
             updateAuthUI();
             closeAuthModal();
             // Reload characters if the function exists
@@ -163,9 +187,7 @@ async function handleRegister(e) {
 // Handle logout
 async function handleLogout() {
     try {
-        const response = await fetch('/auth/logout', {
-            credentials: 'include'
-        });
+        const response = await apiFetch('/auth/logout', { method: 'POST' });
         
         if (response.ok) {
             currentUser = null;
@@ -203,5 +225,6 @@ export {
     currentUser,
     checkAuth,
     updateAuthUI,
-    openAuthModal
+    openAuthModal,
+    apiFetch
 };

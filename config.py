@@ -1,37 +1,34 @@
-"""
-Central, environment-driven path/config resolution for AetherChat.
-
-Every path used to be hardcoded to /root/... which only worked on the one
-box this was originally deployed to. Everything here reads from an env var
-first and falls back to a sane default derived from this file's own
-location, so the app can run from any checkout.
-
-Override any of these in your .env (or the real environment) when you need
-something other than the default layout.
-"""
+"""Environment-driven configuration for AetherChat."""
 import os
 
-# The directory this repo is checked out into. Every other default path is
-# derived from here, so a fresh clone works out of the box with no env vars
-# set at all (aside from secrets, which still belong in .env).
 BASE_DIR = os.getenv('APP_BASE_DIR', os.path.dirname(os.path.abspath(__file__)))
-
 ENV_FILE = os.getenv('ENV_FILE', os.path.join(BASE_DIR, '.env'))
 TEMPLATES_DIR = os.getenv('TEMPLATES_DIR', os.path.join(BASE_DIR, 'templates'))
 DB_PATH = os.getenv('DB_PATH', os.path.join(BASE_DIR, 'db', 'users.db'))
-MODELS_DIR = os.getenv('MODELS_DIR', os.path.join(BASE_DIR, 'models'))
-INPUT_DIR = os.getenv('INPUT_DIR', os.path.join(BASE_DIR, 'input'))
 OUTPUT_DIR = os.getenv('OUTPUT_DIR', os.path.join(BASE_DIR, 'output'))
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', os.path.join(BASE_DIR, 'avatars'))
 CHARACTER_FOLDER = os.getenv('CHARACTER_FOLDER', os.path.join(BASE_DIR, 'characters'))
+VOICE_SAMPLE_DIR = os.getenv('VOICE_SAMPLE_DIR', os.path.join(BASE_DIR, 'private', 'voice-samples'))
+
+AUTH_MODE = os.getenv('AUTH_MODE', 'local_invite').strip().lower()
+AUTHENTIK_REQUIRED_GROUPS = {
+    group.strip().lower()
+    for group in os.getenv('AUTHENTIK_REQUIRED_GROUPS', 'members').split(',')
+    if group.strip()
+}
+TRUST_AUTHENTIK_HEADERS = os.getenv('TRUST_AUTHENTIK_HEADERS', 'false').lower() == 'true'
 
 SESSION_COOKIE_DOMAIN = os.getenv('SESSION_COOKIE_DOMAIN') or None
-
-# Comma-separated list of allowed CORS origins. This repo previously used
-# "*" (allow-all) with supports_credentials=True, which is a broken/unsafe
-# combination for a login-cookie-based app - browsers will actually reject
-# "*" with credentialed requests, and if they didn't, it would mean any
-# website could ride a logged-in user's session. Defaults to nothing (same-
-# origin only); set this for a home-network deployment.
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'true').lower() == 'true'
 _origins = os.getenv('CORS_ORIGINS', '')
-CORS_ORIGINS = [o.strip() for o in _origins.split(',') if o.strip()]
+CORS_ORIGINS = [origin.strip() for origin in _origins.split(',') if origin.strip()]
+
+LLM_API_BASE = os.getenv('LLM_API_BASE', 'http://127.0.0.1:5000').rstrip('/')
+LLM_API_KEY = os.getenv('LLM_API_KEY', '')
+TTS_API_BASE = os.getenv('TTS_API_BASE', 'http://127.0.0.1:8000').rstrip('/')
+TTS_API_KEY = os.getenv('TTS_API_KEY', '')
+TTS_ACCELERATOR_CONTROLLER_URL = os.getenv('TTS_ACCELERATOR_CONTROLLER_URL', '').rstrip('/')
+TTS_DEFAULT_VOICE = os.getenv('TTS_DEFAULT_VOICE', 'default')
+
+VIDEO_ENABLED_DEFAULT = os.getenv('VIDEO_ENABLED_DEFAULT', 'false').lower() == 'true'
+STORY_ENABLED_DEFAULT = os.getenv('STORY_ENABLED_DEFAULT', 'false').lower() == 'true'

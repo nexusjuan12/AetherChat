@@ -1,189 +1,106 @@
-1/21/25
 # AetherChat
 
-AetherChat is an open-source character AI chat platform that combines text generation using a local OpenAI style API, with voice synthesis to create interactive character conversations. Users can create custom characters with unique voices, appearance, and personalities. 
+Invite-only character chat built around private, OpenAI-compatible text and speech providers. The application never runs a model in its web process and browser clients never receive provider credentials.
 
-Here is a video guide [https://www.youtube.com/watch?v=NDW7xa-9zv8]
+## Current scope
 
-## Features
+- Local invite-only accounts with administrator-assisted recovery.
+- Optional Authentik identity mapping for a trusted reverse-proxy deployment.
+- Character chat via a private `/v1/chat/completions` provider.
+- Optional speech via a private `/v1/audio/speech` provider.
+- Character ownership, private/public approval workflow, and media uploads.
+- Per-user queued text/speech requests.
+- Qwen voice-profile data model and approval policy.
 
-- **Character Creation**:
-  - Custom avatars (static) and character backgrounds (static or video)
-  - Microsoft Edge TTS voice selection
-  - RVC (Retrieval-based Voice Conversion) voice model integration and custom model upload
-  - Customizable initial greetings
-  - Configurable system prompts
-  - Adjustable voice parameters (pitch and rate)
-  - Adjustable text generation paramaters 
+Story Mode is intentionally disabled pending repair. Video is represented only as a deployment-level feature flag; this repository does not deploy a video service. Payments, Google authentication, RVC, Stripe, and browser-to-model access are intentionally absent.
 
-- **Chat Interface**:
-  - Real-time text and voice responses
-  - Background media display
-  - Adjustable AI parameters per session
-  - Voice toggle options
+## Quick start
 
-- **Technical Features**:
-  - KoboldCPP integration for text generation (should work with any local OpenAI style API on port 5000) comes with sample text generation model or bring your own
-  - Microsoft Edge TTS + RVC for voice synthesis
-  - Flask-based web server
-  - CUDA acceleration support
-  - Responsive web design
+```bash
+cp .env.example .env
+python3 manage.py new-secret
+# set SECRET_KEY in .env, then set SESSION_COOKIE_SECURE=false for local HTTP development
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
+python3 manage.py bootstrap-admin --username admin --email admin@example.test
+python3 webserver.py
+```
 
-## Requirements
+Open `http://127.0.0.1:8081`. Create invitations through `POST /api/admin/invites` as an administrator. Local recovery is administrator-assisted; no email delivery service is included.
 
-- Ubuntu 22.04 (recommended)
-- CUDA 12.1
-- Python 3.10
-- At least 8GB RAM
-- NVIDIA GPU with CUDA support tested on 12gb VRAM(recommended)
+For container use:
 
-## Quick Start
+```bash
+cp .env.example .env
+mkdir -p data
+docker compose up --build -d
+```
 
-### Automated Installation
+The compose file binds the service to loopback only. Put it behind an HTTPS reverse proxy for a real deployment.
 
-1. Download `setup.sh` and `requirements.txt` to your installation directory
-2. Make the setup script executable:
-   ```bash
-   chmod +x setup.sh
-   ```
-3. Run the setup script:
-   ```bash
-   ./setup.sh
-   ```
-4. Run the start script edit your Kobold model path if desired:
-   ```bash
-   cd /root/
-   ./start.sh
-   ```
+## Provider contracts
 
-5. Access the application in your web browser at localhost port 8081 `http://127.0.0.1:8081`
-   admin credentials are admin/admin admin dashboard can be found in the side panel in the my-library screen.
+Set `LLM_API_BASE` to an OpenAI-compatible server exposing:
 
-### Manual Installation 
+```text
+POST /v1/chat/completions
+```
 
-1. **System Dependencies**
-   ```bash
-   sudo apt update
-   sudo apt install -y build-essential gcc g++ make cmake python3 python3-pip python3-venv \
-   ffmpeg libsndfile1 portaudio19-dev python3-dev unrar p7zip-full libgl1-mesa-glx libasound2-dev
-   ```
+Set `TTS_API_BASE` to a private OpenAI-compatible speech service exposing:
 
-2. **Install Miniconda**
-   ```bash
-   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-   chmod +x Miniconda3-latest-Linux-x86_64.sh
-   ./Miniconda3-latest-Linux-x86_64.sh -b -p /root/miniconda3
-   eval "$(/root/miniconda3/bin/conda shell.bash hook)"
-   /root/miniconda3/bin/conda init bash
-   source ~/.bashrc
-   ```
+```text
+POST /v1/audio/speech
+```
 
-3. **Create and Activate Conda Environment**
-   ```bash
-   conda create -n aetherchat python=3.10 -y
-   source /root/miniconda3/bin/activate aetherchat
-   pip install pip==24.0
-   ```
-   4. **Create Directory Structure**
-   ```bash
-   mkdir -p /root/{models,output,input,Kobold,templates,db}
-   ```
+The app sends a Qwen-oriented request with `model`, `input`, `voice`, and `response_format: wav`. Configure `TTS_ACCELERATOR_CONTROLLER_URL` only when speech must acquire a shared GPU lease before use.
 
-5. **Install KoboldCPP**
-   ```bash
-   cd /root/Kobold
-   wget https://github.com/LostRuins/koboldcpp/releases/download/v1.79.1/koboldcpp-linux-x64-cuda1210
-   chmod +x koboldcpp-linux-x64-cuda1210
-   mkdir models
-   cd models
-   wget https://huggingface.co/DavidAU/L3.1-Dark-Planet-SpinFire-Uncensored-8B-GGUF/resolve/main/L3.1-Dark-Planet-SpinFire-Uncensored-8B-D_AU-Q4_k_m.gguf
-   ```
+### Voice profiles
 
-6. **Clone Repository and Setup Files**
-   ```bash
-   git clone https://github.com/nexusjuan12/AetherChat.git /root/main
-   cp main/env_backup_root /root/.env
-   cp -r main/templates /root/
-   cp main/webserver.py /root/
-   cp main/queue_system.py /root/
-   cp -r main/db /root/
-   chmod 644 /root/db/users.db
-   chown root:root /root/db/users.db
-   ```
+The application accepts a consented audio sample, transcript, visibility choice, and review state. Private profiles are owner-only; public profiles require administrator approval. Activating a profile additionally requires the TTS provider to support:
 
-7. **Install PyTorch and Dependencies**
-   ```bash
-   pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121
-   
-   # Install RVC and TTS
-   python -m pip install git+https://github.com/Atm4x/tts-with-rvc.git#egg=tts_with_rvc
-   python -m pip install git+https://github.com/Atm4x/rvc-lib.git@dev#egg=rvc
-   python -m pip install -e git+https://github.com/Atm4x/rvc-lib.git#egg=rvclib
-   python -m pip install git+https://github.com/Atm4x/rvc-tts-pipeline-fix.git@dev#egg=rvc_tts_pipe
-   
-   # Install remaining requirements
-   cd /root/main
-   pip install -r requirements.txt
-   ```
+```text
+POST /v1/voices (multipart: sample, reference_text, display_name)
+```
 
-8. **Download Models**
-   ```bash
-   pip install huggingface_hub
-   python3 -c "from huggingface_hub import snapshot_download; snapshot_download('nexusjuan/Aetherchat', local_dir='/root/', repo_type='model')"
-   ```
+and return an `id` or `voice_profile_id` that can be supplied to `/v1/audio/speech`. The current generic interface does not invent a provider-specific cloning implementation. Until the Qwen TTS endpoint exposes this contract, profile enrollment returns a clear provider error instead of storing an unusable clone.
 
-   
-## Usage
+## Bizarre Labs deployment
 
-1. **Run the start script modify Kobold model path if desired**
-   ```bash
-   cd /root/
-   ./start.sh
-   ```
+Use `AUTH_MODE=authentik` only behind Caddy (or another trusted proxy) that strips client-supplied identity headers and sets:
 
-2. Access the application at `http://127.0.0.1:8081`
+```text
+X-Authentik-Uid
+X-Authentik-Username
+X-Authentik-Email
+X-Authentik-Groups
+```
 
-3. From the landing page you can login using the admin credentials admin/admin
+Set `TRUST_AUTHENTIK_HEADERS=true` and `AUTHENTIK_REQUIRED_GROUPS=members` (or the chosen member group). The Authentik UID is the stable account mapping key; the Lounge handle is the display/login name. The public/local invite flow stays separate.
 
-## Character Creation
+Provider endpoints must be reachable only from the server network. Do not set their URLs in browser JavaScript or expose their tunnel ports publicly.
 
-1. Click "Create Character" on the main page
-2. Upload an avatar image
-3. Choose a Microsoft Edge TTS voice
-4. Upload or select an RVC voice model
-5. Set voice parameters (pitch and rate)
-6. Add character description and system prompt
-7. Set initial greetings
-8. Upload background image or video 
+## Runtime data and backup
 
-## Troubleshooting
+Production runtime state belongs outside the Git checkout:
 
-- Ensure CUDA is properly installed and configured
-- Check that all required directories exist and have proper permissions
-- Verify KoboldCPP is running before starting the web server
-- Monitor the terminal output for any error messages
-- Ensure all models are downloaded correctly
+- SQLite database (`DB_PATH`)
+- generated audio (`OUTPUT_DIR`)
+- private voice samples (`VOICE_SAMPLE_DIR`)
+- uploaded avatar/background media if custom paths are used
 
-## Notes
+Back up those paths and `.env` separately. Do not commit database files, sample audio, generated outputs, passwords, API keys, or tunnel credentials.
 
-- admin account for web interface is admin/admin
-- The default model is suitable for general conversation but you can use any GGUF format model compatible with KoboldCPP
-- Character creation includes both public and private options
-- Voice synthesis requires both TTS and RVC models
-- Background videos support common formats (mp4, webm, etc.)
-- The server should work with any local OpenAI style API available on port 5000
+## Development notes
 
-## License
+`webserver.py` is the development entrypoint. Gunicorn works because queue handlers are registered in `app.create_app()`, not only in the development process.
 
-## License
-This project is licensed under the [Creative Commons BY-NC](LICENSE).
+Run a syntax/smoke check with:
 
-This version is provided as-is for personal and non-commercial use. The final commercial version will include additional features and licensing options.
+```bash
+python3 -m compileall -q app webserver.py manage.py queue_system.py
+```
 
+## Repository relationship
 
-## Acknowledgments
-- Atm4x for his great work https://github.com/Atm4x/tts-with-rvc
-- KoboldCPP for the text generation backend
-- Microsoft Edge TTS for base voice synthesis
-- RVC for voice conversion
-- All other open-source contributors
+`AetherChat` is the reusable public core. `AetherChatV3` remains the separate experimental video/billing line. Shared core-only changes should be carried across deliberately; generated video artifacts and deployment-specific configuration must not be copied into this repository.

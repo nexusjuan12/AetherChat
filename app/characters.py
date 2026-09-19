@@ -14,11 +14,10 @@ from flask import (
     make_response,
 )
 from flask_login import login_required, current_user
-from flask_cors import cross_origin
 
 import config
 from .extensions import db
-from .models import Character, User, CreditTransaction, CharacterApprovalQueue
+from .models import Character, CharacterApprovalQueue, VoiceProfile
 
 bp = Blueprint('characters', __name__)
 
@@ -106,9 +105,14 @@ def create_character():
             ai_parameters.update(data['ai_parameters'])
 
         # Prepare settings
+        voice_profile_id = data.get('voice_profile_id')
+        if voice_profile_id:
+            voice_profile = db.session.get(VoiceProfile, voice_profile_id)
+            if not voice_profile or not voice_profile.is_usable_by(current_user):
+                return jsonify({'error': 'Selected voice profile is unavailable'}), 403
+
         settings = {
             'tts_rate': data.get('tts_rate', 0),
-            'rvc_pitch': data.get('rvc_pitch', 0),
             'ai_parameters': ai_parameters,
             'tags': data.get('tags', [])
         }
@@ -123,6 +127,7 @@ def create_character():
             avatar_path=data['avatar'],
             background_path=data.get('background'),
             tts_voice=data.get('ttsVoice', ''),
+            voice_profile_id=voice_profile_id,
             category=data.get('category', 'Other'),
             is_private=is_private,
             is_approved=is_private,
@@ -151,7 +156,7 @@ def create_character():
                 'category': data.get('category', 'Other'),
                 'tags': data.get('tags', []),
                 'tts_rate': data.get('tts_rate', 0),
-                'rvc_pitch': data.get('rvc_pitch', 0),
+                'voice_profile_id': voice_profile_id,
                 'dateAdded': datetime.utcnow().isoformat(),
                 'creator': current_user.id,
                 'isPrivate': is_private,
@@ -163,9 +168,6 @@ def create_character():
             if data.get('background'):
                 char_file_data['background'] = data['background']
 
-            if data.get('rvc_model'):
-                char_file_data['rvc_model'] = data['rvc_model']
-            
             # Save character JSON file
             char_file_path = os.path.join(CHARACTER_FOLDER, f"{char_id}.json")
             with open(char_file_path, 'w', encoding='utf-8') as f:
@@ -175,23 +177,10 @@ def create_character():
             db.session.commit()
             print("Database committed")
             
-            # Award credits
-            current_user.add_credits(200)
-            transaction = CreditTransaction(
-                user_id=current_user.id,
-                amount=200,
-                transaction_type='character_creation',
-                description=f'Created {"private" if is_private else "public"} character: {data["name"]}'
-            )
-            db.session.add(transaction)
-            db.session.commit()
-            print("Credits awarded")
-            
             return jsonify({
                 'message': 'Character created successfully',
                 'character_id': char_id,
-                'approval_status': 'approved' if is_private else 'pending',
-                'credits_earned': 200
+                'approval_status': 'approved' if is_private else 'pending'
             }), 201
             
         except Exception as e:
@@ -315,18 +304,6 @@ def approve_character(character_id):
         if character:
             character.is_approved = True
             character.approval_status = 'approved'
-            
-            # Award credits to creator
-            creator = User.query.get(character.creator_id)
-            if creator:
-                creator.add_credits(500)
-                transaction = CreditTransaction(
-                    user_id=creator.id,
-                    amount=500,
-                    transaction_type='character_approval',
-                    description=f'Character approved: {character.name}'
-                )
-                db.session.add(transaction)
             
             db.session.commit()
 
@@ -501,68 +478,9 @@ def check_character(character_name):
 @bp.route('/characters/upload-model', methods=['POST'])
 @login_required
 def upload_model():
-    try:
-        # Character creation uploads the model *before* the Character row
-        # exists, so char_id may legitimately have no matching row yet.
-        # What must be rejected is a char_id that is either unsafe for
-        # path-building or already belongs to someone else's character -
-        # previously neither was checked at all, so any authenticated user
-        # could pass an arbitrary string (including "../..") and write into,
-        # or escape, another character's model dir.
-        char_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
-        if error:
-            return error
-
-        # Create model directory
-        model_dir = os.path.join(config.MODELS_DIR, char_id)
-        os.makedirs(model_dir, exist_ok=True)
-
-        # Handle model file upload
-        if 'modelFile' in request.files:
-            model_file = request.files['modelFile']
-            if not model_file.filename.endswith('.pth'):
-                return jsonify({'error': 'Invalid model file type. Must be .pth'}), 400
-
-            model_path = os.path.join(model_dir, f"{char_id}.pth")
-            model_file.save(model_path)
-            return jsonify({'message': 'Model file uploaded successfully'})
-
-        # Handle index file upload
-        elif 'indexFile' in request.files:
-            index_file = request.files['indexFile']
-            if not index_file.filename.endswith('.index'):
-                return jsonify({'error': 'Invalid index file type. Must be .index'}), 400
-
-            index_path = os.path.join(model_dir, f"{char_id}.index")
-            index_file.save(index_path)
-
-            # Check if model file exists
-            model_path = os.path.join(model_dir, f"{char_id}.pth")
-            if not os.path.exists(model_path):
-                return jsonify({'error': 'Model file not found'}), 400
-
-            # Update character settings, if the character record exists yet
-            # (it won't during the initial character-creation upload flow).
-            character = Character.query.get(char_id)
-            if character:
-                if not character.settings:
-                    character.settings = {}
-                character.settings['rvc_model'] = char_id
-                db.session.commit()
-
-            return jsonify({
-                'message': 'Model upload completed successfully',
-                'character_id': char_id
-            })
-            
-        else:
-            return jsonify({'error': 'No file provided'}), 400
-
-    except Exception as e:
-        print(f"Model upload error: {str(e)}")
-        if 'model_dir' in locals() and os.path.exists(model_dir):
-            shutil.rmtree(model_dir)
-        return jsonify({'error': str(e)}), 500
+    return jsonify({
+        'error': 'RVC model uploads are no longer supported. Create a Qwen voice profile instead.'
+    }), 410
 
 @bp.route('/characters/submit-for-review/<character_id>', methods=['POST'])
 @login_required
@@ -796,9 +714,12 @@ def update_character(character_id):
             if not character.settings:
                 character.settings = {}
             if data.get('tts_rate') is not None: character.settings['tts_rate'] = data['tts_rate']
-            if data.get('rvc_pitch') is not None: character.settings['rvc_pitch'] = data['rvc_pitch']
             if data.get('ai_parameters'): character.settings['ai_parameters'] = data['ai_parameters']
-            if data.get('rvc_model'): character.settings['rvc_model'] = data['rvc_model']
+            if data.get('voice_profile_id'):
+                voice_profile = db.session.get(VoiceProfile, data['voice_profile_id'])
+                if not voice_profile or not voice_profile.is_usable_by(current_user):
+                    return jsonify({'error': 'Selected voice profile is unavailable'}), 403
+                character.voice_profile_id = voice_profile.id
             
             db.session.commit()
             
@@ -850,14 +771,12 @@ def delete_character(character_id):
     try:
         # Define base paths
         BASE_PATH = config.BASE_DIR
-        MODELS_PATH = config.MODELS_DIR
         
         # Define all paths that need to be checked and cleaned
         paths_to_clean = {
             'json_file': os.path.join(BASE_PATH, 'characters', f'{character_id}.json'),
             'avatar': os.path.join(BASE_PATH, 'avatars', f'{character_id}-avatar.png'),
-            'character_folder': os.path.join(BASE_PATH, 'characters', character_id),
-            'model_folder': os.path.join(MODELS_PATH, character_id)
+            'character_folder': os.path.join(BASE_PATH, 'characters', character_id)
         }
 
         # First verify character exists and check ownership
@@ -906,15 +825,7 @@ def delete_character(character_id):
             except Exception as e:
                 cleanup_errors.append(f"Failed to delete character folder: {str(e)}")
 
-        # 4. Delete model folder (contains .pth and .index files)
-        if os.path.exists(paths_to_clean['model_folder']):
-            try:
-                shutil.rmtree(paths_to_clean['model_folder'])
-                cleanup_log.append(f"Deleted model folder: {paths_to_clean['model_folder']}")
-            except Exception as e:
-                cleanup_errors.append(f"Failed to delete model folder: {str(e)}")
-
-        # 5. Delete database record if it exists
+        # 4. Delete database record if it exists
         if character:
             try:
                 db.session.delete(character)
@@ -953,49 +864,7 @@ def delete_character(character_id):
 
 @bp.route('/large-upload/model', methods=['POST'])
 @login_required
-@cross_origin(supports_credentials=True)
 def upload_large_model():
-    try:
-        if 'modelFile' not in request.files or 'indexFile' not in request.files:
-            return jsonify({'error': 'Both model and index files are required'}), 400
-
-        model_file = request.files['modelFile']
-        index_file = request.files['indexFile']
-
-        if not model_file.filename.endswith('.pth'):
-            return jsonify({'error': 'Invalid model file type. Must be .pth'}), 400
-        if not index_file.filename.endswith('.index'):
-            return jsonify({'error': 'Invalid index file type. Must be .index'}), 400
-
-        # Same validation as /characters/upload-model: reject an unsafe
-        # char_id, or one that already belongs to someone else's character.
-        char_id, error = resolve_character_id_for_upload(request.form.get('characterId'))
-        if error:
-            return error
-
-        # Create model directory
-        model_dir = os.path.join(config.MODELS_DIR, char_id)
-        os.makedirs(model_dir, exist_ok=True)
-
-        try:
-            # Save files
-            model_path = os.path.join(model_dir, f"{char_id}.pth")
-            index_path = os.path.join(model_dir, f"{char_id}.index")
-
-            model_file.save(model_path)
-            index_file.save(index_path)
-
-            return jsonify({
-                'message': 'Model uploaded successfully',
-                'character_id': char_id
-            })
-
-        except Exception as e:
-            # Clean up on failure
-            if os.path.exists(model_dir):
-                shutil.rmtree(model_dir)
-            raise Exception(f"Failed to save model files: {str(e)}")
-
-    except Exception as e:
-        print(f"Model upload error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+    return jsonify({
+        'error': 'RVC model uploads are no longer supported. Create a Qwen voice profile instead.'
+    }), 410

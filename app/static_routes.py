@@ -3,8 +3,9 @@ Static file serving (SPA index, css/js/chat assets, favicon) and the two
 static legal pages. Moved out of the original monolithic webserver.py.
 """
 import os
+from pathlib import PurePosixPath
 
-from flask import Blueprint, send_from_directory, render_template
+from flask import Blueprint, abort, send_from_directory, render_template
 
 import config
 
@@ -19,18 +20,18 @@ def serve_index():
 
 @bp.route('/<path:path>')
 def serve_static(path):
-    try:
-        # Strip any route prefixes
-        if path.startswith('edit-character/'):
-            path = path.replace('edit-character/', '', 1)
-        if path.startswith('admin-dashboard/'):  # Add this line
-            path = path.replace('admin-dashboard/', '', 1)  # Add this line
-        if path.startswith('css/') or path.startswith('js/'):
-            return send_from_directory(STATIC_DIR, path)
-        return send_from_directory(STATIC_DIR, path)
-    except Exception as e:
-        print(f"Error serving {path}: {e}")
-        return f"Error: Could not serve {path}", 404
+    """Serve only browser assets, never source/config/runtime files."""
+    normalized = PurePosixPath(path)
+    if normalized.is_absolute() or '..' in normalized.parts:
+        abort(404)
+    root_assets = {
+        'index.html', 'styles.css', 'script.js', 'auth.js', 'characters.js',
+        'logo.jpg', 'favicon.ico', 'index.json',
+    }
+    allowed_prefixes = ('avatars/', 'characters/', 'assets/', 'css/', 'js/', 'chat/')
+    if path not in root_assets and not path.startswith(allowed_prefixes):
+        abort(404)
+    return send_from_directory(STATIC_DIR, path)
 
 @bp.route('/chat/<path:filename>')
 def serve_chat_files(filename):

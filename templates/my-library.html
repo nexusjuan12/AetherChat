@@ -20,7 +20,6 @@
             <div id="logged-in-view">
                 <div class="user-info">
                     <span id="username-display"></span>
-                    <span id="credits-display"></span>
                 </div>
                 <button class="nav-button" id="logout-button">
                     Logout
@@ -73,7 +72,6 @@
                 // Update user info
                 if (data.user) {
                     document.getElementById('username-display').textContent = data.user.username;
-                    document.getElementById('credits-display').textContent = `${data.user.credits} credits`;
                     
                     // Check if user is admin (you'll need to add this to your user endpoint)
                     if (data.user.is_admin) {

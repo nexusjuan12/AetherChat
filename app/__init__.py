@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 
 import config
 from .extensions import db, login_manager
+from .migrations import run_migrations
 from .security import register_security_headers
 
 
@@ -42,7 +43,7 @@ def create_app():
                 # (comma-separated) for your home-network deployment.
                 "origins": config.CORS_ORIGINS,
                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization"],
+                "allow_headers": ["Content-Type", "Authorization", "X-CSRF-Token"],
                 "supports_credentials": True,
             }
         },
@@ -60,7 +61,7 @@ def create_app():
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         SECRET_KEY=os.getenv('SECRET_KEY'),
         STATIC_FOLDER=config.BASE_DIR,
-        SESSION_COOKIE_SECURE=False,  # local/home deployment, not behind TLS by default
+        SESSION_COOKIE_SECURE=config.SESSION_COOKIE_SECURE,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
         PERMANENT_SESSION_LIFETIME=timedelta(days=31),
@@ -75,37 +76,31 @@ def create_app():
     os.makedirs(config.OUTPUT_DIR, exist_ok=True)
     os.makedirs(config.UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(config.CHARACTER_FOLDER, exist_ok=True)
+    os.makedirs(config.VOICE_SAMPLE_DIR, exist_ok=True)
 
     db.init_app(app)
     login_manager.init_app(app)
 
-    # Import blueprint modules only after db/login_manager are bound to the
-    # app and env vars are loaded - several of them read os.environ at
-    # import time. auth.py registers both @login_manager.user_loader and
-    # @login_manager.unauthorized_handler as a side effect of being
-    # imported. story.py imports from media.py, so media must be importable
-    # first (Python resolves that on demand, order here doesn't matter).
-    from . import auth, characters, admin, media, story, static_routes
+    # Story Mode is known incomplete and deliberately not registered unless a
+    # future repair pass makes it safe to enable.
+    from . import auth, characters, admin, media, static_routes
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(characters.bp)
     app.register_blueprint(admin.bp)
     app.register_blueprint(media.bp)
-    app.register_blueprint(story.bp)
     app.register_blueprint(static_routes.bp)
-
-    # Also re-set model_cache's paths here, matching the original module's
-    # top-level side effect (model_cache is a singleton shared with
-    # tts_handler in app/media.py).
-    from model_cache import model_cache
-    model_cache._base_model_path = config.MODELS_DIR
-    model_cache._input_dir = config.INPUT_DIR + os.sep
-    model_cache._output_dir = config.OUTPUT_DIR + os.sep
-    model_cache._cache_timeout = 1800  # 30 minutes timeout
 
     register_security_headers(app)
 
     with app.app_context():
         db.create_all()
+        run_migrations()
+
+    # Register worker handlers here rather than only in webserver.py. This
+    # keeps chat and speech jobs functional when deployed under Gunicorn.
+    from .media import kobold_handler, tts_handler
+    from queue_system import setup_queue_handlers
+    setup_queue_handlers(kobold_handler, tts_handler)
 
     return app

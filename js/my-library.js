@@ -1,3 +1,5 @@
+import { apiFetch } from '../auth.js';
+
 // State management for editing
 let currentCharacter = null;
 
@@ -9,7 +11,7 @@ async function deleteCharacter(characterId) {
     }
 
     try {
-        const response = await fetch(`/characters/${characterId}/delete`, {
+        const response = await apiFetch(`/characters/${characterId}/delete`, {
             method: 'POST',  // Using POST as primary method
             credentials: 'include',
             headers: {
@@ -18,7 +20,7 @@ async function deleteCharacter(characterId) {
         });
 
         if (response.status === 405) {  // If POST not allowed, try DELETE
-            const deleteResponse = await fetch(`/characters/${characterId}/delete`, {
+            const deleteResponse = await apiFetch(`/characters/${characterId}/delete`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -106,7 +108,6 @@ function createCharacterCard(character) {
                 ${tagsHtml}
             </div>
             <div class="card-actions">
-                <button class="edit-btn" onclick="editCharacter('${character.id}')">Edit</button>
                 <button class="delete-btn" onclick="deleteCharacter('${character.id}')">Delete</button>
             </div>
             ${character.rejectionReason ? 
@@ -193,9 +194,7 @@ function setupLogout() {
     if (logoutButton) {
         logoutButton.addEventListener('click', async () => {
             try {
-                const response = await fetch('/auth/logout', {
-                    credentials: 'include'
-                });
+                const response = await apiFetch('/auth/logout', { method: 'POST' });
                 
                 if (response.ok) {
                     window.location.href = '/login';
@@ -227,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (data.user) {
             document.getElementById('username-display').textContent = data.user.username;
-            document.getElementById('credits-display').textContent = `${data.user.credits} credits`;
         }
     })
     .catch(error => console.error('Error checking admin status:', error));

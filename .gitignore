@@ -6,13 +6,17 @@ env_backup*
 
 # Local data / generated artifacts
 db/*.db
+data/
 models/
 input/
 output/
+private/
 
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage
 
 # Jupyter
 .ipynb_checkpoints/

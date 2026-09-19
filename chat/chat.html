@@ -27,7 +27,6 @@
                 <div id="logged-in-view" style="display: none">
                     <div class="user-info">
                         <span id="username-display"></span>
-                        <span id="credits-display"></span>
                     </div>
                     <button class="nav-button" id="logout-button">
                         Logout
@@ -41,11 +40,6 @@
                 <!-- Voice Parameters -->
                 <div class="parameter-group">
                     <h3>Voice Settings</h3>
-                    <div class="parameter-control">
-                        <label for="rvc-pitch">RVC Pitch</label>
-                        <input type="range" id="rvc-pitch" min="-18" max="18" value="0" step="1">
-                        <span class="parameter-value">0</span>
-                    </div>
                     <div class="parameter-control">
                         <label for="tts-rate">TTS Rate</label>
                         <input type="range" id="tts-rate" min="-100" max="100" value="0" step="0.1">
@@ -116,7 +110,7 @@
             <div class="chat-input">
                 <div class="input-wrapper">
                     <input id="user-input" type="text" placeholder="Type your message here..." />
-                    <div class="message-cost">Text: 10 credits • Voice: 15 credits</div>
+                    <div class="message-cost">Text and voice generation use private server capacity.</div>
                 </div>
                 <button class="audio-toggle">🔊</button>
                 <button id="send-button">Send</button>
@@ -151,6 +145,14 @@
                 <div class="form-group">
                     <label for="register-username">Username</label>
                     <input type="text" id="register-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Recovery Email</label>
+                    <input type="email" id="register-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-invite">Invite Code</label>
+                    <input type="text" id="register-invite" placeholder="Invite code" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password</label>

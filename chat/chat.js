@@ -1,4 +1,4 @@
-import { currentUser, checkAuth, openAuthModal } from '../auth.js';
+import { apiFetch, currentUser, checkAuth, openAuthModal } from '../auth.js';
 
 function initAuthModal() {
     window.openAuthModal = function(type = 'login') {
@@ -46,7 +46,6 @@ const sendButton = document.getElementById("send-button");
 // New parameter state management
 let sessionParameters = {
     voice: {
-        rvcPitch: character.rvc_pitch || 0,
         ttsRate: character.tts_rate || 0
     },
     ai: {
@@ -75,26 +74,10 @@ function filterTextForTTS(text) {
     return text.replace(/\*[^*]*\*/g, '').trim();
 }
 
-function getCreditCost() {
-    return audioEnabled ? 15 : 10;
-}
-
-function updateCreditDisplay() {
-    const creditsDisplay = document.querySelector('.credit-display');
-    if (creditsDisplay && currentUser) {
-        creditsDisplay.textContent = `Credits: ${currentUser.credits}`;
-        console.log(`Updated credit display: ${currentUser.credits}`);
-    }
-}
-
 function initializeParameters() {
     console.log("Initializing parameters from character:", character);
     
     const parameterControls = {
-        'rvc-pitch': {
-            value: character.rvc_pitch || 0,
-            updateFn: (value) => character.rvc_pitch = value
-        },
         'tts-rate': {
             value: character.tts_rate || 0,
             updateFn: (value) => character.tts_rate = value
@@ -192,8 +175,7 @@ function toggleAudio() {
     const audioToggle = document.querySelector('.audio-toggle');
     if (audioToggle) {
         audioToggle.innerHTML = audioEnabled ? "🔊" : "🔇";
-        const creditsPerMessage = audioEnabled ? "15" : "10";
-        audioToggle.title = `Credits per message: ${creditsPerMessage}`;
+        audioToggle.title = audioEnabled ? 'Voice responses enabled' : 'Voice responses muted';
     }
     if (!audioEnabled && currentAudioPlayer) {
         currentAudioPlayer.pause();
@@ -263,16 +245,8 @@ async function sendMessage(userMessage = null) {
         return;
     }
 
-    const creditCost = getCreditCost();
-
     if (!currentUser) {
         openAuthModal('login');
-        return;
-    }
-
-    // Check credits before proceeding
-    if (currentUser.credits < creditCost) {
-        addMessage("bot", "Insufficient credits. Please purchase more credits to continue chatting.");
         return;
     }
 
@@ -304,11 +278,10 @@ async function sendMessage(userMessage = null) {
             ];
         }
 
-        const response = await fetch('/v1/chat/completions', {
+        const response = await apiFetch('/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "koboldcpp",
                 messages: messages,
                 temperature: sessionParameters.ai.temperature,
                 max_tokens: character.ai_parameters?.max_tokens || 150,
@@ -318,25 +291,15 @@ async function sendMessage(userMessage = null) {
             })
         });
 
-        if (response.status === 402) {
-            addMessage("bot", "Insufficient credits. Please purchase more credits to continue chatting.");
-            return;
-        }
-
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
 
-        const responseData = await response.json();
-        const botMessage = responseData.choices[0].message.content.trim();
+        const queued = await response.json();
+        const responseData = await waitForJob(queued.request_id);
+        const botMessage = responseData.choices?.[0]?.message?.content?.trim();
+        if (!botMessage) throw new Error('Text engine returned no message');
         addMessage("bot", botMessage);
-
-        // Update credits after successful message
-        if (currentUser) {
-            currentUser.credits -= creditCost;
-            updateCreditDisplay();
-            console.log(`Credits used: ${creditCost}. Remaining credits: ${currentUser.credits}`);
-        }
 
         if (audioEnabled) {
             const ttsText = filterTextForTTS(botMessage);
@@ -350,18 +313,24 @@ async function sendMessage(userMessage = null) {
 
     } catch (error) {
         console.error("Error details:", error);
-        addMessage("bot", "I apologize, there was an error. Your credits have been refunded.");
-        
-        if (currentUser) {
-            currentUser.credits += creditCost;
-            updateCreditDisplay();
-            console.log(`Credits refunded: ${creditCost}. Current credits: ${currentUser.credits}`);
-        }
+        addMessage("bot", "I apologize, there was an error reaching the text engine.");
     } finally {
         isProcessing = false;
         userInput.disabled = false;
         sendButton.disabled = false;
         userInput.focus();
+    }
+}
+
+async function waitForJob(requestId) {
+    if (!requestId) throw new Error('Request was not queued');
+    for (;;) {
+        await new Promise(resolve => setTimeout(resolve, 750));
+        const response = await apiFetch(`/v1/jobs/${encodeURIComponent(requestId)}`);
+        if (!response.ok) throw new Error(`Job status error: ${response.status}`);
+        const job = await response.json();
+        if (job.status === 'complete') return job.result;
+        if (job.status === 'error') throw new Error(job.error || 'Generation failed');
     }
 }
 
@@ -380,19 +349,15 @@ async function processNextInQueue() {
         const text = messageQueue[0];
         console.log("Processing TTS for text:", text);
         
-        const voiceModel = character.existingCharacterModel || character.rvc_model || character.id;
-        
         const requestBody = {
             text: text,
-            edge_voice: character.ttsVoice,
-            rvc_model: voiceModel,
             tts_rate: sessionParameters.voice.ttsRate,
-            rvc_pitch: sessionParameters.voice.rvcPitch
+            voice_profile_id: character.voice_profile_id || null
         };
 
         console.log("Sending TTS request:", requestBody);
 
-        const ttsResponse = await fetch('/v1/tts', {
+        const ttsResponse = await apiFetch('/v1/tts', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(requestBody)
@@ -402,7 +367,8 @@ async function processNextInQueue() {
             throw new Error(`TTS API error: ${ttsResponse.status}`);
         }
 
-        const ttsData = await ttsResponse.json();
+        const queued = await ttsResponse.json();
+        const ttsData = await waitForJob(queued.request_id);
         
         if (!ttsData.audio_url) {
             throw new Error("No audio URL received from TTS service");
@@ -588,7 +554,7 @@ async function initializeUI() {
         const audioToggle = document.querySelector('.audio-toggle');
         if (audioToggle) {
             audioToggle.onclick = toggleAudio;
-            audioToggle.title = `Credits per message: ${audioEnabled ? "15" : "10"}`;
+            audioToggle.title = audioEnabled ? 'Voice responses enabled' : 'Voice responses muted';
         }
 
         const clearButton = document.querySelector('.clear-chat');

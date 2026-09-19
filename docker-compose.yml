@@ -1,0 +1,14 @@
+services:
+  aetherchat:
+    build: .
+    env_file: .env
+    environment:
+      APP_BASE_DIR: /app
+      DB_PATH: /data/aetherchat.db
+      OUTPUT_DIR: /data/output
+      VOICE_SAMPLE_DIR: /data/private/voice-samples
+    volumes:
+      - ./data:/data
+    ports:
+      - "127.0.0.1:8081:8081"
+    restart: unless-stopped

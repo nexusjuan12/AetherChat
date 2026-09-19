@@ -304,10 +304,7 @@ function createCharacterCard(char) {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
-    await Promise.all([
-        loadCharacters(),
-        loadStorySessions()
-    ]);
+    await loadCharacters();
 
     const searchInput = document.getElementById('search');
     if (searchInput) {

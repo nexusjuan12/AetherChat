@@ -28,7 +28,6 @@
                     <div id="logged-in-view" style="display: none">
                         <div class="user-info">
                             <span id="username-display"></span>
-                            <span id="credits-display"></span>
                         </div>
                         <button class="nav-button" id="logout-button">
                             Logout
@@ -47,9 +46,6 @@
                 <a href="/my-library" class="nav-button" id="my-library">
                     My Library
                 </a>
-                <a href="/setup-story" class="nav-button" id="setup-story">
-                    Create Story
-                </a>
             </div>
 
             <div class="filter-tabs">
@@ -67,11 +63,6 @@
     <main>
         <div id="character-grid" class="character-grid"></div>
         
-        <!-- New Story Sessions Section -->
-        <div class="story-sessions">
-            <h2>Active Stories</h2>
-            <div id="story-sessions-grid" class="story-sessions-grid"></div>
-        </div>
     </main>
 
     <!-- Auth Modal -->
@@ -101,6 +92,14 @@
                 <div class="form-group">
                     <label for="register-username">Username</label>
                     <input type="text" id="register-username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Recovery Email</label>
+                    <input type="email" id="register-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-invite">Invite Code</label>
+                    <input type="text" id="register-invite" placeholder="Invite code" required>
                 </div>
                 <div class="form-group">
                     <label for="register-password">Password</label>
